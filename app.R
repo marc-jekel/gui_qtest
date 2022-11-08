@@ -60,7 +60,7 @@ ui <- shinyUI(fluidPage(
                ),
                fluidRow(
                  column(12,offset=0,
-                        helpText("In/equalities")
+                        helpText("Models")
                  ),
                  column(12,offset=0,
                         actionButton("rm_ie", "",icon=icon("fa-regular fa-square-minus")),
