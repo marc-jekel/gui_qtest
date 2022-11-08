@@ -6,5 +6,5 @@
 .httr-oauth
 .DS_Store
 rsconnect/
-.Rproj
+gui_qtest.Rproj
 .gitignore
