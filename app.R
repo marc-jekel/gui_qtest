@@ -852,7 +852,7 @@ server <- shinyServer(function(input, output, session) {
       
     }
     
-    input_relations <<-  input_relations # <<- 
+    input_relations <<-  input_relations
     
     ####* RCDD #####
     
@@ -1030,9 +1030,9 @@ server <- shinyServer(function(input, output, session) {
                                   add_multiply)
             
             
-            fix_factors = pos_before_p[add_multiply != 0] ## <<-
-            add_multiply = add_multiply[add_multiply != 0] ## <<-
-       
+            fix_factors = pos_before_p[add_multiply != 0]   
+            add_multiply = add_multiply[add_multiply != 0]
+    
             return(list(fix_factors,add_multiply))
           }
           
