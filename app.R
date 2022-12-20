@@ -651,12 +651,11 @@ server <- shinyServer(function(input, output, session) {
       colnames(mixture_compl) = c("models",colnames_v_representation_plot_all)
       matrix_pl_all = rbind(matrix_pl_all,mixture_compl)
       
-      names_available_models_single <<- names_available_models
+      names_available_models <<- names_available_models
       
-      names_available_models = c(names_available_models,"mixture")
+      names_available_models_with_mixture = c(names_available_models,"mixture")
       
-      
-      select_models_to_plot = names_available_models[which(names_available_models %in% models_to_plot)]
+      select_models_to_plot = names_available_models_with_mixture[which(names_available_models_with_mixture %in% models_to_plot)]
       
       
       matrix_pl_all = matrix_pl_all[matrix_pl_all[,1] %in% select_models_to_plot, ]
@@ -853,7 +852,7 @@ server <- shinyServer(function(input, output, session) {
       
     }
     
-    input_relations <<- input_relations
+    input_relations <<-  input_relations # <<- 
     
     ####* RCDD #####
     
@@ -1031,12 +1030,16 @@ server <- shinyServer(function(input, output, session) {
                                   add_multiply)
             
             
-            fix_factors <<- pos_before_p[add_multiply != 0]
-            add_multiply <<- add_multiply[add_multiply != 0]
-            
+            fix_factors = pos_before_p[add_multiply != 0] ## <<-
+            add_multiply = add_multiply[add_multiply != 0] ## <<-
+       
+            return(list(fix_factors,add_multiply))
           }
           
-          add_multiply_function()
+          res_cadd_multiply_function = add_multiply_function()
+     
+          fix_factors = unlist(res_cadd_multiply_function[1])
+          add_multiply = unlist(res_cadd_multiply_function[2])
           
           if(length(add_multiply) > 0){
             
@@ -1069,7 +1072,9 @@ server <- shinyServer(function(input, output, session) {
                 
               }
               
-              add_multiply_function()
+              res_cadd_multiply_function = add_multiply_function()
+              fix_factors = unlist(res_cadd_multiply_function[1])
+              add_multiply = unlist(res_cadd_multiply_function[2])
               
             }
             
