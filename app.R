@@ -593,7 +593,7 @@ server <- shinyServer(function(input, output, session) {
     models_to_plot = str_replace_all(models_to_plot," ","")
     models_to_plot = unlist(models_to_plot)
     
-    models_to_plot = unique(c(models_to_plot,names_available_models_single))
+    models_to_plot = unique(c(models_to_plot,names_available_models))
     models_to_plot = models_to_plot[models_to_plot!=""]
     
     updateTextAreaInput(inputId = "name_model_plot",  
