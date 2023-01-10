@@ -108,45 +108,7 @@ ui <- shinyUI(fluidPage(
     ),
     
     
-    
     tabPanel("H-representation",
-             sidebarPanel(
-               style = "position:fixed;width:13%",
-               width=2,
-               fluidRow(
-                 column(12,offset=0,
-                        helpText("Download for QTEST")),
-                 column(12,offset=0,
-                        helpText("Model flexibility")),
-               )),
-             mainPanel(
-               
-               fluidPage(
-                 withMathJax(),
-                 uiOutput('h')
-             )
-        
-             )
-             
-    ),
-    tabPanel("V-representation",
-             sidebarPanel(
-               style = "position:fixed;width:13%",
-               width=2,
-               fluidRow(
-                 column(12,offset=0,
-                        helpText("Download for QTEST"))
-               )),
-             mainPanel(
-               
-               fluidRow(
-                 column(12,    DT::dataTableOutput("v_representation"))
-               )  
-               
-             )
-           
-    ),
-    tabPanel("H-repr of mixture",
              
              sidebarPanel(
                style = "position:fixed;width:13%",
@@ -166,7 +128,7 @@ ui <- shinyUI(fluidPage(
              )
          
     ),
-    tabPanel("V-repr of mixture",
+    tabPanel("V-representation",
              
              sidebarPanel(
                style = "position:fixed;width:13%",
@@ -178,7 +140,7 @@ ui <- shinyUI(fluidPage(
              mainPanel(
                
                fluidRow(
-                 column(12,    DT::dataTableOutput("mixture_v_plot"))
+                 column(12,    DT::dataTableOutput("all_v_plot"))
                )
                
              )
@@ -558,8 +520,8 @@ server <- shinyServer(function(input, output, session) {
     formula_h
     
   }
-  ####
   
+  ####
   
   observeEvent(input$add_mixture, {
     
@@ -821,7 +783,6 @@ server <- shinyServer(function(input, output, session) {
     
     
   }
-  
   
   ### extract in/equalities from input
   
@@ -1482,140 +1443,13 @@ server <- shinyServer(function(input, output, session) {
     
   }
   
-  
-  #### h-repesentation single models ####
+  #### h and v-representation #### 
   
   observe({
     
-    output$h <- renderUI({
-      
-      
-      numb_models = counter_ie$n
-      
-      formula_h_all = ""
-      v_representation_plot_all = numeric()
-      
-      for(loop_numb_models in 1 : numb_models){
-        
-        extract_info(eval(parse(text=paste("input_relations$rel",
-                                           loop_numb_models,sep=""))))
-        
-        ####* do h and v-representations
-        
-        if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") > 0){
-          
-          qux = makeH(ineq_eq_left[all_operators != "equal",], 
-                      ineq_eq_right[all_operators != "equal"],
-                      ineq_eq_left[all_operators == "equal",],
-                      ineq_eq_right[all_operators == "equal"])
-          
-          
-        }
-        
-        if(sum(all_operators != "equal") == 0 &  sum(all_operators == "equal") > 0){
-          
-          qux = makeH(a2 = ineq_eq_left,
-                      b2 = ineq_eq_right) 
-          
-          
-        }
-        
-        if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") == 0){
-          
-          qux = makeH(ineq_eq_left, 
-                      ineq_eq_right) 
-          
-          
-        }
-        
-        if(nrow(qux)>1){
-          
-          qux = redundant(qux)$output
-          
-        }else{
-          
-          qux = qux$output
-        }
-        
-        v_representation =  scdd(qux)
-        
-        
-        #############
-        
-        v_representation = matrix(
-          sapply(v_representation$output, function(x) eval(parse(text=x))),
-          ncol = ncol(v_representation$output))
-        
-        
-        v_representation_plot = data.frame(v_representation[,3:ncol(v_representation)])
-        
-        v_representation_plot = as.character(fractions(matrix(unlist(v_representation_plot),ncol=ncol(v_representation_plot))))
-        
-        v_representation_plot = data.frame((v_representation_plot))
-        
-        if(ncol(v_representation_plot)==1){v_representation_plot = t(v_representation_plot)}
-        
-        
-        if(input$check_name == T){
-          
-          colnames(v_representation_plot) = outs$name
-          
-          
-        }else{
-          
-          colnames(v_representation_plot) = paste("p_",1:ncol(v_representation_plot),sep="")
-          
-        }
-        
-        row.names(v_representation_plot) = paste(paste("V_",loop_numb_models,"_",sep=""),1:nrow(v_representation_plot),sep="")
-        
-        current_name =  ifelse(is.null(AllInputs()[[paste0("textin_relations_name", loop_numb_models)]]) == TRUE,
-                               paste0("my_name_for_model_",loop_numb_models),AllInputs()[[paste0("textin_relations_name", loop_numb_models)]])
-        
-        
-        v_representation_plot = cbind("name" = current_name,v_representation_plot)
-        
-        
-        ####
-        
-        qux_pl = q2d(qux)
-        qux_pl = fractions(qux_pl)
-        
-        if(input$check_name == T){
-          
-          colnames(qux_pl) = c("ineq/eq","right",paste(" \\text{ ",outs$name," }",sep=""))
-          
-        }else{
-          
-          colnames(qux_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
-          
-        }
-        
-        
-        begin_eq = paste(current_name," $$\\begin{eqnarray} ",sep="")
-        end_eq = " \\end{eqnarray}$$"
-        equation_all = paste(begin_eq,latex(qux_pl),end_eq,sep="")
-        
-        formula_h_all = paste(formula_h_all,equation_all,collapse="")
-        
-        v_representation_plot_all = rbind(v_representation_plot_all,v_representation_plot)
-      }
-      
-      output$v_representation =  DT::renderDataTable(v_representation_plot_all)
-      
-      
-      
-      withMathJax(helpText({ 
-        formula_h_all
-      }))
-      
-      
-    })
-  })
-  
-  #### h-representation mixture   #### 
-  
-  observe({
+    #### single models ####
+    
+    #### mixture + intersection models ####
     
     output$h_mixture <- renderUI({
       
@@ -1625,15 +1459,18 @@ server <- shinyServer(function(input, output, session) {
       
       withProgress(message = 'In progress',value = 0, expr= {
         
+        #### * v-representation of single models ####
+        
+        formula_h_all = ""
+        
         for(loop_numb_models in 1 : numb_models){
           
           incProgress(1/(2*numb_models))
           
           extract_info(eval(parse(text=paste("input_relations$rel",
                                              loop_numb_models,sep=""))))
-          
-          ####* do h and v-representations
-          
+    
+
           if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") > 0){
             
             qux = makeH(ineq_eq_left[all_operators != "equal",], 
@@ -1701,11 +1538,29 @@ server <- shinyServer(function(input, output, session) {
           v_representation_plot = cbind("model_name" = current_name,v_representation_plot)
           
           v_representation_plot_all = rbind(v_representation_plot_all,v_representation_plot)
+          
+          qux_pl = q2d(qux)
+          qux_pl = fractions(qux_pl)
+          
+          if(input$check_name == T){
+            
+            colnames(qux_pl) = c("ineq/eq","right",paste(" \\text{ ",outs$name," }",sep=""))
+            
+          }else{
+            
+            colnames(qux_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+            
+          }
+          
+          ######## NEED THIS ##########
+          begin_eq = paste(current_name," $$\\begin{eqnarray} ",sep="")
+          end_eq = " \\end{eqnarray}$$"
+          equation_all = paste(begin_eq,latex(qux_pl),end_eq,sep="")
+          
+          formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
         
-        
-        #### v-representation of convex hull
-        
+        #### * v-representation of mixture ####
         
         input_convex_hull = (v_representation_plot_all)[,2:ncol(v_representation_plot_all)]
         input_convex_hull = matrix(as.numeric(unlist(input_convex_hull)),ncol=ncol(input_convex_hull))
@@ -1774,7 +1629,12 @@ server <- shinyServer(function(input, output, session) {
         
         row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
         
-        output$mixture_v_plot =  DT::renderDataTable(mixture_v_plot)
+        #### all v-representations ####
+        
+        all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
+        all_v_plot = rbind(all_v_plot,v_representation_plot_all)
+ 
+        output$all_v_plot =  DT::renderDataTable(all_v_plot)
         
         names_submodels = unique(v_representation_plot_all[,1])
         n_submodels = length(unique(names_submodels))
@@ -1788,8 +1648,11 @@ server <- shinyServer(function(input, output, session) {
           
         }
 
+        #### * plot models ####
+        
         function_plot(mixture_v_plot,v_representation_plot_all_list,n_submodels)
         
+        #### * h-representation of mixture ####
         
         if(dim_mixture > 1){ 
           
@@ -1800,7 +1663,6 @@ server <- shinyServer(function(input, output, session) {
           mixture_h_pl = (mixture_h)
           
         }
-        
         
         mixture_h_pl = fractions(mixture_h_pl)
         
@@ -1820,17 +1682,19 @@ server <- shinyServer(function(input, output, session) {
         ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
         
         mixture_h_pl = mixture_h_pl[ind_mix==1,]
-        formula_h_all = latex(mixture_h_pl)
+
         
-        begin_eq = "$$\\begin{eqnarray} "
+        begin_eq = paste("mixture"," $$\\begin{eqnarray} ",sep="")
         end_eq = " \\end{eqnarray}$$"
+        equation_all = paste(begin_eq,latex(mixture_h_pl),end_eq,sep="")
         
-        equation_all = paste(begin_eq,formula_h_all,end_eq,sep="")
+        formula_h_all = paste(formula_h_all,equation_all,collapse="")
+        
         
         incProgress(numb_models)
         
         withMathJax(helpText({ 
-          equation_all
+          formula_h_all
         }))
         
       })
