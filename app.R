@@ -29,6 +29,7 @@ ui <- shinyUI(fluidPage(
                                                     color: #FF0000; }',
                
                'body {padding-top: 60px;padding-bottom: 80px;}'),
+    
     tabPanel("Input",
              
              sidebarPanel(
@@ -96,6 +97,11 @@ ui <- shinyUI(fluidPage(
                fluidRow(
                  column(4, offset = 0,uiOutput("textbox_ui_name_rel"),  style = "background-color:#FFFFF2;"),
                  column(8,uiOutput("textbox_ui_rel"),  style = "background-color:#FFFFF2;"),
+               ),
+               fluidRow(
+                 column(12,offset = 0,checkboxInput("check_mix_inter", "use this", value = FALSE),
+                        textAreaInput("inputId", "Input field for the intersection and/or mixture of models", value = "",
+                                     width='100%',height='100px'),style = "background-color:#F8F8F8;")
                )
              )
              
