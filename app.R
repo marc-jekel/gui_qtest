@@ -182,7 +182,7 @@ ui <- shinyUI(fluidPage(
                  
                  column(12,offset=0,
                         textAreaInput(inputId = "name_model_plot",
-                                      label = "Input model names", 
+                                      label = "Input field for model names", 
                                       value = "",
                                       width="100%",height="100px"
                         )
