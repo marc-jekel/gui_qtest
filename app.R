@@ -122,7 +122,7 @@ ui <- shinyUI(fluidPage(
              mainPanel(
                fluidPage(
                  withMathJax(),
-                 uiOutput('h_mixture')
+                 uiOutput('h')
                )
                
              )
@@ -1180,8 +1180,7 @@ server <- shinyServer(function(input, output, session) {
       }
     }
     
-    #####
-    
+
     if(input$check_relations == FALSE){
       
       
@@ -1447,11 +1446,9 @@ server <- shinyServer(function(input, output, session) {
   
   observe({
     
-    #### single models ####
+
     
-    #### mixture + intersection models ####
-    
-    output$h_mixture <- renderUI({
+    output$h <- renderUI({
       
       numb_models = counter_ie$n
       
@@ -1508,8 +1505,6 @@ server <- shinyServer(function(input, output, session) {
           
           v_representation =  scdd(qux)
           
-          #############
-          
           v_representation = matrix(
             sapply(v_representation$output, function(x) eval(parse(text=x))),
             ncol = ncol(v_representation$output))
@@ -1551,8 +1546,7 @@ server <- shinyServer(function(input, output, session) {
             colnames(qux_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
             
           }
-          
-          ######## NEED THIS ##########
+
           begin_eq = paste(current_name," $$\\begin{eqnarray} ",sep="")
           end_eq = " \\end{eqnarray}$$"
           equation_all = paste(begin_eq,latex(qux_pl),end_eq,sep="")
@@ -1629,7 +1623,7 @@ server <- shinyServer(function(input, output, session) {
         
         row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
         
-        #### all v-representations ####
+        ####* all v-representations ####
         
         all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
         all_v_plot = rbind(all_v_plot,v_representation_plot_all)
