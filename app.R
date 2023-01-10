@@ -75,7 +75,7 @@ ui <- shinyUI(fluidPage(
                         helpText("Threshold for approximate equalities")
                  ),
                  column(12,offset=0,
-                      
+                        
                         numericInput(min=0,max=1,step=.01,inputId = "approx_equal",
                                      label = NULL, 
                                      value = 0)
@@ -101,7 +101,7 @@ ui <- shinyUI(fluidPage(
                fluidRow(
                  column(12,offset = 0,checkboxInput("check_mix_inter", "use this", value = FALSE),
                         textAreaInput("inputId", "Input field for the intersection and/or mixture of models", value = "",
-                                     width='100%',height='100px'),style = "background-color:#F8F8F8;")
+                                      width='100%',height='100px'),style = "background-color:#F8F8F8;")
                )
              )
              
@@ -126,7 +126,7 @@ ui <- shinyUI(fluidPage(
                )
                
              )
-         
+             
     ),
     tabPanel("V-representation",
              
@@ -145,7 +145,7 @@ ui <- shinyUI(fluidPage(
                
              )
              
-           
+             
     ), #Bracket  navbarPage
     tabPanel("Plot",
              sidebarPanel(
@@ -182,8 +182,8 @@ ui <- shinyUI(fluidPage(
                  
                  column(12,offset=0,
                         textAreaInput(inputId = "name_model_plot",
-                                      label = "Plotted models", 
-                                      value = "mixture",
+                                      label = "Input model names", 
+                                      value = "",
                                       width="100%",height="100px"
                         )
                  )
@@ -628,98 +628,77 @@ server <- shinyServer(function(input, output, session) {
       
       matrix_pl_all = matrix_pl_all[matrix_pl_all[,1] %in% select_models_to_plot, ]
       
-      
-      for(loop_pl in 1 : length(select_models_to_plot)){
+      if(length(select_models_to_plot) > 0){
         
-        
-        all_plot_actual = matrix_pl_all[matrix_pl_all[,1]==select_models_to_plot[loop_pl] ,2:ncol(matrix_pl_all)]
-        
-        mixture_v_plot_names = colnames(all_plot_actual)
-        
-        name_model = select_models_to_plot[loop_pl]
-        all_plot_actual = matrix(as.character((unlist(all_plot_actual))),ncol = ncol(all_plot_actual))
-        matrix_pl = q2d(all_plot_actual)
-        
-        select_plot = as.numeric(c(input$dim_1,input$dim_2,input$dim_3))
-        
-        updateSelectInput(inputId="dim_1",choices=(1:ncol(matrix_pl))[-select_plot[c(2,3)]],
-                          selected = input$dim_1)
-        updateSelectInput(inputId="dim_2",choices=(1:ncol(matrix_pl))[-select_plot[c(1,3)]],
-                          selected = input$dim_2)
-        updateSelectInput(inputId="dim_3",choices=(1:ncol(matrix_pl))[-select_plot[c(1,2)]],
-                          selected = input$dim_3)
-        
-        matrix_pl = matrix_pl[,select_plot]
-        
-        if(is.null(dim(matrix_pl)) != TRUE){
+        for(loop_pl in 1 : length(select_models_to_plot)){
           
-          matrix_pl = data.frame(matrix(as.numeric(c(matrix_pl)),ncol=ncol(matrix_pl)))
+          all_plot_actual = matrix_pl_all[matrix_pl_all[,1]==select_models_to_plot[loop_pl] ,2:ncol(matrix_pl_all)]
           
-        }else{
+          mixture_v_plot_names = colnames(all_plot_actual)
           
-          matrix_pl = t(data.frame(matrix(as.numeric(c(matrix_pl)))))
+          name_model = select_models_to_plot[loop_pl]
+          all_plot_actual = matrix(as.character((unlist(all_plot_actual))),ncol = ncol(all_plot_actual))
+          matrix_pl = q2d(all_plot_actual)
+          
+          select_plot = as.numeric(c(input$dim_1,input$dim_2,input$dim_3))
+          
+          updateSelectInput(inputId="dim_1",choices=(1:ncol(matrix_pl))[-select_plot[c(2,3)]],
+                            selected = input$dim_1)
+          updateSelectInput(inputId="dim_2",choices=(1:ncol(matrix_pl))[-select_plot[c(1,3)]],
+                            selected = input$dim_2)
+          updateSelectInput(inputId="dim_3",choices=(1:ncol(matrix_pl))[-select_plot[c(1,2)]],
+                            selected = input$dim_3)
+          
+          matrix_pl = matrix_pl[,select_plot]
+          
+          if(is.null(dim(matrix_pl)) != TRUE){
+            
+            matrix_pl = data.frame(matrix(as.numeric(c(matrix_pl)),ncol=ncol(matrix_pl)))
+            
+          }else{
+            
+            matrix_pl = t(data.frame(matrix(as.numeric(c(matrix_pl)))))
+            
+            
+          }
           
           
-        }
-        
-        
-        dim_names = mixture_v_plot_names[c(as.numeric(input$dim_1),
-                                           as.numeric(input$dim_2),
-                                           as.numeric(input$dim_3))]
-        
-        colnames(matrix_pl) = dim_names
-        
-        ###
-        
-        axx <- list(
-          nticks = .1,
-          range = c(0,1),
-          title = dim_names[1]
+          dim_names = mixture_v_plot_names[c(as.numeric(input$dim_1),
+                                             as.numeric(input$dim_2),
+                                             as.numeric(input$dim_3))]
           
-        )
-        
-        axy <- list(
-          nticks = .1,
-          range = c(0,1),
-          title = dim_names[2]
-        )
-        
-        axz <- list(
-          nticks = .1,
-          range = c(0,1),
-          title = dim_names[3]
-        )
-        
-        ###
-        
-        trace1 <- list(
-          mode = "markers", 
-          type = "scatter3d", 
-          x = (matrix_pl[,1]),
-          y = (matrix_pl[,2]),
-          z = (matrix_pl[,3])
+          colnames(matrix_pl) = dim_names
           
-        )
-        
-        trace2 <- list(
-          type = "mesh3d", 
-          x = (matrix_pl[,1]),
-          y = (matrix_pl[,2]),
-          z = (matrix_pl[,3]),
-          opacity = 0.05, 
-          alphahull = 0,
-          colors = colorRamp(c("blue", "lightblue", "chartreuse3", "yellow", "red"))
-        ) 
-        
-        ### check dimensionality using principal component analysis
-        
-        prcomp_sol = summary(prcomp(matrix_pl))$importance[2,]
-        shape_point = ifelse(sum(prcomp_sol!=0) == 1,1,0)
-        shape_point = ifelse(nrow(matrix_pl) == 1,1,shape_point)
-        shape_cube =  ifelse(sum(prcomp_sol!=0) == 3,1,0)
-        shape_cube = ifelse(shape_point == 1,0,shape_cube)
-        
-        if(shape_cube==1){
+          
+          axx <- list(
+            nticks = .1,
+            range = c(0,1),
+            title = dim_names[1]
+            
+          )
+          
+          axy <- list(
+            nticks = .1,
+            range = c(0,1),
+            title = dim_names[2]
+          )
+          
+          axz <- list(
+            nticks = .1,
+            range = c(0,1),
+            title = dim_names[3]
+          )
+          
+          ###
+          
+          trace1 <- list(
+            mode = "markers", 
+            type = "scatter3d", 
+            x = (matrix_pl[,1]),
+            y = (matrix_pl[,2]),
+            z = (matrix_pl[,3])
+            
+          )
           
           trace2 <- list(
             type = "mesh3d", 
@@ -730,54 +709,74 @@ server <- shinyServer(function(input, output, session) {
             alphahull = 0,
             colors = colorRamp(c("blue", "lightblue", "chartreuse3", "yellow", "red"))
           ) 
-        }
-        
-        if(loop_pl == 1){
           
-          p <- plot_ly(width = 750, height = 750, name = name_model)
+          ### check dimensionality using principal component analysis
           
-        }
-        
-        if(shape_point != 1){  
+          prcomp_sol = summary(prcomp(matrix_pl))$importance[2,]
+          shape_point = ifelse(sum(prcomp_sol!=0) == 1,1,0)
+          shape_point = ifelse(nrow(matrix_pl) == 1,1,shape_point)
+          shape_cube =  ifelse(sum(prcomp_sol!=0) == 3,1,0)
+          shape_cube = ifelse(shape_point == 1,0,shape_cube)
           
-          p <- add_trace(p, mode=trace1$mode, type=trace1$type, x=trace1$x, y=trace1$y, z=trace1$z,
-                         name = name_model)
-          
-          if(shape_cube == 1){
+          if(shape_cube==1){
             
-            p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
-                           opacity=trace2$opacity, alphahull=trace2$alphahull,
-                           delaunayaxis=trace2$delaunayaxis)
+            trace2 <- list(
+              type = "mesh3d", 
+              x = (matrix_pl[,1]),
+              y = (matrix_pl[,2]),
+              z = (matrix_pl[,3]),
+              opacity = 0.05, 
+              alphahull = 0,
+              colors = colorRamp(c("blue", "lightblue", "chartreuse3", "yellow", "red"))
+            ) 
+          }
+          
+          if(loop_pl == 1){
             
-          }else{
-            
-            p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
-                           opacity=.05, alphahull=-1,
-                           delaunayaxis="x")
-            p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
-                           opacity=.05, alphahull=-1,
-                           delaunayaxis="y")
-            p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
-                           opacity=.05, alphahull=-1,
-                           delaunayaxis="z")
+            p <- plot_ly(width = 750, height = 750, name = name_model)
             
           }
           
-        }else{
-          
-          p <- add_trace(p,x=trace1$x, y=trace1$y, z=trace1$z, type = 'scatter3d', mode = 'lines+markers',
-                         opacity = 1, line = list(width = 4))
+          if(shape_point != 1){  
+            
+            p <- add_trace(p, mode=trace1$mode, type=trace1$type, x=trace1$x, y=trace1$y, z=trace1$z,
+                           name = name_model)
+            
+            if(shape_cube == 1){
+              
+              p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
+                             opacity=trace2$opacity, alphahull=trace2$alphahull,
+                             delaunayaxis=trace2$delaunayaxis)
+              
+            }else{
+              
+              p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
+                             opacity=.05, alphahull=-1,
+                             delaunayaxis="x")
+              p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
+                             opacity=.05, alphahull=-1,
+                             delaunayaxis="y")
+              p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
+                             opacity=.05, alphahull=-1,
+                             delaunayaxis="z")
+              
+            }
+            
+          }else{
+            
+            p <- add_trace(p,x=trace1$x, y=trace1$y, z=trace1$z, type = 'scatter3d', mode = 'lines+markers',
+                           opacity = 1, line = list(width = 4))
+            
+          }
           
         }
         
+        p %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz,aspectmode = "manual", 
+                                  aspectratio = list(x=1, y=1, z=1),
+                                  camera = list(eye = list(x=2, y=2, z = 2)))) 
+        
+        
       }
-      
-      p %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz,aspectmode = "manual", 
-                                aspectratio = list(x=1, y=1, z=1),
-                                camera = list(eye = list(x=2, y=2, z = 2)))) 
-      
-      
-      
     })  
     
     
@@ -999,12 +998,12 @@ server <- shinyServer(function(input, output, session) {
             
             fix_factors = pos_before_p[add_multiply != 0]   
             add_multiply = add_multiply[add_multiply != 0]
-    
+            
             return(list(fix_factors,add_multiply))
           }
           
           res_cadd_multiply_function = add_multiply_function()
-     
+          
           fix_factors = unlist(res_cadd_multiply_function[1])
           add_multiply = unlist(res_cadd_multiply_function[2])
           
@@ -1180,7 +1179,7 @@ server <- shinyServer(function(input, output, session) {
       }
     }
     
-
+    
     if(input$check_relations == FALSE){
       
       
@@ -1388,12 +1387,12 @@ server <- shinyServer(function(input, output, session) {
     if(tune_knob != 0){
       
       change_knob = ifelse(rowSums(ineq_eq_left!="0") >1,1,0)
-    
-    
+      
+      
       for(loop_tune in 1 : length(all_operators)){
         
         if(all_operators[loop_tune]=="equal"){
-    
+          
           if(change_knob[loop_tune] == 1){
             
             add_ineq_eq_left = rbind(add_ineq_eq_left,d2q(q2d(ineq_eq_left[loop_tune,]) ))
@@ -1417,12 +1416,12 @@ server <- shinyServer(function(input, output, session) {
             
           }
           
-         
+          
           
         }
       }
       
-     add_ineq_eq_right = d2q(add_ineq_eq_right)
+      add_ineq_eq_right = d2q(add_ineq_eq_right)
       
       ineq_eq_left = ineq_eq_left[all_operators!="equal" ,]
       ineq_eq_right = ineq_eq_right[all_operators!="equal"]
@@ -1446,7 +1445,7 @@ server <- shinyServer(function(input, output, session) {
   
   observe({
     
-
+    
     
     output$h <- renderUI({
       
@@ -1466,8 +1465,8 @@ server <- shinyServer(function(input, output, session) {
           
           extract_info(eval(parse(text=paste("input_relations$rel",
                                              loop_numb_models,sep=""))))
-    
-
+          
+          
           if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") > 0){
             
             qux = makeH(ineq_eq_left[all_operators != "equal",], 
@@ -1546,7 +1545,7 @@ server <- shinyServer(function(input, output, session) {
             colnames(qux_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
             
           }
-
+          
           begin_eq = paste(current_name," $$\\begin{eqnarray} ",sep="")
           end_eq = " \\end{eqnarray}$$"
           equation_all = paste(begin_eq,latex(qux_pl),end_eq,sep="")
@@ -1563,10 +1562,10 @@ server <- shinyServer(function(input, output, session) {
         input_convex_hull = d2q(input_convex_hull)
         
         mixture_v = makeV(input_convex_hull)
-
+        
         dim_mixture=dim(mixture_v)[1]
-
-    
+        
+        
         if(dim_mixture > 1){
           
           mixture_v = redundant(mixture_v)
@@ -1627,7 +1626,7 @@ server <- shinyServer(function(input, output, session) {
         
         all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
         all_v_plot = rbind(all_v_plot,v_representation_plot_all)
- 
+        
         output$all_v_plot =  DT::renderDataTable(all_v_plot)
         
         names_submodels = unique(v_representation_plot_all[,1])
@@ -1641,7 +1640,7 @@ server <- shinyServer(function(input, output, session) {
             v_representation_plot_all[v_representation_plot_all[,1] ==  names_submodels[loop_sub_models],1:ncol(v_representation_plot_all)]
           
         }
-
+        
         #### * plot models ####
         
         function_plot(mixture_v_plot,v_representation_plot_all_list,n_submodels)
@@ -1676,7 +1675,7 @@ server <- shinyServer(function(input, output, session) {
         ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
         
         mixture_h_pl = mixture_h_pl[ind_mix==1,]
-
+        
         
         begin_eq = paste("mixture"," $$\\begin{eqnarray} ",sep="")
         end_eq = " \\end{eqnarray}$$"
