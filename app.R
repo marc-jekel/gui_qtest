@@ -312,7 +312,10 @@ server <- shinyServer(function(input, output, session) {
     if (counter_ie$n > 1) counter_ie$n <- counter_ie$n - 1
   })
   
+  
   #### checkbox events ####
+  
+  ### NEW
   
   
   textboxes_min <- reactive({
@@ -393,7 +396,7 @@ server <- shinyServer(function(input, output, session) {
   })
   
   textboxes_relations <- reactive({
-    
+
     n <- counter_ie$n
     
     if (n > 0) {
@@ -407,6 +410,7 @@ server <- shinyServer(function(input, output, session) {
         })
       })
     }
+    
     
   })
   
@@ -434,7 +438,6 @@ server <- shinyServer(function(input, output, session) {
   output$textbox_ui_max <- renderUI({ textboxes_max() })
   output$textbox_ui_rel <- renderUI({ textboxes_relations() }) 
   output$checkbox_ui_row <-renderUI({ check_box_row() }) 
-  
   output$textbox_ui_name_rel <- renderUI({ textboxes_relations_name() }) 
   
   ####### Validation
@@ -747,26 +750,26 @@ server <- shinyServer(function(input, output, session) {
               
               p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
                              opacity=trace2$opacity, alphahull=trace2$alphahull,
-                             delaunayaxis=trace2$delaunayaxis)
+                             delaunayaxis=trace2$delaunayaxis, name = name_model)
               
             }else{
               
               p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
                              opacity=.05, alphahull=-1,
-                             delaunayaxis="x")
+                             delaunayaxis="x", name = name_model)
               p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
                              opacity=.05, alphahull=-1,
-                             delaunayaxis="y")
+                             delaunayaxis="y", name = name_model)
               p <- add_trace(p, type=trace2$type, x=trace2$x, y=trace2$y, z=trace2$z, 
                              opacity=.05, alphahull=-1,
-                             delaunayaxis="z")
+                             delaunayaxis="z", name = name_model)
               
             }
             
           }else{
             
             p <- add_trace(p,x=trace1$x, y=trace1$y, z=trace1$z, type = 'scatter3d', mode = 'lines+markers',
-                           opacity = 1, line = list(width = 4))
+                           opacity = 1, line = list(width = 4), name = name_model)
             
           }
           
