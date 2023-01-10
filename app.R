@@ -115,9 +115,7 @@ ui <- shinyUI(fluidPage(
                width=2,
                fluidRow(
                  column(12,offset=0,
-                        helpText("Download for QTEST")),
-                 column(12,offset=0,
-                        helpText("Model flexibility")),
+                        helpText("Download for QTEST"))
                )),
              mainPanel(
                fluidPage(
@@ -212,6 +210,9 @@ ui <- shinyUI(fluidPage(
                fluidRow(
                  column(12,div(plotlyOutput("plot"), align = "center"))
                ))
+    ),
+    tabPanel("Parsimony"
+             
     ),
     tags$footer(column(3, "Pre-publication version"), 
                 column(2,offset=7, tags$a(href="mailto:mjekel@uni-koeln.de", tags$b("Email feedback"), 
