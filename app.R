@@ -100,7 +100,7 @@ ui <- shinyUI(fluidPage(
                ),
                fluidRow(
                  column(12,offset = 0,checkboxInput("check_mix_inter", "use this", value = FALSE),
-                        textAreaInput("inputId", "Input field for the intersection and/or mixture of models", value = "",
+                        textAreaInput("text_mix_inter", "Input field for the intersection and/or mixture of models", value = "",
                                       width='100%',height='100px'),style = "background-color:#F8F8F8;")
                )
              )
@@ -334,7 +334,7 @@ server <- shinyServer(function(input, output, session) {
   })
   
   #### checkbox events ####
-
+  
   textboxes_min <- reactive({
     
     n <- counter$n
@@ -413,7 +413,7 @@ server <- shinyServer(function(input, output, session) {
   })
   
   textboxes_relations <- reactive({
-
+    
     n <- counter_ie$n
     
     if (n > 0) {
@@ -500,16 +500,16 @@ server <- shinyServer(function(input, output, session) {
     formula_h = ""
     
     latex_object[,3:ncol(latex_object)] = (-1 * latex_object[,3:ncol(latex_object)])
-    qux_pl_minus = latex_object
+    h_representation_pl_minus = latex_object
     
-    sign_p = ifelse(data.frame(qux_pl_minus[,3:ncol(qux_pl_minus)]) < 0,"-","+")
-    sign_p = ifelse(data.frame(qux_pl_minus[,3:ncol(qux_pl_minus)] ) == 0,"",sign_p)
+    sign_p = ifelse(data.frame(h_representation_pl_minus[,3:ncol(h_representation_pl_minus)]) < 0,"-","+")
+    sign_p = ifelse(data.frame(h_representation_pl_minus[,3:ncol(h_representation_pl_minus)] ) == 0,"",sign_p)
     
-    qux_pl_minus[,3:ncol(qux_pl_minus)] = abs(qux_pl_minus[,3:ncol(qux_pl_minus)])
+    h_representation_pl_minus[,3:ncol(h_representation_pl_minus)] = abs(h_representation_pl_minus[,3:ncol(h_representation_pl_minus)])
     
     for(loop_pl in 1 : nrow(latex_object)){
       
-      formula_h_act = ((as.character(qux_pl_minus[loop_pl,])))
+      formula_h_act = ((as.character(h_representation_pl_minus[loop_pl,])))
       
       sign_p_act = sign_p[loop_pl,]
       
@@ -558,7 +558,7 @@ server <- shinyServer(function(input, output, session) {
       matrix_pl_all = numeric()
       
       for(loop_pl in 1 : (n_submodels)){
-
+        
         extract_name = v_representation_plot_all_list[[loop_pl]]
         names_available_models[loop_pl] =  extract_name[1,1]
         
@@ -570,13 +570,13 @@ server <- shinyServer(function(input, output, session) {
         ### re-check this
         
         #if(is.character(unlist(all_plot_actual)[1]) == T){
-          
-         # all_plot_actual = matrix(q2d(unlist(all_plot_actual)),ncol=ncol(all_plot_actual))
-          
-          
-      #  }
         
-      
+        # all_plot_actual = matrix(q2d(unlist(all_plot_actual)),ncol=ncol(all_plot_actual))
+        
+        
+        #  }
+        
+        
         all_plot_actual = matrix(as.character(d2q(unlist((all_plot_actual)))),ncol=ncol(all_plot_actual))
         
         matrix_pl_all = rbind(matrix_pl_all,data.frame(names_available_models[loop_pl] ,(all_plot_actual)))
@@ -1402,7 +1402,7 @@ server <- shinyServer(function(input, output, session) {
     
   }
   
-  #### h and v-representation #### 
+  #### h and v-representations #### 
   
   observe({
     
@@ -1414,9 +1414,62 @@ server <- shinyServer(function(input, output, session) {
       
       withProgress(message = 'In progress',value = 0, expr= {
         
-        #### * v-representation of single models ####
+        #### * single models ####
         
         formula_h_all = ""
+        
+        all_input_models = numeric()
+        all_input_models_names = numeric()
+        
+        for(loop_numb_models in 1 : numb_models){
+          
+          all_input_models = c(all_input_models,(eval(parse(text=paste("input_relations$rel",
+                                                                       loop_numb_models,sep="")))))
+          
+          all_input_models_names = c(all_input_models_names,
+                                     eval(parse(text=paste("unlist(AllInputs()$textin_relations_name",
+                                                           loop_numb_models,")",sep=""))))
+          }
+        
+        #### NEW #####
+        
+        input_mix_inter = input$text_mix_inter
+        
+        input_mix_inter = unlist(str_split(input_mix_inter,";"))
+        input_mix_inter = str_replace_all(input_mix_inter," ","")
+        input_mix_inter = unlist(input_mix_inter)
+        input_inter = input_mix_inter[str_detect(input_mix_inter,"inter")]
+        input_mix = input_mix_inter[str_detect(input_mix_inter,"mix")]
+
+        input_inter = c(
+          "inter(m1,m2,m3)",
+          "inter(m1,m2)"
+        )
+        
+        inter_models_list = list()
+        
+        for(loop_inter in 1 : length(input_inter)){
+          
+          input_inter[loop_inter] = 
+            substr(input_inter[loop_inter],7,
+                   str_length(input_inter[loop_inter]) -1)
+          
+          inter_models_list[loop_inter] = list( (str_split( input_inter[loop_inter],",")))
+          
+        }
+        
+    
+        View(inter_models_list)
+        View(input_mix)
+        View(all_input_models)
+        View(all_input_models_names)
+        View(all_input_models)
+        
+        #### * build intersection models ####
+
+        
+        ###
+        
         
         for(loop_numb_models in 1 : numb_models){
           
@@ -1428,40 +1481,41 @@ server <- shinyServer(function(input, output, session) {
           
           if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") > 0){
             
-            qux = makeH(ineq_eq_left[all_operators != "equal",], 
-                        ineq_eq_right[all_operators != "equal"],
-                        ineq_eq_left[all_operators == "equal",],
-                        ineq_eq_right[all_operators == "equal"])
+            h_representation = makeH(ineq_eq_left[all_operators != "equal",], 
+                                     ineq_eq_right[all_operators != "equal"],
+                                     ineq_eq_left[all_operators == "equal",],
+                                     ineq_eq_right[all_operators == "equal"])
             
             
           }
           
           if(sum(all_operators != "equal") == 0 &  sum(all_operators == "equal") > 0){
             
-            qux = makeH(a2 = ineq_eq_left,
-                        b2 = ineq_eq_right) 
+            h_representation = makeH(a2 = ineq_eq_left,
+                                     b2 = ineq_eq_right) 
             
             
           }
           
           if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") == 0){
             
-            qux = makeH(ineq_eq_left, 
-                        ineq_eq_right) 
+            h_representation = makeH(ineq_eq_left, 
+                                     ineq_eq_right) 
             
             
           }
           
-          if(nrow(qux)>1){
+          if(nrow(h_representation)>1){
             
-            qux = redundant(qux)$output
+            h_representation = redundant(h_representation)$output
             
           }else{
             
-            qux = redundant(qux)$output
+            h_representation = redundant(h_representation)$output
           }
           
-          v_representation =  scdd(qux)
+          
+          v_representation =  scdd(h_representation)
           
           v_representation = matrix(
             sapply(v_representation$output, function(x) eval(parse(text=x))),
@@ -1492,22 +1546,22 @@ server <- shinyServer(function(input, output, session) {
           
           v_representation_plot_all = rbind(v_representation_plot_all,v_representation_plot)
           
-          qux_pl = q2d(qux)
-          qux_pl = fractions(qux_pl)
+          h_representation_pl = q2d(h_representation)
+          h_representation_pl = fractions(h_representation_pl)
           
           if(input$check_name == T){
             
-            colnames(qux_pl) = c("ineq/eq","right",paste(" \\text{ ",outs$name," }",sep=""))
+            colnames(h_representation_pl) = c("ineq/eq","right",paste(" \\text{ ",outs$name," }",sep=""))
             
           }else{
             
-            colnames(qux_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+            colnames(h_representation_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
             
           }
           
           begin_eq = paste(current_name," $$\\begin{eqnarray} ",sep="")
           end_eq = " \\end{eqnarray}$$"
-          equation_all = paste(begin_eq,latex(qux_pl),end_eq,sep="")
+          equation_all = paste(begin_eq,latex(h_representation_pl),end_eq,sep="")
           
           formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
@@ -1548,7 +1602,7 @@ server <- shinyServer(function(input, output, session) {
             
             
           }
-      
+          
           
           ####
           
@@ -1584,17 +1638,17 @@ server <- shinyServer(function(input, output, session) {
           row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
           
         }
-    
+        
         ####* all v-representations ####
         
         if(unlist(AllInputs()$check_mix_inter)==TRUE){
-        
-        all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
-        all_v_plot = rbind(all_v_plot,v_representation_plot_all)
-        
+          
+          all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
+          all_v_plot = rbind(all_v_plot,v_representation_plot_all)
+          
         }else{
           
-  
+          
           all_v_plot = v_representation_plot_all
           
           
@@ -1606,15 +1660,15 @@ server <- shinyServer(function(input, output, session) {
         n_submodels = length(unique(names_submodels))
         
         v_representation_plot_all_list = list()
-  
+        
         for(loop_sub_models in 1 : n_submodels){
           
           v_representation_plot_all_list[[loop_sub_models]] = 
             all_v_plot[all_v_plot[,1] ==  
-                                        names_submodels[loop_sub_models],1:ncol(all_v_plot)]
+                         names_submodels[loop_sub_models],1:ncol(all_v_plot)]
           
         }
-
+        
         #### * plot models based on v-representations ####
         
         function_plot(v_representation_plot_all_list,n_submodels)
@@ -1622,42 +1676,42 @@ server <- shinyServer(function(input, output, session) {
         #### * h-representation of mixture ####
         
         if(unlist(AllInputs()$check_mix_inter)==TRUE){
-        
-        if(dim_mixture > 1){ 
           
-          mixture_h_pl = (mixture_h$output)
+          if(dim_mixture > 1){ 
+            
+            mixture_h_pl = (mixture_h$output)
+            
+          }else{
+            
+            mixture_h_pl = (mixture_h)
+            
+          }
           
-        }else{
+          mixture_h_pl = fractions(mixture_h_pl)
           
-          mixture_h_pl = (mixture_h)
+          numb_p = ncol(mixture_h_pl)-2
           
-        }
-        
-        mixture_h_pl = fractions(mixture_h_pl)
-        
-        numb_p = ncol(mixture_h_pl)-2
-        
-        
-        if(input$check_name == T){
           
-          colnames(mixture_h_pl) = c("ineq/eq","right",paste("\\text{ ",outs$name," }",sep=""))
+          if(input$check_name == T){
+            
+            colnames(mixture_h_pl) = c("ineq/eq","right",paste("\\text{ ",outs$name," }",sep=""))
+            
+          }else{
+            
+            colnames(mixture_h_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+            
+          }
           
-        }else{
+          ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
           
-          colnames(mixture_h_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+          mixture_h_pl = mixture_h_pl[ind_mix==1,]
           
-        }
-        
-        ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
-        
-        mixture_h_pl = mixture_h_pl[ind_mix==1,]
-        
-        
-        begin_eq = paste("mixture"," $$\\begin{eqnarray} ",sep="")
-        end_eq = " \\end{eqnarray}$$"
-        equation_all = paste(begin_eq,latex(mixture_h_pl),end_eq,sep="")
-        
-        formula_h_all = paste(formula_h_all,equation_all,collapse="")
+          
+          begin_eq = paste("mixture"," $$\\begin{eqnarray} ",sep="")
+          end_eq = " \\end{eqnarray}$$"
+          equation_all = paste(begin_eq,latex(mixture_h_pl),end_eq,sep="")
+          
+          formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
         
         incProgress(numb_models)
