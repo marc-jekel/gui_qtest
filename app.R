@@ -1295,7 +1295,6 @@ server <- shinyServer(function(input, output, session) {
         
       }
       
-      
       if(actual_relations_operator == "above" & length(non_numb_left) > 0){
         
         actual_relations_left[3,non_numb_left] = -1 * as.numeric(actual_relations_left[3,non_numb_left])
