@@ -17,7 +17,7 @@ ui <- shinyUI(fluidPage(
   navbarPage(
     position = "fixed-top",
     inverse = T,
-    windowTitle = "App Convex Polytope",
+    windowTitle = "V- and H-Representations",
     tags$style(type = 'text/css', '.navbar { background-color: #000000;
                                                font-family: Arial;
                                                font-size: 13px;
@@ -188,14 +188,6 @@ ui <- shinyUI(fluidPage(
                ),
                fluidRow(
                  column(12,offset=0,
-                        helpText("Remove/add mixture")),
-                 column(12,offset=0,
-                        actionButton("subtr_mixture", "",icon=icon("fa-regular fa-square-minus")),
-                        actionButton("add_mixture", "",icon=icon("fa-regular fa-square-plus")))
-                 
-               ),
-               fluidRow(
-                 column(12,offset=0,
                         helpText("Remove/add all models")),
                  column(12,offset=0,
                         actionButton("subtr_models", "",icon=icon("fa-regular fa-square-minus")),
@@ -299,7 +291,7 @@ server <- shinyServer(function(input, output, session) {
     }
   )
   
-  #### buttons ####
+  #### button events ####
   
   observeEvent(input$add_btn, {counter$n <- counter$n + 1})
   observeEvent(input$add_ie, {counter_ie$n <- counter_ie$n + 1})
@@ -312,12 +304,37 @@ server <- shinyServer(function(input, output, session) {
     if (counter_ie$n > 1) counter_ie$n <- counter_ie$n - 1
   })
   
+  observeEvent(input$add_models, {
+    
+    models_to_plot = input$name_model_plot
+    models_to_plot = unlist(str_split(models_to_plot,";"))
+    models_to_plot = str_replace_all(models_to_plot," ","")
+    models_to_plot = unlist(models_to_plot)
+    
+    models_to_plot = unique(c(models_to_plot,names_available_models))
+    models_to_plot = models_to_plot[models_to_plot!=""]
+    
+    updateTextAreaInput(inputId = "name_model_plot",  
+                        value = paste(models_to_plot,collapse=";"))
+    
+  })
+  
+  observeEvent(input$subtr_models, {
+    
+    models_to_plot = input$name_model_plot
+    models_to_plot = unlist(str_split(models_to_plot,";"))
+    models_to_plot = str_replace_all(models_to_plot," ","")
+    models_to_plot = unlist(models_to_plot)
+    
+    models_to_plot = ""
+    
+    updateTextAreaInput(inputId = "name_model_plot",  
+                        value = paste(models_to_plot,collapse=";"))
+    
+  })
   
   #### checkbox events ####
-  
-  ### NEW
-  
-  
+
   textboxes_min <- reactive({
     
     n <- counter$n
@@ -525,72 +542,9 @@ server <- shinyServer(function(input, output, session) {
     
   }
   
-  ####
-  
-  observeEvent(input$add_mixture, {
-    
-    models_to_plot = input$name_model_plot
-    models_to_plot = unlist(str_split(models_to_plot,";"))
-    models_to_plot = str_replace_all(models_to_plot," ","")
-    models_to_plot = unlist(models_to_plot)
-    
-    models_to_plot = c(models_to_plot,"mixture")
-    models_to_plot = unique(models_to_plot)
-    models_to_plot = models_to_plot[models_to_plot!=""]
-    
-    updateTextAreaInput(inputId = "name_model_plot",  
-                        value = paste(models_to_plot,collapse=";"))
-    
-  })
-  
-  observeEvent(input$subtr_mixture, {
-    
-    models_to_plot = input$name_model_plot
-    models_to_plot = unlist(str_split(models_to_plot,";"))
-    models_to_plot = str_replace_all(models_to_plot," ","")
-    models_to_plot = unlist(models_to_plot)
-    
-    models_to_plot = models_to_plot[models_to_plot!="mixture"]
-    models_to_plot = models_to_plot[models_to_plot!=""]
-    
-    updateTextAreaInput(inputId = "name_model_plot",  
-                        value = paste(models_to_plot,collapse=";"))
-    
-  })
-  
-  observeEvent(input$add_models, {
-    
-    models_to_plot = input$name_model_plot
-    models_to_plot = unlist(str_split(models_to_plot,";"))
-    models_to_plot = str_replace_all(models_to_plot," ","")
-    models_to_plot = unlist(models_to_plot)
-    
-    models_to_plot = unique(c(models_to_plot,names_available_models))
-    models_to_plot = models_to_plot[models_to_plot!=""]
-    
-    updateTextAreaInput(inputId = "name_model_plot",  
-                        value = paste(models_to_plot,collapse=";"))
-    
-  })
-  
-  observeEvent(input$subtr_models, {
-    
-    models_to_plot = input$name_model_plot
-    models_to_plot = unlist(str_split(models_to_plot,";"))
-    models_to_plot = str_replace_all(models_to_plot," ","")
-    models_to_plot = unlist(models_to_plot)
-    
-    models_to_plot = models_to_plot[models_to_plot=="mixture"]
-    models_to_plot = models_to_plot[models_to_plot!=""]
-    
-    updateTextAreaInput(inputId = "name_model_plot",  
-                        value = paste(models_to_plot,collapse=";"))
-    
-  })
-  
   #### plot
   
-  function_plot = function(mixture_v_plot,v_representation_plot_all_list,n_submodels){
+  function_plot = function(v_representation_plot_all_list,n_submodels){
     
     output$plot = renderPlotly({
       
@@ -604,7 +558,7 @@ server <- shinyServer(function(input, output, session) {
       matrix_pl_all = numeric()
       
       for(loop_pl in 1 : (n_submodels)){
-        
+
         extract_name = v_representation_plot_all_list[[loop_pl]]
         names_available_models[loop_pl] =  extract_name[1,1]
         
@@ -612,6 +566,11 @@ server <- shinyServer(function(input, output, session) {
         
         all_plot_actual = all_plot_actual[,2:ncol(all_plot_actual)]
         colnames_v_representation_plot_all = colnames(all_plot_actual)
+        
+        ### re-check this
+        
+        all_plot_actual = matrix(as.numeric(unlist(all_plot_actual)),ncol=ncol(all_plot_actual))
+        
         all_plot_actual = matrix(as.character(d2q(unlist((all_plot_actual)))),ncol=ncol(all_plot_actual))
         
         matrix_pl_all = rbind(matrix_pl_all,data.frame(names_available_models[loop_pl] ,(all_plot_actual)))
@@ -619,15 +578,9 @@ server <- shinyServer(function(input, output, session) {
       
       colnames(matrix_pl_all) = c("models",colnames_v_representation_plot_all)
       
-      mixture_compl = data.frame("mixture",mixture_v_plot)
-      colnames(mixture_compl) = c("models",colnames_v_representation_plot_all)
-      matrix_pl_all = rbind(matrix_pl_all,mixture_compl)
-      
       names_available_models <<- names_available_models
       
-      names_available_models_with_mixture = c(names_available_models,"mixture")
-      
-      select_models_to_plot = names_available_models_with_mixture[which(names_available_models_with_mixture %in% models_to_plot)]
+      select_models_to_plot = names_available_models[which(names_available_models %in% models_to_plot)]
       
       
       matrix_pl_all = matrix_pl_all[matrix_pl_all[,1] %in% select_models_to_plot, ]
@@ -1449,8 +1402,6 @@ server <- shinyServer(function(input, output, session) {
   
   observe({
     
-    
-    
     output$h <- renderUI({
       
       numb_models = counter_ie$n
@@ -1557,99 +1508,116 @@ server <- shinyServer(function(input, output, session) {
           formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
         
-        #### * v-representation of mixture ####
+        #### * v-representation of mixture and intersection ####
         
-        input_convex_hull = (v_representation_plot_all)[,2:ncol(v_representation_plot_all)]
-        input_convex_hull = matrix(as.numeric(unlist(input_convex_hull)),ncol=ncol(input_convex_hull))
-        input_convex_hull = input_convex_hull[!duplicated(input_convex_hull), ]
-        
-        input_convex_hull = d2q(input_convex_hull)
-        
-        mixture_v = makeV(input_convex_hull)
-        
-        dim_mixture=dim(mixture_v)[1]
-        
-        
-        if(dim_mixture > 1){
+        if(unlist(AllInputs()$check_mix_inter)==TRUE){
           
-          mixture_v = redundant(mixture_v)
+          input_convex_hull = (v_representation_plot_all)[,2:ncol(v_representation_plot_all)]
+          input_convex_hull = matrix(as.numeric(unlist(input_convex_hull)),ncol=ncol(input_convex_hull))
+          input_convex_hull = input_convex_hull[!duplicated(input_convex_hull), ]
+          
+          input_convex_hull = d2q(input_convex_hull)
+          
+          mixture_v = makeV(input_convex_hull)
+          
+          dim_mixture=dim(mixture_v)[1]
+          
+          
+          if(dim_mixture > 1){
+            
+            mixture_v = redundant(mixture_v)
+            
+          }
+          
+          
+          if(dim_mixture > 1){ 
+            
+            mixture_h = scdd(mixture_v$output)
+            mixture_h = q2d(mixture_h$output)
+            mixture_h = redundant(mixture_h)
+            
+            
+          }else{
+            
+            mixture_h = scdd(mixture_v)
+            mixture_h = q2d(mixture_h$output)
+            
+            
+          }
+          
+          
+          ####
+          
+          if(dim_mixture> 1){ 
+            
+            mixture_v = matrix(
+              sapply(mixture_v$output, function(x) eval(parse(text=x))),
+              ncol = ncol(mixture_v$output))
+            
+          }else{
+            
+            mixture_v = matrix(
+              sapply(mixture_v, function(x) eval(parse(text=x))),
+              ncol = ncol(mixture_v))
+            
+          }
+          
+          mixture_v_plot = data.frame(mixture_v)
+          mixture_v_plot = mixture_v_plot[,3:ncol(mixture_v_plot)]
+          
+          mixture_v_plot = as.character(fractions(matrix(unlist(mixture_v_plot),ncol=ncol(mixture_v_plot))))
+          
+          if(input$check_name == T){
+            
+            colnames(mixture_v_plot) = outs$name
+            
+          }else{
+            
+            colnames(mixture_v_plot) = paste("p_",1:ncol(mixture_v_plot),sep="")
+            
+          }
+          
+          row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
           
         }
-        
-        
-        if(dim_mixture > 1){ 
-          
-          mixture_h = scdd(mixture_v$output)
-          mixture_h = q2d(mixture_h$output)
-          mixture_h = redundant(mixture_h)
-          
-          
-        }else{
-          
-          mixture_h = scdd(mixture_v)
-          mixture_h = q2d(mixture_h$output)
-          
-          
-        }
-        
-        
-        ####
-        
-        if(dim_mixture> 1){ 
-          
-          mixture_v = matrix(
-            sapply(mixture_v$output, function(x) eval(parse(text=x))),
-            ncol = ncol(mixture_v$output))
-          
-        }else{
-          
-          mixture_v = matrix(
-            sapply(mixture_v, function(x) eval(parse(text=x))),
-            ncol = ncol(mixture_v))
-          
-        }
-        
-        mixture_v_plot = data.frame(mixture_v)
-        mixture_v_plot = mixture_v_plot[,3:ncol(mixture_v_plot)]
-        
-        mixture_v_plot = as.character(fractions(matrix(unlist(mixture_v_plot),ncol=ncol(mixture_v_plot))))
-        
-        if(input$check_name == T){
-          
-          colnames(mixture_v_plot) = outs$name
-          
-        }else{
-          
-          colnames(mixture_v_plot) = paste("p_",1:ncol(mixture_v_plot),sep="")
-          
-        }
-        
-        row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
-        
+    
         ####* all v-representations ####
+        
+        if(unlist(AllInputs()$check_mix_inter)==TRUE){
         
         all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
         all_v_plot = rbind(all_v_plot,v_representation_plot_all)
         
-        output$all_v_plot =  DT::renderDataTable(all_v_plot)
-        
-        names_submodels = unique(v_representation_plot_all[,1])
-        n_submodels = length(unique(names_submodels))
-        
-        v_representation_plot_all_list = list()
-        
-        for(loop_sub_models in 1 : n_submodels){
+        }else{
           
-          v_representation_plot_all_list[[loop_sub_models]] = 
-            v_representation_plot_all[v_representation_plot_all[,1] ==  names_submodels[loop_sub_models],1:ncol(v_representation_plot_all)]
+  
+          all_v_plot = v_representation_plot_all
+          
           
         }
         
-        #### * plot models ####
+        output$all_v_plot =  DT::renderDataTable(all_v_plot)
         
-        function_plot(mixture_v_plot,v_representation_plot_all_list,n_submodels)
+        names_submodels = unique(all_v_plot[,1])
+        n_submodels = length(unique(names_submodels))
+        
+        v_representation_plot_all_list = list()
+  
+        for(loop_sub_models in 1 : n_submodels){
+          
+          v_representation_plot_all_list[[loop_sub_models]] = 
+            all_v_plot[all_v_plot[,1] ==  
+                                        names_submodels[loop_sub_models],1:ncol(all_v_plot)]
+          
+        }
+
+        #### * plot models based on v-representations ####
+        
+        function_plot(v_representation_plot_all_list,n_submodels)
         
         #### * h-representation of mixture ####
+        
+        if(unlist(AllInputs()$check_mix_inter)==TRUE){
         
         if(dim_mixture > 1){ 
           
@@ -1686,7 +1654,7 @@ server <- shinyServer(function(input, output, session) {
         equation_all = paste(begin_eq,latex(mixture_h_pl),end_eq,sep="")
         
         formula_h_all = paste(formula_h_all,equation_all,collapse="")
-        
+        }
         
         incProgress(numb_models)
         
