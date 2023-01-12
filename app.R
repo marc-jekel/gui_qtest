@@ -770,19 +770,6 @@ server <- shinyServer(function(input, output, session) {
     min_values = as.numeric(outs$p_min)
     max_values = as.numeric(outs$p_max)   
     
-    #
-    
-    input_relations = list()
-    
-    for(loop in 1 : counter_ie$n){
-      
-      input_relations[[paste0("rel", loop)]] =    
-        eval(parse(text=paste("unlist(AllInputs()$textin_relations_",loop,")",sep="")))
-      
-    }
-    
-    input_relations <<-  input_relations
-    
     ####* RCDD #####
     
     if(input$check_relations == TRUE){
@@ -1414,6 +1401,19 @@ server <- shinyServer(function(input, output, session) {
       
       withProgress(message = 'In progress',value = 0, expr= {
         
+        
+        #### NEW ####
+        
+        input_relations = list()
+        
+        for(loop in 1 : counter_ie$n){
+          
+          input_relations[[paste0("rel", loop)]] =    
+            eval(parse(text=paste("unlist(AllInputs()$textin_relations_",loop,")",sep="")))
+          
+        }
+        
+        input_relations <<-  input_relations
         #### * single models ####
         
         formula_h_all = ""
