@@ -17,7 +17,7 @@ ui <- shinyUI(fluidPage(
   navbarPage(
     position = "fixed-top",
     inverse = T,
-    windowTitle = "V- and H-Representations",
+    windowTitle = "Model representations",
     tags$style(type = 'text/css', '.navbar { background-color: #000000;
                                                font-family: Arial;
                                                font-size: 13px;
@@ -569,8 +569,14 @@ server <- shinyServer(function(input, output, session) {
         
         ### re-check this
         
-        all_plot_actual = matrix(as.numeric(unlist(all_plot_actual)),ncol=ncol(all_plot_actual))
+        #if(is.character(unlist(all_plot_actual)[1]) == T){
+          
+         # all_plot_actual = matrix(q2d(unlist(all_plot_actual)),ncol=ncol(all_plot_actual))
+          
+          
+      #  }
         
+      
         all_plot_actual = matrix(as.character(d2q(unlist((all_plot_actual)))),ncol=ncol(all_plot_actual))
         
         matrix_pl_all = rbind(matrix_pl_all,data.frame(names_available_models[loop_pl] ,(all_plot_actual)))
@@ -1285,8 +1291,7 @@ server <- shinyServer(function(input, output, session) {
       if(actual_relations_operator == "below" & length(non_numb_right) > 0){
         
         actual_relations_right[3,non_numb_right] = -1 * as.numeric(actual_relations_right[3,non_numb_right])
-        actual_relations_left[3,numb_left] = -1 * as.numeric(actual_relations_left[3,numb_left]) # new
-        
+        actual_relations_left[3,numb_left] = -1 * as.numeric(actual_relations_left[3,numb_left])
         
       }
       
@@ -1544,7 +1549,7 @@ server <- shinyServer(function(input, output, session) {
             
             
           }
-          
+      
           
           ####
           
@@ -1565,7 +1570,7 @@ server <- shinyServer(function(input, output, session) {
           mixture_v_plot = data.frame(mixture_v)
           mixture_v_plot = mixture_v_plot[,3:ncol(mixture_v_plot)]
           
-          mixture_v_plot = as.character(fractions(matrix(unlist(mixture_v_plot),ncol=ncol(mixture_v_plot))))
+          mixture_v_plot = (fractions(matrix(unlist(mixture_v_plot),ncol=ncol(mixture_v_plot)))) #new
           
           if(input$check_name == T){
             
