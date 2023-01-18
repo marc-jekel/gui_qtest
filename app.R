@@ -547,7 +547,7 @@ server <- shinyServer(function(input, output, session) {
   function_plot = function(v_representation_plot_all_list,n_submodels){
     
     output$plot = renderPlotly({
- 
+      
       models_to_plot = input$name_model_plot
       models_to_plot = unlist(str_split(models_to_plot,";"))
       models_to_plot = str_replace_all(models_to_plot," ","")
@@ -573,9 +573,9 @@ server <- shinyServer(function(input, output, session) {
       }
       
       colnames(matrix_pl_all) = c("models",colnames_v_representation_plot_all)
-  
+      
       names_available_models <<- names_available_models
-
+      
       
       select_models_to_plot = names_available_models[names_available_models %in% models_to_plot]
       
@@ -1457,22 +1457,23 @@ server <- shinyServer(function(input, output, session) {
         
         
         #### * build intersection models ####
-        
-        for(loop_inter in 1 : length(inter_models_list)){
+      
+        if(is.na(unlist(inter_models_list[1])) == FALSE){
           
-          sel_model = which(reference_list$mod_name %in% 
-                              unlist(inter_models_list[loop_inter]))
+          for(loop_inter in 1 : length(inter_models_list)){
+            
+            sel_model = which(reference_list$mod_name %in% 
+                                unlist(inter_models_list[loop_inter]))
+            
+            input_relations[[paste0("rel", numb_models + loop_inter)]] = paste(all_input_models[sel_model],collapse=";")
+            
+            all_input_models_names = c(all_input_models_names,paste("inter_",str_replace_all(input_inter[loop_inter],",","_"),sep= ""))
+            
+          }
           
-          input_relations[[paste0("rel", numb_models + loop_inter)]] = paste(all_input_models[sel_model],collapse=";")
-          
-          all_input_models_names = c(all_input_models_names,paste("inter_",str_replace_all(input_inter[loop_inter],",","_"),sep= ""))
+          numb_models = numb_models + loop_inter
           
         }
-        
-        numb_models = numb_models + loop_inter
-       
-        
-        
         
         ###
         
