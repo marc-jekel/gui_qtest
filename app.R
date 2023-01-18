@@ -404,7 +404,7 @@ server <- shinyServer(function(input, output, session) {
           textInput(inputId = paste0("textin_name_", i),
                     label = paste0("Name of p", i), 
                     value = ifelse(is.null(AllInputs()[[paste0("textin_name_", i)]]) == TRUE,
-                                   paste0("name_for_p",i),AllInputs()[[paste0("textin_name_", i)]])
+                                   paste0("p",i),AllInputs()[[paste0("textin_name_", i)]])
           )                        
         })
       })
@@ -441,7 +441,7 @@ server <- shinyServer(function(input, output, session) {
           textAreaInput(inputId = paste0("textin_relations_name", i),
                         label = paste0("Name of model"), 
                         value = ifelse(is.null(AllInputs()[[paste0("textin_relations_name", i)]]) == TRUE,
-                                       paste0("name_for_model_",i),AllInputs()[[paste0("textin_relations_name", i)]]),
+                                       paste0("m",i),AllInputs()[[paste0("textin_relations_name", i)]]),
                         width="100%", height = "100px"
           )
         })
@@ -547,7 +547,7 @@ server <- shinyServer(function(input, output, session) {
   function_plot = function(v_representation_plot_all_list,n_submodels){
     
     output$plot = renderPlotly({
-      
+ 
       models_to_plot = input$name_model_plot
       models_to_plot = unlist(str_split(models_to_plot,";"))
       models_to_plot = str_replace_all(models_to_plot," ","")
@@ -567,27 +567,17 @@ server <- shinyServer(function(input, output, session) {
         all_plot_actual = all_plot_actual[,2:ncol(all_plot_actual)]
         colnames_v_representation_plot_all = colnames(all_plot_actual)
         
-        ### re-check this
-        
-        #if(is.character(unlist(all_plot_actual)[1]) == T){
-        
-        # all_plot_actual = matrix(q2d(unlist(all_plot_actual)),ncol=ncol(all_plot_actual))
-        
-        
-        #  }
-        
-        
         all_plot_actual = matrix(as.character(d2q(unlist((all_plot_actual)))),ncol=ncol(all_plot_actual))
         
         matrix_pl_all = rbind(matrix_pl_all,data.frame(names_available_models[loop_pl] ,(all_plot_actual)))
       }
       
       colnames(matrix_pl_all) = c("models",colnames_v_representation_plot_all)
-      
+  
       names_available_models <<- names_available_models
+
       
-      select_models_to_plot = names_available_models[which(names_available_models %in% models_to_plot)]
-      
+      select_models_to_plot = names_available_models[names_available_models %in% models_to_plot]
       
       matrix_pl_all = matrix_pl_all[matrix_pl_all[,1] %in% select_models_to_plot, ]
       
@@ -1401,9 +1391,6 @@ server <- shinyServer(function(input, output, session) {
       
       withProgress(message = 'In progress',value = 0, expr= {
         
-        
-        #### NEW ####
-        
         input_relations = list()
         
         for(loop in 1 : counter_ie$n){
@@ -1429,7 +1416,7 @@ server <- shinyServer(function(input, output, session) {
           all_input_models_names = c(all_input_models_names,
                                      eval(parse(text=paste("unlist(AllInputs()$textin_relations_name",
                                                            loop_numb_models,")",sep=""))))
-          }
+        }
         
         #### NEW #####
         
@@ -1440,11 +1427,6 @@ server <- shinyServer(function(input, output, session) {
         input_mix_inter = unlist(input_mix_inter)
         input_inter = input_mix_inter[str_detect(input_mix_inter,"inter")]
         input_mix = input_mix_inter[str_detect(input_mix_inter,"mix")]
-
-        input_inter = c(
-          "inter(m1,m2,m3)",
-          "inter(m1,m2)"
-        )
         
         inter_models_list = list()
         
@@ -1458,18 +1440,41 @@ server <- shinyServer(function(input, output, session) {
           
         }
         
-    
-        View(inter_models_list)
-        View(input_mix)
-        View(all_input_models)
-        View(all_input_models_names)
-        View(all_input_models)
+        mix_models_list = list()
+        
+        for(loop_mix in 1 : length(input_mix)){
+          
+          input_mix[loop_mix] = 
+            substr(input_mix[loop_mix],5,
+                   str_length(input_mix[loop_mix]) -1)
+          
+          mix_models_list[loop_mix] = list( (str_split( input_mix[loop_mix],",")))
+          
+        }
+        
+        reference_list = data.frame("rel_numb" = names(input_relations),
+                                    "mod_name" = (all_input_models_names))
+        
         
         #### * build intersection models ####
-
+        
+        for(loop_inter in 1 : length(inter_models_list)){
+          
+          sel_model = which(reference_list$mod_name %in% 
+                              unlist(inter_models_list[loop_inter]))
+          
+          input_relations[[paste0("rel", numb_models + loop_inter)]] = paste(all_input_models[sel_model],collapse=";")
+          
+          all_input_models_names = c(all_input_models_names,paste("inter_",str_replace_all(input_inter[loop_inter],",","_"),sep= ""))
+          
+        }
+        
+        numb_models = numb_models + loop_inter
+       
+        
+        
         
         ###
-        
         
         for(loop_numb_models in 1 : numb_models){
           
@@ -1538,8 +1543,7 @@ server <- shinyServer(function(input, output, session) {
           
           row.names(v_representation_plot) = paste(paste("V_",loop_numb_models,"_",sep=""),1:nrow(v_representation_plot),sep="")
           
-          current_name =  ifelse(is.null(AllInputs()[[paste0("textin_relations_name", loop_numb_models)]]) == TRUE,
-                                 paste0("my_name_for_model_",loop_numb_models),AllInputs()[[paste0("textin_relations_name", loop_numb_models)]])
+          current_name =  all_input_models_names[loop_numb_models]
           
           
           v_representation_plot = cbind("model_name" = current_name,v_representation_plot)
