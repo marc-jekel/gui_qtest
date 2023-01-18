@@ -1458,7 +1458,9 @@ server <- shinyServer(function(input, output, session) {
         
         #### * build intersection models ####
       
-        if(is.na(unlist(inter_models_list[1])) == FALSE){
+        View(inter_models_list)
+        
+        if(is.na(unlist(inter_models_list[1])[1]) == FALSE){
           
           for(loop_inter in 1 : length(inter_models_list)){
             
