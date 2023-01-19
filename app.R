@@ -1455,6 +1455,8 @@ server <- shinyServer(function(input, output, session) {
         
         
         #### * build intersection models ####
+        
+        if(unlist(AllInputs()$check_mix_inter)==TRUE){
 
         if(is.na(unlist(inter_models_list[1])[1]) == FALSE){
           
@@ -1473,7 +1475,9 @@ server <- shinyServer(function(input, output, session) {
           
         }
         
-        #### v- and h-representation models and intersextion models ####
+          }
+          
+        #### v- and h-representation models and intersection models ####
         
         for(loop_numb_models in 1 : numb_models){
           
@@ -1571,6 +1575,8 @@ server <- shinyServer(function(input, output, session) {
         
         #### * v- and h-representation of mixtures ####
         
+        if(unlist(AllInputs()$check_mix_inter)==TRUE){
+        
         list_mixture_h = list()
         
         if(is.na(unlist(mix_models_list[1])[1]) == FALSE){
@@ -1659,10 +1665,11 @@ server <- shinyServer(function(input, output, session) {
           }
         }  
 
-        
+        }
         ####* all v-representations ####
         
-        if(is.na(unlist(mix_models_list[1])[1]) == FALSE){
+        if(is.na(unlist(mix_models_list[1])[1]) == FALSE & 
+           unlist(AllInputs()$check_mix_inter)==TRUE){
           
           
           all_v_plot = rbind(v_representation_plot_all,all_mixture_v_plot)
@@ -1694,7 +1701,8 @@ server <- shinyServer(function(input, output, session) {
         
         #### * prepare h-representation of mixture ####
         
-        if(unlist(AllInputs()$check_mix_inter)==TRUE){
+        if(unlist(AllInputs()$check_mix_inter)==TRUE &
+           is.na(unlist(mix_models_list[1])[1]) == FALSE){
           
      
           
