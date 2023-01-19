@@ -1418,8 +1418,6 @@ server <- shinyServer(function(input, output, session) {
                                                            loop_numb_models,")",sep=""))))
         }
         
-        #### NEW #####
-        
         input_mix_inter = input$text_mix_inter
         
         input_mix_inter = unlist(str_split(input_mix_inter,";"))
@@ -1458,7 +1456,6 @@ server <- shinyServer(function(input, output, session) {
         
         #### * build intersection models ####
 
-        
         if(is.na(unlist(inter_models_list[1])[1]) == FALSE){
           
           for(loop_inter in 1 : length(inter_models_list)){
@@ -1476,7 +1473,7 @@ server <- shinyServer(function(input, output, session) {
           
         }
         
-        ###
+        #### v- and h-representation models and intersextion models ####
         
         for(loop_numb_models in 1 : numb_models){
           
@@ -1572,17 +1569,27 @@ server <- shinyServer(function(input, output, session) {
           formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
         
-        #### * v-representation of mixture and intersection ####
+        #### * v- and h-representation of mixtures ####
         
-        if(unlist(AllInputs()$check_mix_inter)==TRUE){
+        list_mixture_h = list()
+        
+        if(is.na(unlist(mix_models_list[1])[1]) == FALSE){
           
-          input_convex_hull = (v_representation_plot_all)[,2:ncol(v_representation_plot_all)]
-          input_convex_hull = matrix(as.numeric(unlist(input_convex_hull)),ncol=ncol(input_convex_hull))
-          input_convex_hull = input_convex_hull[!duplicated(input_convex_hull), ]
+          all_mixture_v_plot = numeric()
           
-          input_convex_hull = d2q(input_convex_hull)
+          for(loop_model_mix in 1 : length(mix_models_list)){
+            
+          model_name_mix = unlist(mix_models_list[loop_model_mix])
+  
           
-          mixture_v = makeV(input_convex_hull)
+          v_all = (v_representation_plot_all)[v_representation_plot_all[,1] %in% model_name_mix,2:ncol(v_representation_plot_all)]
+
+          v_all = matrix(as.numeric(unlist(v_all)),ncol=ncol(v_all))
+          v_all = v_all[!duplicated(v_all), ]
+          
+          v_all = d2q(v_all)
+          
+          mixture_v = makeV(v_all)
           
           dim_mixture=dim(mixture_v)[1]
           
@@ -1609,6 +1616,7 @@ server <- shinyServer(function(input, output, session) {
             
           }
           
+          list_mixture_h[loop_model_mix] = list(mixture_h)
           
           ####
           
@@ -1643,20 +1651,25 @@ server <- shinyServer(function(input, output, session) {
           
           row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
           
-        }
+          all_mixture_v_plot = rbind(all_mixture_v_plot,data.frame("model_name"= 
+                                                                     paste("mix_",paste(model_name_mix,collapse="_"),sep=""),
+                                                                   mixture_v_plot))
+          
+          
+          }
+        }  
+
         
         ####* all v-representations ####
         
-        if(unlist(AllInputs()$check_mix_inter)==TRUE){
+        if(is.na(unlist(mix_models_list[1])[1]) == FALSE){
           
-          all_v_plot = data.frame(model_name = "mixture",mixture_v_plot) 
-          all_v_plot = rbind(all_v_plot,v_representation_plot_all)
+          
+          all_v_plot = rbind(v_representation_plot_all,all_mixture_v_plot)
           
         }else{
           
-          
           all_v_plot = v_representation_plot_all
-          
           
         }
         
@@ -1679,17 +1692,23 @@ server <- shinyServer(function(input, output, session) {
         
         function_plot(v_representation_plot_all_list,n_submodels)
         
-        #### * h-representation of mixture ####
+        #### * prepare h-representation of mixture ####
         
         if(unlist(AllInputs()$check_mix_inter)==TRUE){
           
+     
+          
+          for(loop_mix_print in 1 : length(list_mixture_h)){
+          
+          actual_mix = list_mixture_h[[loop_mix_print]]
+          
           if(dim_mixture > 1){ 
             
-            mixture_h_pl = (mixture_h$output)
+            mixture_h_pl = (actual_mix$output)
             
           }else{
             
-            mixture_h_pl = (mixture_h)
+            mixture_h_pl = (actual_mix)
             
           }
           
@@ -1711,15 +1730,25 @@ server <- shinyServer(function(input, output, session) {
           ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
           
           mixture_h_pl = mixture_h_pl[ind_mix==1,]
+          model_name_mix = unlist(mix_models_list[loop_mix_print])
           
+     
+            begin_eq = paste( paste("mix_",paste(model_name_mix,collapse="_"),sep="")
+                            ," $$\\begin{eqnarray} ",sep="")
+            end_eq = " \\end{eqnarray}$$"
+            
+            equation_all = c(paste(begin_eq,latex(mixture_h_pl),end_eq,sep=""))
+            
+            
+   
+            formula_h_all = paste(formula_h_all,equation_all,collapse="")
           
-          begin_eq = paste("mixture"," $$\\begin{eqnarray} ",sep="")
-          end_eq = " \\end{eqnarray}$$"
-          equation_all = paste(begin_eq,latex(mixture_h_pl),end_eq,sep="")
+  
           
-          formula_h_all = paste(formula_h_all,equation_all,collapse="")
-        }
+        }}
         
+      
+          
         incProgress(numb_models)
         
         withMathJax(helpText({ 
