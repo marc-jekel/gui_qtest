@@ -207,7 +207,7 @@ ui <- shinyUI(fluidPage(
                         actionButton("go", "Run simulation")),
                  column(12,offset=0,
                                numericInput("numb_samples", "Number of samples", 
-                                            value = 100000, min = 100, max = 1000000)
+                                            value = 10000, min = 100, max = 1000000)
                         ),
                ), 
              ),
