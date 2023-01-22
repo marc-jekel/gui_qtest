@@ -1851,7 +1851,7 @@ server <- shinyServer(function(input, output, session) {
       
       sim_summarize = all_h_rep_in_matrix_p %>%
         group_by(sim, model.name) %>%
-        summarize(sum_model = sum(fulfilled))
+        summarize(sum_model = sum(fulfilled), .groups = 'drop')
       
       sim_summarize = left_join(sim_summarize,numb_ineq,"model.name")
       
@@ -1860,7 +1860,7 @@ server <- shinyServer(function(input, output, session) {
       
       sim_summarize = sim_summarize %>%
         group_by(model.name) %>%
-        summarize(hyperspace = 100*mean(within))
+        summarize(hyperspace = 100*mean(within), .groups = 'drop')
       
       
       
