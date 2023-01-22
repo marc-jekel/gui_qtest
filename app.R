@@ -5,6 +5,7 @@ library("DT")
 library("MASS")
 library("stringr")
 library("plotly")
+library("dplyr")
 
 ## LOG
 
@@ -203,8 +204,11 @@ ui <- shinyUI(fluidPage(
                  column(12,div(plotlyOutput("plot"), align = "center"))
                ))
     ),
-    tabPanel("Parsimony"
-             
+    tabPanel("Parsimony",
+             mainPanel(
+               fluidRow(
+                 column(12,div(plotlyOutput("plot_parsimony"), align = "center"))
+               ))
     ),
     tags$footer(column(3, "Pre-publication version"), 
                 column(2,offset=7, tags$a(href="mailto:mjekel@uni-koeln.de", tags$b("Email feedback"), 
@@ -1385,6 +1389,8 @@ server <- shinyServer(function(input, output, session) {
     
     output$h <- renderUI({
       
+      all_h_rep_in_matrix = numeric()
+      
       numb_models = counter_ie$n
       
       v_representation_plot_all = numeric()
@@ -1457,26 +1463,26 @@ server <- shinyServer(function(input, output, session) {
         #### * build intersection models ####
         
         if(unlist(AllInputs()$check_mix_inter)==TRUE){
-
-        if(is.na(unlist(inter_models_list[1])[1]) == FALSE){
           
-          for(loop_inter in 1 : length(inter_models_list)){
+          if(is.na(unlist(inter_models_list[1])[1]) == FALSE){
             
-            sel_model = which(reference_list$mod_name %in% 
-                                unlist(inter_models_list[loop_inter]))
+            for(loop_inter in 1 : length(inter_models_list)){
+              
+              sel_model = which(reference_list$mod_name %in% 
+                                  unlist(inter_models_list[loop_inter]))
+              
+              input_relations[[paste0("rel", numb_models + loop_inter)]] = paste(all_input_models[sel_model],collapse=";")
+              
+              all_input_models_names = c(all_input_models_names,paste("inter_",str_replace_all(input_inter[loop_inter],",","_"),sep= ""))
+              
+            }
             
-            input_relations[[paste0("rel", numb_models + loop_inter)]] = paste(all_input_models[sel_model],collapse=";")
-            
-            all_input_models_names = c(all_input_models_names,paste("inter_",str_replace_all(input_inter[loop_inter],",","_"),sep= ""))
+            numb_models = numb_models + loop_inter
             
           }
-          
-          numb_models = numb_models + loop_inter
           
         }
         
-          }
-          
         #### v- and h-representation models and intersection models ####
         
         for(loop_numb_models in 1 : numb_models){
@@ -1496,6 +1502,7 @@ server <- shinyServer(function(input, output, session) {
             
             
           }
+          
           
           if(sum(all_operators != "equal") == 0 &  sum(all_operators == "equal") > 0){
             
@@ -1523,6 +1530,15 @@ server <- shinyServer(function(input, output, session) {
           }
           
           
+          current_name =  all_input_models_names[loop_numb_models]
+          
+          all_h_rep_in_matrix = rbind(all_h_rep_in_matrix,
+                                      data.frame( current_name,
+                                                  h_representation))
+          
+          
+          #### * v-rep #####
+          
           v_representation =  scdd(h_representation)
           
           v_representation = matrix(
@@ -1545,8 +1561,6 @@ server <- shinyServer(function(input, output, session) {
           }
           
           row.names(v_representation_plot) = paste(paste("V_",loop_numb_models,"_",sep=""),1:nrow(v_representation_plot),sep="")
-          
-          current_name =  all_input_models_names[loop_numb_models]
           
           
           v_representation_plot = cbind("model_name" = current_name,v_representation_plot)
@@ -1573,99 +1587,114 @@ server <- shinyServer(function(input, output, session) {
           formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
         
+        
+        col_names_h = c("model name","equ/ineq","right",paste("p",1:(ncol(all_h_rep_in_matrix)-3),sep=""))
+        
+        colnames(all_h_rep_in_matrix) = col_names_h
+        
         #### * v- and h-representation of mixtures ####
         
         if(unlist(AllInputs()$check_mix_inter)==TRUE){
-        
-        list_mixture_h = list()
-        
-        if(is.na(unlist(mix_models_list[1])[1]) == FALSE){
           
-          all_mixture_v_plot = numeric()
+          list_mixture_h = list()
           
-          for(loop_model_mix in 1 : length(mix_models_list)){
+          if(is.na(unlist(mix_models_list[1])[1]) == FALSE){
             
-          model_name_mix = unlist(mix_models_list[loop_model_mix])
-  
-          
-          v_all = (v_representation_plot_all)[v_representation_plot_all[,1] %in% model_name_mix,2:ncol(v_representation_plot_all)]
-
-          v_all = matrix(as.numeric(unlist(v_all)),ncol=ncol(v_all))
-          v_all = v_all[!duplicated(v_all), ]
-          
-          v_all = d2q(v_all)
-          
-          mixture_v = makeV(v_all)
-          
-          dim_mixture=dim(mixture_v)[1]
-          
-          
-          if(dim_mixture > 1){
+            all_mixture_v_plot = numeric()
             
-            mixture_v = redundant(mixture_v)
-            
-          }
+            for(loop_model_mix in 1 : length(mix_models_list)){
+              
+              model_name_mix = unlist(mix_models_list[loop_model_mix])
+              
+              
+              v_all = (v_representation_plot_all)[v_representation_plot_all[,1] %in% model_name_mix,2:ncol(v_representation_plot_all)]
+              
+              v_all = matrix(as.numeric(unlist(v_all)),ncol=ncol(v_all))
+              v_all = v_all[!duplicated(v_all), ]
+              
+              v_all = d2q(v_all)
+              
+              mixture_v = makeV(v_all)
+              
+              dim_mixture=dim(mixture_v)[1]
+              
+              
+              if(dim_mixture > 1){
+                
+                mixture_v = redundant(mixture_v)
+                
+              }
+              
+              
+              if(dim_mixture > 1){ 
+                
+                mixture_h = scdd(mixture_v$output)
+                mixture_h = q2d(mixture_h$output)
+                mixture_h = redundant(mixture_h)
+                
+                
+              }else{
+                
+                mixture_h = scdd(mixture_v)
+                mixture_h = q2d(mixture_h$output)
+                
+                
+              }
+              
+              list_mixture_h[loop_model_mix] = list(mixture_h)
+              
+              
+              ####
+              
+              if(dim_mixture> 1){ 
+                
+                mixture_v = matrix(
+                  sapply(mixture_v$output, function(x) eval(parse(text=x))),
+                  ncol = ncol(mixture_v$output))
+                
+              }else{
+                
+                mixture_v = matrix(
+                  sapply(mixture_v, function(x) eval(parse(text=x))),
+                  ncol = ncol(mixture_v))
+                
+              }
+              
+              mixture_v_plot = data.frame(mixture_v)
+              mixture_v_plot = mixture_v_plot[,3:ncol(mixture_v_plot)]
+              
+              mixture_v_plot = (fractions(matrix(unlist(mixture_v_plot),ncol=ncol(mixture_v_plot)))) #new
+              
+              if(input$check_name == T){
+                
+                colnames(mixture_v_plot) = outs$name
+                
+              }else{
+                
+                colnames(mixture_v_plot) = paste("p_",1:ncol(mixture_v_plot),sep="")
+                
+              }
+              
+              row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
+              
+              all_mixture_v_plot = rbind(all_mixture_v_plot,data.frame("model_name"= 
+                                                                         paste("mix_",paste(model_name_mix,collapse="_"),sep=""),
+                                                                       mixture_v_plot))
+              
+              mix_h_rep_in_matrix = data.frame(paste("mix_",paste(model_name_mix,collapse="_"),sep=""),mixture_h$output)
+              colnames(mix_h_rep_in_matrix) = col_names_h
+              
+              all_h_rep_in_matrix = 
+                rbind(all_h_rep_in_matrix,mix_h_rep_in_matrix)
+              
+              
+            }
+          }  
           
-          
-          if(dim_mixture > 1){ 
-            
-            mixture_h = scdd(mixture_v$output)
-            mixture_h = q2d(mixture_h$output)
-            mixture_h = redundant(mixture_h)
-            
-            
-          }else{
-            
-            mixture_h = scdd(mixture_v)
-            mixture_h = q2d(mixture_h$output)
-            
-            
-          }
-          
-          list_mixture_h[loop_model_mix] = list(mixture_h)
-          
-          ####
-          
-          if(dim_mixture> 1){ 
-            
-            mixture_v = matrix(
-              sapply(mixture_v$output, function(x) eval(parse(text=x))),
-              ncol = ncol(mixture_v$output))
-            
-          }else{
-            
-            mixture_v = matrix(
-              sapply(mixture_v, function(x) eval(parse(text=x))),
-              ncol = ncol(mixture_v))
-            
-          }
-          
-          mixture_v_plot = data.frame(mixture_v)
-          mixture_v_plot = mixture_v_plot[,3:ncol(mixture_v_plot)]
-          
-          mixture_v_plot = (fractions(matrix(unlist(mixture_v_plot),ncol=ncol(mixture_v_plot)))) #new
-          
-          if(input$check_name == T){
-            
-            colnames(mixture_v_plot) = outs$name
-            
-          }else{
-            
-            colnames(mixture_v_plot) = paste("p_",1:ncol(mixture_v_plot),sep="")
-            
-          }
-          
-          row.names(mixture_v_plot) = paste("V_",1:nrow(mixture_v_plot),sep="")
-          
-          all_mixture_v_plot = rbind(all_mixture_v_plot,data.frame("model_name"= 
-                                                                     paste("mix_",paste(model_name_mix,collapse="_"),sep=""),
-                                                                   mixture_v_plot))
-          
-          
-          }
-        }  
-
         }
+        
+        all_h_rep_in_matrix <<- all_h_rep_in_matrix
+        
         ####* all v-representations ####
         
         if(is.na(unlist(mix_models_list[1])[1]) == FALSE & 
@@ -1704,59 +1733,57 @@ server <- shinyServer(function(input, output, session) {
         if(unlist(AllInputs()$check_mix_inter)==TRUE &
            is.na(unlist(mix_models_list[1])[1]) == FALSE){
           
-     
+          
           
           for(loop_mix_print in 1 : length(list_mixture_h)){
-          
-          actual_mix = list_mixture_h[[loop_mix_print]]
-          
-          if(dim_mixture > 1){ 
             
-            mixture_h_pl = (actual_mix$output)
+            actual_mix = list_mixture_h[[loop_mix_print]]
             
-          }else{
+            if(dim_mixture > 1){ 
+              
+              mixture_h_pl = (actual_mix$output)
+              
+            }else{
+              
+              mixture_h_pl = (actual_mix)
+              
+            }
             
-            mixture_h_pl = (actual_mix)
+            mixture_h_pl = fractions(mixture_h_pl)
             
-          }
-          
-          mixture_h_pl = fractions(mixture_h_pl)
-          
-          numb_p = ncol(mixture_h_pl)-2
-          
-          
-          if(input$check_name == T){
+            numb_p = ncol(mixture_h_pl)-2
             
-            colnames(mixture_h_pl) = c("ineq/eq","right",paste("\\text{ ",outs$name," }",sep=""))
             
-          }else{
+            if(input$check_name == T){
+              
+              colnames(mixture_h_pl) = c("ineq/eq","right",paste("\\text{ ",outs$name," }",sep=""))
+              
+            }else{
+              
+              colnames(mixture_h_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+              
+            }
             
-            colnames(mixture_h_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+            ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
             
-          }
-          
-          ind_mix = ifelse(rowSums(abs(mixture_h_pl[,3:ncol(mixture_h_pl)])) > 0,1,0)
-          
-          mixture_h_pl = mixture_h_pl[ind_mix==1,]
-          model_name_mix = unlist(mix_models_list[loop_mix_print])
-          
-     
+            mixture_h_pl = mixture_h_pl[ind_mix==1,]
+            model_name_mix = unlist(mix_models_list[loop_mix_print])
+            
+            
             begin_eq = paste( paste("mix_",paste(model_name_mix,collapse="_"),sep="")
-                            ," $$\\begin{eqnarray} ",sep="")
+                              ," $$\\begin{eqnarray} ",sep="")
             end_eq = " \\end{eqnarray}$$"
             
             equation_all = c(paste(begin_eq,latex(mixture_h_pl),end_eq,sep=""))
             
             
-   
+            
             formula_h_all = paste(formula_h_all,equation_all,collapse="")
-          
-  
-          
-        }}
+            
+            
+            
+          }}
         
-      
-          
         incProgress(numb_models)
         
         withMathJax(helpText({ 
@@ -1764,8 +1791,82 @@ server <- shinyServer(function(input, output, session) {
         }))
         
       })
+      
+      
     })
   })
+  
+  
+  #### parsimony ####
+  
+  output$plot_parsimony = renderPlotly({
+    
+      n_samples = 100000
+      
+      n_rows = nrow(all_h_rep_in_matrix)
+      numb_p = ncol(all_h_rep_in_matrix)-3
+    
+      sample_p = matrix(runif(numb_p * n_samples),ncol = numb_p )
+      
+      numb_ineq = data.frame(table(all_h_rep_in_matrix$`model name`))
+      colnames(numb_ineq) = c("model.name","numb")
+
+      all_h_rep_in_matrix = 
+        do.call(rbind, replicate(n_samples, all_h_rep_in_matrix, 
+                                 simplify=FALSE))
+      
+      sample_p = sample_p[rep(1:nrow(sample_p), each = n_rows), ]
+      
+      all_h_rep_in_matrix = data.frame(
+        "sim" = rep(1:n_samples,each = n_rows),
+        all_h_rep_in_matrix)
+
+      all_h_rep_in_matrix_p = all_h_rep_in_matrix[,(ncol(all_h_rep_in_matrix) - (numb_p-1)) :ncol(all_h_rep_in_matrix)]
+        
+      all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),ncol=ncol(all_h_rep_in_matrix_p))
+ 
+      all_h_rep_in_matrix_p = rowSums(all_h_rep_in_matrix_p*sample_p*-1)
+ 
+      all_h_rep_in_matrix_p = data.frame(all_h_rep_in_matrix[,1:2],
+                                         "equal.inequal"=q2d(all_h_rep_in_matrix[,3]),
+                                         "right"=q2d(all_h_rep_in_matrix[,4]),  
+                                         "value" = all_h_rep_in_matrix_p)
+   
+      all_h_rep_in_matrix_p$fulfilled = NA
+      
+      all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)]  = 
+      ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-1],5) == 
+        round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
+      
+      all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)]  = 
+        ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-1],5) <=
+                 round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
+
+      sim_summarize = all_h_rep_in_matrix_p %>%
+        group_by(sim, model.name) %>%
+        summarize(sum_model = sum(fulfilled))
+      
+      sim_summarize = left_join(sim_summarize,numb_ineq,"model.name")
+        
+      sim_summarize$within = ifelse(sim_summarize$sum_model == sim_summarize$numb, 1, 0)
+      
+      sim_summarize = sim_summarize %>%
+        group_by(model.name) %>%
+        summarize(hyperspace = 100*mean(within))
+      
+
+      
+      fig <- plot_ly(sim_summarize, x = ~model.name, y = ~hyperspace, type = 'bar')
+
+      fig <- fig %>% layout(yaxis = list(title = 'Percentage of occupied hyperspace'
+                                         , range = c(0,100)), 
+                            xaxis = list(title = 'Model'),
+                            barmode = 'group')
+
+      fig
+
+  })
+  
 })
 
 shinyApp(ui, server)
