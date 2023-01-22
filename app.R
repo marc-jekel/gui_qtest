@@ -1714,8 +1714,19 @@ server <- shinyServer(function(input, output, session) {
           all_v_plot = v_representation_plot_all
           
         }
+  
+        #### HERE ####
+        # p1 > p2 > 3*p3
         
-        output$all_v_plot =  DT::renderDataTable(all_v_plot)
+        v_table = all_v_plot
+        
+        v_table[,2:ncol(v_table)] =
+        
+        as.character(fractions(matrix(((unlist(v_table[,2:ncol(v_table)]))),ncol=
+                           ncol(v_table)-1)))
+
+        
+        output$all_v_plot =  DT::renderDataTable(v_table)
         
         names_submodels = unique(all_v_plot[,1])
         n_submodels = length(unique(names_submodels))
@@ -1834,7 +1845,6 @@ server <- shinyServer(function(input, output, session) {
       all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),
                                      ncol=ncol(all_h_rep_in_matrix_p))
       
-   
       all_h_rep_in_matrix_p = rowSums(all_h_rep_in_matrix_p*sample_p*-1)
       
       all_h_rep_in_matrix_p = data.frame(all_h_rep_in_matrix[,1:2],
