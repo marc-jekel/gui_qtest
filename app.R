@@ -7,11 +7,7 @@ library("stringr")
 library("plotly")
 library("dplyr")
 
-## LOG
-
 ## Check whether fractions can be displayesd better for mixture tab
-
-##
 
 ui <- shinyUI(fluidPage(
   
@@ -195,8 +191,6 @@ ui <- shinyUI(fluidPage(
                         actionButton("add_models", "",icon=icon("fa-regular fa-square-plus")))
                  
                )
-               
-               
              ),
              
              mainPanel(
@@ -205,6 +199,18 @@ ui <- shinyUI(fluidPage(
                ))
     ),
     tabPanel("Parsimony",
+             sidebarPanel(
+               style = "position:fixed;width:15%",
+               width=2,
+               fluidRow(
+                 column(12,offset=0,
+                        actionButton("go", "Run simulation")),
+                 column(12,offset=0,
+                               numericInput("numb_samples", "Number of samples", 
+                                            value = 100000, min = 100, max = 1000000)
+                        ),
+               ), 
+             ),
              mainPanel(
                fluidRow(
                  column(12,div(plotlyOutput("plot_parsimony"), align = "center"))
@@ -1799,74 +1805,76 @@ server <- shinyServer(function(input, output, session) {
   
   #### parsimony ####
   
-  output$plot_parsimony = renderPlotly({
+  observeEvent(input$go, {
     
-      n_samples = 100000
+    output$plot_parsimony =  renderPlotly({
+      
+      n_samples = input$numb_samples 
       
       n_rows = nrow(all_h_rep_in_matrix)
       numb_p = ncol(all_h_rep_in_matrix)-3
-    
+      
       sample_p = matrix(runif(numb_p * n_samples),ncol = numb_p )
       
       numb_ineq = data.frame(table(all_h_rep_in_matrix$`model name`))
       colnames(numb_ineq) = c("model.name","numb")
-
+      
       all_h_rep_in_matrix = 
-        do.call(rbind, replicate(n_samples, all_h_rep_in_matrix, 
-                                 simplify=FALSE))
+        all_h_rep_in_matrix[rep(1:nrow(all_h_rep_in_matrix),n_samples),]
       
       sample_p = sample_p[rep(1:nrow(sample_p), each = n_rows), ]
       
       all_h_rep_in_matrix = data.frame(
         "sim" = rep(1:n_samples,each = n_rows),
         all_h_rep_in_matrix)
-
+      
       all_h_rep_in_matrix_p = all_h_rep_in_matrix[,(ncol(all_h_rep_in_matrix) - (numb_p-1)) :ncol(all_h_rep_in_matrix)]
-        
+      
       all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),ncol=ncol(all_h_rep_in_matrix_p))
- 
+      
       all_h_rep_in_matrix_p = rowSums(all_h_rep_in_matrix_p*sample_p*-1)
- 
+      
       all_h_rep_in_matrix_p = data.frame(all_h_rep_in_matrix[,1:2],
                                          "equal.inequal"=q2d(all_h_rep_in_matrix[,3]),
                                          "right"=q2d(all_h_rep_in_matrix[,4]),  
                                          "value" = all_h_rep_in_matrix_p)
-   
+      
       all_h_rep_in_matrix_p$fulfilled = NA
       
       all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)]  = 
-      ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-1],5) == 
-        round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
+        ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-1],5) == 
+                 round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
       
       all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)]  = 
         ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-1],5) <=
                  round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
-
+      
       sim_summarize = all_h_rep_in_matrix_p %>%
         group_by(sim, model.name) %>%
         summarize(sum_model = sum(fulfilled))
       
       sim_summarize = left_join(sim_summarize,numb_ineq,"model.name")
-        
+      
+      
       sim_summarize$within = ifelse(sim_summarize$sum_model == sim_summarize$numb, 1, 0)
       
       sim_summarize = sim_summarize %>%
         group_by(model.name) %>%
         summarize(hyperspace = 100*mean(within))
       
-
+      
       
       fig <- plot_ly(sim_summarize, x = ~model.name, y = ~hyperspace, type = 'bar')
-
+      
       fig <- fig %>% layout(yaxis = list(title = 'Percentage of occupied hyperspace'
                                          , range = c(0,100)), 
                             xaxis = list(title = 'Model'),
                             barmode = 'group')
-
+      
       fig
-
-  })
-  
-})
+      
+    })
+    
+  })})
 
 shinyApp(ui, server)
