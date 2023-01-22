@@ -204,12 +204,12 @@ ui <- shinyUI(fluidPage(
                width=2,
                fluidRow(
                  column(12,offset=0,
-                        actionButton("go", "Run simulation")),
+                        numericInput("numb_samples", "Number of samples", 
+                                     value = 10000, min = 100, max = 1000000)  ), 
                  column(12,offset=0,
-                               numericInput("numb_samples", "Number of samples", 
-                                            value = 10000, min = 100, max = 1000000)
-                        ),
-               ), 
+                        actionButton("go", "Run simulation")),
+               )
+               
              ),
              mainPanel(
                fluidRow(
@@ -1593,7 +1593,6 @@ server <- shinyServer(function(input, output, session) {
           formula_h_all = paste(formula_h_all,equation_all,collapse="")
         }
         
-        
         col_names_h = c("model name","equ/ineq","right",paste("p",1:(ncol(all_h_rep_in_matrix)-3),sep=""))
         
         colnames(all_h_rep_in_matrix) = col_names_h
@@ -1687,7 +1686,8 @@ server <- shinyServer(function(input, output, session) {
                                                                          paste("mix_",paste(model_name_mix,collapse="_"),sep=""),
                                                                        mixture_v_plot))
               
-              mix_h_rep_in_matrix = data.frame(paste("mix_",paste(model_name_mix,collapse="_"),sep=""),mixture_h$output)
+              
+              mix_h_rep_in_matrix = data.frame(paste("mix_",paste(model_name_mix,collapse="_"),sep=""),d2q(mixture_h$output))
               colnames(mix_h_rep_in_matrix) = col_names_h
               
               all_h_rep_in_matrix = 
@@ -1828,10 +1828,13 @@ server <- shinyServer(function(input, output, session) {
         "sim" = rep(1:n_samples,each = n_rows),
         all_h_rep_in_matrix)
       
-      all_h_rep_in_matrix_p = all_h_rep_in_matrix[,(ncol(all_h_rep_in_matrix) - (numb_p-1)) :ncol(all_h_rep_in_matrix)]
+      all_h_rep_in_matrix_p = 
+        all_h_rep_in_matrix[,(ncol(all_h_rep_in_matrix) - (numb_p-1)) :ncol(all_h_rep_in_matrix)]
       
-      all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),ncol=ncol(all_h_rep_in_matrix_p))
+      all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),
+                                     ncol=ncol(all_h_rep_in_matrix_p))
       
+   
       all_h_rep_in_matrix_p = rowSums(all_h_rep_in_matrix_p*sample_p*-1)
       
       all_h_rep_in_matrix_p = data.frame(all_h_rep_in_matrix[,1:2],
@@ -1864,11 +1867,14 @@ server <- shinyServer(function(input, output, session) {
       
       
       
-      fig <- plot_ly(sim_summarize, x = ~model.name, y = ~hyperspace, type = 'bar')
+      fig <- plot_ly(sim_summarize, x = ~model.name, y = ~hyperspace, type = 'bar', hoverinfo='none') %>%
+      
+      add_text(text=~paste(round(hyperspace,2),"%",sep=""), hoverinfo='none', textposition = 'top', showlegend = FALSE, 
+               textfont=list(size=14, color="black")) 
       
       fig <- fig %>% layout(yaxis = list(title = 'Percentage of occupied hyperspace'
-                                         , range = c(0,100)), 
-                            xaxis = list(title = 'Model'),
+                                         , range = c(0,105)), 
+                            xaxis = list(title = 'Model', tickangle =45),
                             barmode = 'group')
       
       fig
