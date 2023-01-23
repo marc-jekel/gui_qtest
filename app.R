@@ -213,7 +213,7 @@ ui <- shinyUI(fluidPage(
                  
                  
                  column(12,offset=0,
-                          helpText("The app might crash if the simulation exceeds online memory constraints; start with the default number of samples and download the GUI for local execution, if needed, ",
+                          helpText("The app crashes when the simulation exceeds online memory constraints; start with the default number of samples and download the GUI for local execution, if needed, ",
                    tags$a(href="https://github.com/marc-jekel/gui_qtest","here.",target="_blank"))
                  ),
            
