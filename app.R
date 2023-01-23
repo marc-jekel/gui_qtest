@@ -203,11 +203,17 @@ ui <- shinyUI(fluidPage(
                style = "position:fixed;width:15%",
                width=2,
                fluidRow(
+   
+                
                  column(12,offset=0,
                         numericInput("numb_samples", "Number of samples", 
                                      value = 10000, min = 100, max = 1000000)  ), 
                  column(12,offset=0,
-                        actionButton("go", "Run simulation")),
+                        helpText("The app might crash for a high number of samples because of memory constraints; start with a low number instead and download the GUI for local execution if needed.")),
+                 
+                 column(12,offset=0,
+                        actionButton("go", "Run simulation"))
+               
                )
                
              ),
