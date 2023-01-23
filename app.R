@@ -208,9 +208,15 @@ ui <- shinyUI(fluidPage(
                  column(12,offset=0,
                         numericInput("numb_samples", "Number of samples", 
                                      value = 10000, min = 100, max = 1000000)  ), 
-                 column(12,offset=0,
-                        helpText("The app might crash if the simulation exceeds online memory constraints; start with the default number of samples and download the GUI for local execution if needed.")),
                  
+                 
+                 
+                 
+                 column(12,offset=0,
+                          helpText("The app might crash if the simulation exceeds online memory constraints; start with the default number of samples and download the GUI for local execution, if needed, ",
+                   tags$a(href="https://github.com/marc-jekel/gui_qtest","here.",target="_blank"))
+                 ),
+           
                  column(12,offset=0,
                         actionButton("go", "Run simulation"))
                
