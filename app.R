@@ -6,6 +6,7 @@ library("MASS")
 library("stringr")
 library("plotly")
 library("dplyr")
+library("shinycssloaders")
 
 ## Check whether fractions can be displayesd better for mixture tab
 
@@ -117,7 +118,7 @@ ui <- shinyUI(fluidPage(
              mainPanel(
                fluidPage(
                  withMathJax(),
-                 uiOutput('h')
+                 withSpinner(uiOutput('h'),type=8,color="black",color.background="black")
                )
                
              )
@@ -135,7 +136,7 @@ ui <- shinyUI(fluidPage(
              mainPanel(
                
                fluidRow(
-                 column(12,    DT::dataTableOutput("all_v_plot"))
+                 column(12,   withSpinner(DT::dataTableOutput("all_v_plot"),type=8,color="black",color.background="black"))
                )
                
              )
@@ -195,7 +196,7 @@ ui <- shinyUI(fluidPage(
              
              mainPanel(
                fluidRow(
-                 column(12,div(plotlyOutput("plot"), align = "center"))
+                 column(12,div(withSpinner(plotlyOutput("plot"),type=8,color="black",color.background="black"), align = "center"))
                ))
     ),
     tabPanel("Parsimony",
@@ -225,7 +226,7 @@ ui <- shinyUI(fluidPage(
              ),
              mainPanel(
                fluidRow(
-                 column(12,div(plotlyOutput("plot_parsimony"), align = "center"))
+                 column(12,div( withSpinner(plotlyOutput("plot_parsimony"),type=8,color="black",color.background="black"), align = "center"))
                ))
     ),
     tags$footer(column(3, "Pre-publication version"), 
@@ -1413,7 +1414,7 @@ server <- shinyServer(function(input, output, session) {
       
       v_representation_plot_all = numeric()
       
-      withProgress(message = 'In progress',value = 0, expr= {
+     
         
         input_relations = list()
         
@@ -1505,7 +1506,7 @@ server <- shinyServer(function(input, output, session) {
         
         for(loop_numb_models in 1 : numb_models){
           
-          incProgress(1/(2*numb_models))
+ 
           
           extract_info(eval(parse(text=paste("input_relations$rel",
                                              loop_numb_models,sep=""))))
@@ -1813,13 +1814,12 @@ server <- shinyServer(function(input, output, session) {
             
           }}
         
-        incProgress(numb_models)
-        
+      
         withMathJax(helpText({ 
           formula_h_all
         }))
         
-      })
+      
       
       
     })
@@ -1899,7 +1899,7 @@ server <- shinyServer(function(input, output, session) {
                             xaxis = list(title = 'Model', tickangle =45),
                             barmode = 'group')
       
-      fig
+     fig
       
     })
     
