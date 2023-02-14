@@ -214,7 +214,7 @@ ui <- shinyUI(fluidPage(
               
                  
                  column(12,offset=0,
-                        helpText("To avoid computer memory issues, if the app crashes when using a certain number of samples per bootstrap, you can try lowering the number of samples per bootstrap and increasing the number of bootstraps to achieve the same total number of samples. Additionally, if necessary, you can download the GUI for local execution ",
+                        helpText("If the app crashes when using a certain number of samples per bootstrap, you can try lowering the number of samples per bootstrap and increasing the number of bootstraps to achieve the same total number of samples. Additionally, if necessary, you can download the GUI for local execution ",
                                  tags$a(href="https://github.com/marc-jekel/gui_qtest","here.",target="_blank"))
                  ),
                  
