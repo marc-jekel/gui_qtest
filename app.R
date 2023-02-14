@@ -1920,7 +1920,8 @@ server <- shinyServer(function(input, output, session) {
       fig <- fig %>% layout(yaxis = list(title = 'Percentage of occupied hyperspace'
                                          , range = c(0,105)), 
                             xaxis = list(title = 'Model', tickangle =45),
-                            barmode = 'group')
+                            barmode = 'group',
+                            title = paste(cut_nsamples * n_samples," sets of probabilities",sep=""))
       
       
       
