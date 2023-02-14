@@ -1834,20 +1834,21 @@ server <- shinyServer(function(input, output, session) {
       cut_nsamples = isolate(input$cut_nsamples) 
       n_samples = isolate(input$numb_samples) 
 
-      sim_summarize_all = numeric()
+      n_rows = nrow(all_h_rep_in_matrix)
+      numb_p = ncol(all_h_rep_in_matrix)-3
       
+      numb_ineq = data.frame(table(all_h_rep_in_matrix$`model name`))
       
+      colnames(numb_ineq) = c("model.name","numb")
+      
+      n_models = nrow(numb_ineq)
+      
+      sim_summarize_all = data.frame(matrix(NA,ncol=2,nrow=n_models*cut_nsamples))
+      colnames(sim_summarize_all) = c("model.name","hyperspace")
+
       for(loop_cut in 1 : cut_nsamples){
-        
-        
-        n_rows = nrow(all_h_rep_in_matrix)
-        numb_p = ncol(all_h_rep_in_matrix)-3
-        
+
         sample_p = matrix(runif(numb_p * n_samples),ncol = numb_p )
-        
-        numb_ineq = data.frame(table(all_h_rep_in_matrix$`model name`))
-        
-        colnames(numb_ineq) = c("model.name","numb")
         
         all_h_rep_in_matrix_loop_cut = 
           all_h_rep_in_matrix[rep(1:nrow(all_h_rep_in_matrix),n_samples),]
@@ -1895,11 +1896,15 @@ server <- shinyServer(function(input, output, session) {
           group_by(model.name) %>%
           summarize(hyperspace = sum(within), .groups = 'drop')
 
+
+        indic = (1 + ((loop_cut-1)*n_models)) : (n_models + ((loop_cut-1)*n_models))
         
-        sim_summarize_all = rbind(sim_summarize_all,sim_summarize)
-        
+        sim_summarize_all[indic ,] = data.frame(sim_summarize)
         
       }
+      
+
+      colnames(sim_summarize_all) = c("model.name","hyperspace")
     
       
       sim_summarize_all = sim_summarize_all %>%
