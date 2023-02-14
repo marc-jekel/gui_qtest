@@ -205,18 +205,16 @@ ui <- shinyUI(fluidPage(
                width=2,
                fluidRow(
                  
-                 
                  column(12,offset=0,
-                        numericInput("numb_samples", "Number of samples per cut", 
-                                     value = 10000, min = 100, max = 1000000)  ), 
-                 column(12,offset=0,
-                        numericInput("cut_nsamples", "Number of cuts", 
+                        numericInput("cut_nsamples", "Number of bootstraps", 
                                      value = 10, min = 1, max = 1000)  ), 
-                 
-                 
+                 column(12,offset=0,
+                        numericInput("numb_samples", "Number of samples per bootstrap", 
+                                     value = 1000, min = 100, max = 1000000)  ), 
+              
                  
                  column(12,offset=0,
-                        helpText("The app crashes when the simulation exceeds online memory constraints; start with the default number of samples and download the GUI for local execution, if needed, ",
+                        helpText("To avoid computer memory issues, if the app crashes when using a certain number of samples per bootstrap, you can try lowering the number of samples per bootstrap and increasing the number of bootstraps to achieve the same total number of samples. Additionally, if necessary, you can download the GUI for local execution ",
                                  tags$a(href="https://github.com/marc-jekel/gui_qtest","here.",target="_blank"))
                  ),
                  
