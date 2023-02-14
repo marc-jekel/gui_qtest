@@ -211,7 +211,7 @@ ui <- shinyUI(fluidPage(
                  column(12,offset=0,
                         numericInput("numb_samples", "Number of samples per bootstrap", 
                                      value = 1000, min = 100, max = 1000000)  ), 
-              
+                 
                  
                  column(12,offset=0,
                         helpText("If the app crashes when using a certain number of samples per bootstrap, you can try lowering the number of samples per bootstrap and increasing the number of bootstraps to achieve the same total number of samples. Additionally, if necessary, you can download the GUI for local execution ",
@@ -1833,7 +1833,7 @@ server <- shinyServer(function(input, output, session) {
       
       cut_nsamples = isolate(input$cut_nsamples) 
       n_samples = isolate(input$numb_samples) 
-
+      
       n_rows = nrow(all_h_rep_in_matrix)
       numb_p = ncol(all_h_rep_in_matrix)-3
       
@@ -1845,73 +1845,76 @@ server <- shinyServer(function(input, output, session) {
       
       sim_summarize_all = data.frame(matrix(NA,ncol=2,nrow=n_models*cut_nsamples))
       colnames(sim_summarize_all) = c("model.name","hyperspace")
-
-      for(loop_cut in 1 : cut_nsamples){
-
-        sample_p = matrix(runif(numb_p * n_samples),ncol = numb_p )
-        
-        all_h_rep_in_matrix_loop_cut = 
-          all_h_rep_in_matrix[rep(1:nrow(all_h_rep_in_matrix),n_samples),]
-        
-        sample_p = sample_p[rep(1:nrow(sample_p), each = n_rows), ]
-        
-        all_h_rep_in_matrix_loop_cut = data.frame(
-          "sim" = rep(1:n_samples,each = n_rows),
-          all_h_rep_in_matrix_loop_cut)
-        
-        all_h_rep_in_matrix_p = 
-          all_h_rep_in_matrix_loop_cut[,(ncol(all_h_rep_in_matrix_loop_cut) - (numb_p-1)) :ncol(all_h_rep_in_matrix_loop_cut)]
-        
-        all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),
-                                       ncol=ncol(all_h_rep_in_matrix_p))
-        
-        all_h_rep_in_matrix_p = rowSums(all_h_rep_in_matrix_p*sample_p*-1)
-        
-        all_h_rep_in_matrix_p = data.frame(all_h_rep_in_matrix_loop_cut[,1:2],
-                                           "equal.inequal"=q2d(all_h_rep_in_matrix_loop_cut[,3]),
-                                           "right"=q2d(all_h_rep_in_matrix_loop_cut[,4]),  
-                                           "value" = all_h_rep_in_matrix_p)
-        
-        all_h_rep_in_matrix_p$fulfilled = NA
-        
-        all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)]  = 
-          ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-1],5) == 
-                   round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
-        
-        all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)]  = 
-          ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-1],5) <=
-                   round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
-        
-        sim_summarize = all_h_rep_in_matrix_p %>%
-          group_by(sim, model.name) %>%
-          summarize(sum_model = sum(fulfilled), .groups = 'drop')
-        
-        sim_summarize = left_join(sim_summarize,numb_ineq,"model.name")
-        
-        
-        sim_summarize$within = ifelse(sim_summarize$sum_model == sim_summarize$numb, 1, 0)
-        
-
-        sim_summarize = sim_summarize %>%
-          group_by(model.name) %>%
-          summarize(hyperspace = sum(within), .groups = 'drop')
-
-
-        indic = (1 + ((loop_cut-1)*n_models)) : (n_models + ((loop_cut-1)*n_models))
-        
-        sim_summarize_all[indic ,] = data.frame(sim_summarize)
-        
-      }
       
+      withProgress(message = 'Making plot', value = 0, {
+        
+        for(loop_cut in 1 : cut_nsamples){
+          incProgress(1/cut_nsamples, detail = paste("Doing bootstrap #", loop_cut))
+          sample_p = matrix(runif(numb_p * n_samples),ncol = numb_p )
+          
+          all_h_rep_in_matrix_loop_cut = 
+            all_h_rep_in_matrix[rep(1:nrow(all_h_rep_in_matrix),n_samples),]
+          
+          sample_p = sample_p[rep(1:nrow(sample_p), each = n_rows), ]
+          
+          all_h_rep_in_matrix_loop_cut = data.frame(
+            "sim" = rep(1:n_samples,each = n_rows),
+            all_h_rep_in_matrix_loop_cut)
+          
+          all_h_rep_in_matrix_p = 
+            all_h_rep_in_matrix_loop_cut[,(ncol(all_h_rep_in_matrix_loop_cut) - (numb_p-1)) :ncol(all_h_rep_in_matrix_loop_cut)]
+          
+          all_h_rep_in_matrix_p = matrix(q2d(unlist(all_h_rep_in_matrix_p)),
+                                         ncol=ncol(all_h_rep_in_matrix_p))
+          
+          all_h_rep_in_matrix_p = rowSums(all_h_rep_in_matrix_p*sample_p*-1)
+          
+          all_h_rep_in_matrix_p = data.frame(all_h_rep_in_matrix_loop_cut[,1:2],
+                                             "equal.inequal"=q2d(all_h_rep_in_matrix_loop_cut[,3]),
+                                             "right"=q2d(all_h_rep_in_matrix_loop_cut[,4]),  
+                                             "value" = all_h_rep_in_matrix_p)
+          
+          all_h_rep_in_matrix_p$fulfilled = NA
+          
+          all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)]  = 
+            ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-1],5) == 
+                     round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 1,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
+          
+          all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)]  = 
+            ifelse(round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-1],5) <=
+                     round(all_h_rep_in_matrix_p[all_h_rep_in_matrix_p$equal.inequ == 0,ncol(all_h_rep_in_matrix_p)-2],5),1,0)
+          
+          sim_summarize = all_h_rep_in_matrix_p %>%
+            group_by(sim, model.name) %>%
+            summarize(sum_model = sum(fulfilled), .groups = 'drop')
+          
+          sim_summarize = left_join(sim_summarize,numb_ineq,"model.name")
+          
+          
+          sim_summarize$within = ifelse(sim_summarize$sum_model == sim_summarize$numb, 1, 0)
+          
+          
+          sim_summarize = sim_summarize %>%
+            group_by(model.name) %>%
+            summarize(hyperspace = sum(within), .groups = 'drop')
+          
+          
+          indic = (1 + ((loop_cut-1)*n_models)) : (n_models + ((loop_cut-1)*n_models))
+          
+          sim_summarize_all[indic ,] = data.frame(sim_summarize)
+          # Increment the progress bar, and update the detail text.
 
+        }
+      })
+      
       colnames(sim_summarize_all) = c("model.name","hyperspace")
-    
+      
       
       sim_summarize_all = sim_summarize_all %>%
         group_by(model.name) %>%
         summarize(hyperspace = 100* (sum(hyperspace)/(cut_nsamples * n_samples)), .groups = 'drop')
       
-
+      
       fig <- plot_ly(sim_summarize_all, x = ~model.name, y = ~hyperspace, type = 'bar', hoverinfo='none') %>%
         
         add_text(text=~paste(round(hyperspace,2),"%",sep=""), hoverinfo='none', textposition = 'top', showlegend = FALSE, 
