@@ -226,7 +226,7 @@ ui <- shinyUI(fluidPage(
              ),
              mainPanel(
                fluidRow(
-                 column(12,div( withSpinner(plotlyOutput("plot_parsimony"),type=8,color="black",color.background="black"), align = "center"))
+                 column(12,div(uiOutput("spinner"), align = "center"))
                ))
     ),
     tags$footer(column(3, "Pre-publication version"), 
@@ -1832,7 +1832,7 @@ server <- shinyServer(function(input, output, session) {
     
     output$plot_parsimony =  renderPlotly({
       
-      n_samples = input$numb_samples 
+      n_samples = isolate(input$numb_samples) 
       
       n_rows = nrow(all_h_rep_in_matrix)
       numb_p = ncol(all_h_rep_in_matrix)-3
@@ -1899,8 +1899,13 @@ server <- shinyServer(function(input, output, session) {
                             xaxis = list(title = 'Model', tickangle =45),
                             barmode = 'group')
       
-     fig
+  
+
       
+    })
+    
+    output$spinner <- renderUI({
+     withSpinner(plotlyOutput("plot_parsimony"),type=8,color="black",color.background="black")
     })
     
   })})
