@@ -847,11 +847,8 @@ server <- shinyServer(function(input, output, session) {
       test = unlist(str_split(test,";"))
       test = str_replace_all(test," ","")
       test = unlist(test)
-
-      ### ADD HERE ####
      
       start_short = str_locate_all(test,fixed("{"))
-      
       end_short = str_locate_all(test,fixed("}"))
       
       test_new = numeric()
