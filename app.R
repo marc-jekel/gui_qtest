@@ -7,7 +7,8 @@ library("stringr")
 library("plotly")
 library("dplyr")
 library("shinycssloaders")
-
+library("pryr")
+options(warn=-1)
 ## Check whether fractions can be displayesd better for mixture tab
 
 ui <- shinyUI(fluidPage(
@@ -206,15 +207,16 @@ ui <- shinyUI(fluidPage(
                fluidRow(
                  
                  column(12,offset=0,
-                        numericInput("cut_nsamples", "Number of bootstraps", 
-                                     value = 10, min = 1, max = 1000)  ), 
+                        numericInput("numb_samples", "Number of samples", 
+                                     value = 100000)  ), 
                  column(12,offset=0,
-                        numericInput("numb_samples", "Number of samples per bootstrap", 
-                                     value = 1000, min = 100, max = 1000000)  ), 
+                 selectInput("available_ram", "Available memory in GB:",
+                             c("1","2","4","8","16","32"),
+                             selected="2")),
                  
                  
                  column(12,offset=0,
-                        helpText("If the app crashes when using a certain number of samples per bootstrap, you can try lowering the number of samples per bootstrap and increasing the number of bootstraps to achieve the same total number of samples. Additionally, if necessary, you can download the GUI for local execution ",
+                        helpText("For faster calculations, you can download the GUI for local execution ",
                                  tags$a(href="https://github.com/marc-jekel/gui_qtest","here.",target="_blank"))
                  ),
                  
@@ -227,7 +229,8 @@ ui <- shinyUI(fluidPage(
              ),
              mainPanel(
                fluidRow(
-                 column(12,div(uiOutput("parsimony_spinner"), align = "center"))
+                 column(12,div(uiOutput("parsimony_spinner"), align = "center")),
+                 textOutput("my_ram")
                ))
     ),
     tags$footer(column(3, "Pre-publication version"), 
@@ -1830,8 +1833,7 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(input$go, {
     
     output$plot_parsimony =  renderPlotly({
-      
-      cut_nsamples = isolate(input$cut_nsamples) 
+     
       n_samples = isolate(input$numb_samples) 
       
       n_rows = nrow(all_h_rep_in_matrix)
@@ -1842,23 +1844,54 @@ server <- shinyServer(function(input, output, session) {
       colnames(numb_ineq) = c("model.name","numb")
       
       n_models = nrow(numb_ineq)
+      n_inequalities = sum(numb_ineq$numb)
+
+      available_gb = isolate(input$available_ram)
       
-      sim_summarize_all = data.frame(matrix(NA,ncol=2,nrow=n_models*cut_nsamples))
+      if(available_gb == "32"){n_cut = ceiling(n_inequalities * n_samples * numb_p/(1e+10))}
+      if(available_gb == "16"){n_cut = ceiling(n_inequalities * n_samples * numb_p/(1e+9))}
+      if(available_gb == "8"){n_cut = ceiling(n_inequalities * n_samples * numb_p/(1e+8))}
+      if(available_gb == "4"){n_cut =  ceiling(n_inequalities * n_samples * numb_p/(1e+7))}
+      if(available_gb == "2"){n_cut = ceiling(n_inequalities * n_samples * numb_p/(1e+6))}
+      if(available_gb == "1"){n_cut = ceiling(n_inequalities * n_samples * numb_p/(1e+5))}
+
+      sim_summarize_all = data.frame(numb_ineq[,1],rep(0,n_models))
+      
       colnames(sim_summarize_all) = c("model.name","hyperspace")
       
-      withProgress(message = 'Making plot', value = 0, {
+      total_sample_done = 0
+      
+
+      
+      withProgress(message = 'Running simulation', value = 0, {
         
-        for(loop_cut in 1 : cut_nsamples){
-          incProgress(1/cut_nsamples, detail = paste("Doing bootstrap #", loop_cut))
-          sample_p = matrix(runif(numb_p * n_samples),ncol = numb_p )
+        for(loop_cut in 1 : n_cut){
+          
+          
+          incProgress(1/n_cut, detail = paste("Doing bootstrap #", loop_cut," of ",n_cut,sep=""))
+          
+          if(loop_cut < n_cut){
+            
+            n_samples_act = floor(n_samples/n_cut)
+            total_sample_done = total_sample_done+n_samples_act
+            
+          }else{
+            
+            
+            n_samples_act = n_samples-total_sample_done
+            
+          }
+          
+          
+          sample_p = matrix(runif(numb_p * n_samples_act),ncol = numb_p )
           
           all_h_rep_in_matrix_loop_cut = 
-            all_h_rep_in_matrix[rep(1:nrow(all_h_rep_in_matrix),n_samples),]
+            all_h_rep_in_matrix[rep(1:nrow(all_h_rep_in_matrix),n_samples_act),]
           
           sample_p = sample_p[rep(1:nrow(sample_p), each = n_rows), ]
           
           all_h_rep_in_matrix_loop_cut = data.frame(
-            "sim" = rep(1:n_samples,each = n_rows),
+            "sim" = rep(1:n_samples_act,each = n_rows),
             all_h_rep_in_matrix_loop_cut)
           
           all_h_rep_in_matrix_p = 
@@ -1901,9 +1934,9 @@ server <- shinyServer(function(input, output, session) {
           
           indic = (1 + ((loop_cut-1)*n_models)) : (n_models + ((loop_cut-1)*n_models))
           
-          sim_summarize_all[indic ,] = data.frame(sim_summarize)
+          sim_summarize_all[,2] = sim_summarize_all[,2] + sim_summarize[,2]
           # Increment the progress bar, and update the detail text.
-
+          
         }
       })
       
@@ -1912,7 +1945,7 @@ server <- shinyServer(function(input, output, session) {
       
       sim_summarize_all = sim_summarize_all %>%
         group_by(model.name) %>%
-        summarize(hyperspace = 100* (sum(hyperspace)/(cut_nsamples * n_samples)), .groups = 'drop')
+        summarize(hyperspace = 100* (sum(hyperspace)/( n_samples)), .groups = 'drop')
       
       
       fig <- plot_ly(sim_summarize_all, x = ~model.name, y = ~hyperspace, type = 'bar', hoverinfo='none') %>%
@@ -1924,7 +1957,7 @@ server <- shinyServer(function(input, output, session) {
                                          , range = c(0,105)), 
                             xaxis = list(title = 'Model', tickangle =45),
                             barmode = 'group',
-                            title = paste(cut_nsamples * n_samples," sets of probabilities",sep=""))
+                            title = paste( n_samples," sets of probabilities",sep=""))
       
       
       
