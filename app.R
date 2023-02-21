@@ -879,8 +879,6 @@ server <- shinyServer(function(input, output, session) {
             multiple_part =   str_replace_all(multiple_part,fixed("}"),"") 
             multiple_part =  unlist(str_split(multiple_part,","))
             
-           
-            
             test_new = c(test_new, paste(multiple_part,single_part,sep=""))
             
           }
