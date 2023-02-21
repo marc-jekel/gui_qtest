@@ -14,6 +14,7 @@ options(warn=-1)
 ui <- shinyUI(fluidPage(
   
   navbarPage(
+    id = "tabs",
     position = "fixed-top",
     inverse = T,
     windowTitle = "Model representations",
@@ -256,6 +257,8 @@ ui <- shinyUI(fluidPage(
 
 server <- shinyServer(function(input, output, session) {
   
+
+  
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 3)
   counter_ie <- reactiveValues(n=1)
@@ -317,18 +320,28 @@ server <- shinyServer(function(input, output, session) {
       write.csv(outs, file)
     }
   )
+
   
   #### button events ####
   
-  observeEvent(input$add_btn, {counter$n <- counter$n + 1})
-  observeEvent(input$add_ie, {counter_ie$n <- counter_ie$n + 1})
+  observeEvent(input$add_btn, {
+    counter$n <- counter$n + 1
+
+    })
+  
+  observeEvent(input$add_ie, {
+    counter_ie$n <- counter_ie$n + 1
+
+    })
   
   observeEvent(input$rm_btn, {
     if (counter$n > 2) counter$n <- counter$n - 1
+
   })
   
   observeEvent(input$rm_ie, {
     if (counter_ie$n > 1) counter_ie$n <- counter_ie$n - 1
+
   })
   
   observeEvent(input$add_models, {
@@ -344,6 +357,8 @@ server <- shinyServer(function(input, output, session) {
     updateTextAreaInput(inputId = "name_model_plot",  
                         value = paste(models_to_plot,collapse=";"))
     
+
+    
   })
   
   observeEvent(input$subtr_models, {
@@ -358,7 +373,41 @@ server <- shinyServer(function(input, output, session) {
     updateTextAreaInput(inputId = "name_model_plot",  
                         value = paste(models_to_plot,collapse=";"))
     
+
   })
+  
+  ####
+
+  
+  observe(
+    
+    if (input$tabs == "Input"){
+      
+      hideTab(inputId = "tabs",target="Parsimony")
+      hideTab(inputId = "tabs",target="Plot")
+      hideTab(inputId = "tabs",target="V-representation")
+      
+    }
+
+
+  )
+  
+  observe(
+    
+    if (input$tabs == "H-representation"){
+      
+      showTab(inputId = "tabs",target="Parsimony")
+      showTab(inputId = "tabs",target="Plot")
+      showTab(inputId = "tabs",target="V-representation")
+      
+    }
+    
+    
+  )
+  
+  
+
+
   
   #### checkbox events ####
   
@@ -369,6 +418,8 @@ server <- shinyServer(function(input, output, session) {
     if (n > 0) {
       
       isolate({
+       
+        
         lapply(seq_len(n), function(i) {
           
           
@@ -1812,6 +1863,12 @@ server <- shinyServer(function(input, output, session) {
           
           formula_h_all = paste(formula_h_all,equation_all,collapse="")
           
+   
+            
+
+  
+          
+         
           
           
         }}
@@ -1820,7 +1877,6 @@ server <- shinyServer(function(input, output, session) {
       withMathJax(helpText({ 
         formula_h_all
       }))
-      
       
       
       
