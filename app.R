@@ -120,7 +120,7 @@ ui <- shinyUI(fluidPage(
                  column(12,offset=0,
                         downloadButton("d_latex", "")),
                  column(12,offset=0,
-                        helpText("Download H-description for QTEst")),
+                        helpText("Download H-description for QTEST")),
                  column(12,offset=0,
                         downloadButton("d_h", ""))
                  
