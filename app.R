@@ -184,7 +184,11 @@ ui <- shinyUI(fluidPage(
                         helpText("Compute (hyper-) volume")),
                  
                  column(12,offset=0,
-                        actionButton("go", "Go"))
+                        actionButton("go", "Go")),
+                 column(12,offset=0,
+                        helpText("Download results")),
+                 column(12,offset=0,
+                        downloadButton("download_volume", ""))
                  
                )
                
@@ -649,8 +653,8 @@ server <- shinyServer(function(input, output, session) {
   
   function_v_representation = function(turn_this_h_to_v,names_for_v){
     
-    names_for_v <<- names_for_v
-    turn_this_h_to_v <<- turn_this_h_to_v
+    names_for_v <<- names_for_v 
+    turn_this_h_to_v <- turn_this_h_to_v ##R
     
     if(exists("all_h_rep_in_list_converted_to_v") == T){
       
@@ -661,8 +665,11 @@ server <- shinyServer(function(input, output, session) {
       
       if(length(index_remove) > 0){
         
-        all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v[-index_remove]
-        names_already_converted_v <<-names_already_converted_v[-index_remove]
+        all_h_rep_in_list_converted_to_v = all_h_rep_in_list_converted_to_v[-index_remove]
+        names_already_converted_v  = names_already_converted_v[-index_remove]
+        
+        all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v ##R
+        names_already_converted_v <<- names_already_converted_v
         
         all_v_rep_in_list = all_v_rep_in_list[-index_remove]
         
@@ -2253,6 +2260,17 @@ server <- shinyServer(function(input, output, session) {
       colnames(parsim_tab) = c("Model","(Hyper-)Volume","Dimensionality")
       
       output$parsim_table =  DT::renderDataTable(parsim_tab)
+      
+      output$download_volume <- downloadHandler(
+        filename = function() {
+          paste0("volume", ".csv")
+        },
+        content = function(file) {
+          
+          
+          write.csv(parsim_tab, file)
+        }
+      )
       
       
       fig <- plot_ly(parsim, x = ~model.name, y = ~vol, type = 'bar', hoverinfo='none') %>%
