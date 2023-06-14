@@ -120,7 +120,7 @@ ui <- shinyUI(fluidPage(
                  column(12,offset=0,
                         downloadButton("d_latex", "")),
                  column(12,offset=0,
-                        helpText("Download H-description for QTest")),
+                        helpText("Download H-description for QTEst")),
                  column(12,offset=0,
                         downloadButton("d_h", ""))
                  
@@ -281,7 +281,6 @@ ui <- shinyUI(fluidPage(
 ))
 
 server <- shinyServer(function(input, output, session) {
-  
   
   ###### Global variables ####
   
@@ -653,8 +652,8 @@ server <- shinyServer(function(input, output, session) {
   
   function_v_representation = function(turn_this_h_to_v,names_for_v){
     
-    names_for_v <<- names_for_v 
-    turn_this_h_to_v <- turn_this_h_to_v ##R
+    names_for_v <<- names_for_v
+    turn_this_h_to_v <<- turn_this_h_to_v
     
     if(exists("all_h_rep_in_list_converted_to_v") == T){
       
@@ -668,7 +667,7 @@ server <- shinyServer(function(input, output, session) {
         all_h_rep_in_list_converted_to_v = all_h_rep_in_list_converted_to_v[-index_remove]
         names_already_converted_v  = names_already_converted_v[-index_remove]
         
-        all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v ##R
+        all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v
         names_already_converted_v <<- names_already_converted_v
         
         all_v_rep_in_list = all_v_rep_in_list[-index_remove]
@@ -2099,7 +2098,10 @@ server <- shinyServer(function(input, output, session) {
             header_v = dim(act_v_ineq) - c(0,3)
             
             act_v_left = act_v_ineq[,4:ncol(act_v_ineq)]
-            act_v_right = (data.frame(act_v_ineq[,3]))
+            act_v_left = matrix(q2d(unlist(act_v_left)),ncol=ncol(act_v_left))
+            
+            act_v_right = q2d(unlist(act_v_ineq[,3]))
+            act_v_right = data.frame(act_v_right)
             
             act_v_eq = act_v[act_v$`equ/ineq` == 1,]
             
@@ -2122,8 +2124,12 @@ server <- shinyServer(function(input, output, session) {
               
               
               act_v_eq_left = act_v_eq[,4:ncol(act_v_eq)]
-              act_v_eq_right = (data.frame(act_v_eq[,3]))
+              act_v_eq_left = matrix(q2d(unlist(act_v_eq_left)),ncol=ncol(act_v_eq_left))
               
+              act_v_eq_right = (act_v_eq[,3])
+              act_v_eq_right = q2d(unlist(act_v_eq_right))
+              act_v_eq_right = data.frame(act_v_eq_right)
+
               header_eq_v = dim(act_v_eq_left)
               
               total_file=
@@ -2137,7 +2143,7 @@ server <- shinyServer(function(input, output, session) {
                       paste(as.character(header_eq_v),collapse=" "),
                       "\n",
                       "\n",
-                      paste(apply((act_v_eq_left), 1, paste, collapse=" "),collapse="\n"),
+                      paste(apply(((act_v_eq_left)), 1, paste, collapse=" "),collapse="\n"),
                       "\n",
                       "\n",
                       paste(apply((act_v_eq_right), 1, paste, collapse=" "),collapse="\n"),
@@ -2234,7 +2240,7 @@ server <- shinyServer(function(input, output, session) {
                            settings = 
                              list("error"=  isolate(input$approx_error),
                                   "walk_length" = isolate(input$walk_length)))
-          act_dim = c(act_dim,"Fully-dimensional")
+          act_dim = c(act_dim,"Full-dimensional")
           
         }else{
           
@@ -2242,7 +2248,7 @@ server <- shinyServer(function(input, output, session) {
           act_vol = 0
           
           
-          act_dim = c(act_dim,"Not fully-dimensional")
+          act_dim = c(act_dim,"Not full-dimensional")
           
         }
         
