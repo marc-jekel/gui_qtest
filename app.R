@@ -2098,7 +2098,7 @@ server <- shinyServer(function(input, output, session) {
             header_v = dim(act_v_ineq) - c(0,3)
             
             act_v_left = act_v_ineq[,4:ncol(act_v_ineq)]
-            act_v_left = matrix(q2d(unlist(act_v_left)),ncol=ncol(act_v_left))
+            act_v_left = -matrix(q2d(unlist(act_v_left)),ncol=ncol(act_v_left))
             
             act_v_right = q2d(unlist(act_v_ineq[,3]))
             act_v_right = data.frame(act_v_right)
@@ -2124,7 +2124,7 @@ server <- shinyServer(function(input, output, session) {
               
               
               act_v_eq_left = act_v_eq[,4:ncol(act_v_eq)]
-              act_v_eq_left = matrix(q2d(unlist(act_v_eq_left)),ncol=ncol(act_v_eq_left))
+              act_v_eq_left = -matrix(q2d(unlist(act_v_eq_left)),ncol=ncol(act_v_eq_left))
               
               act_v_eq_right = (act_v_eq[,3])
               act_v_eq_right = q2d(unlist(act_v_eq_right))
@@ -2259,7 +2259,7 @@ server <- shinyServer(function(input, output, session) {
       
       ##
       
-      parsim = data.frame("model.name"=as.factor(model_name),"vol" = (100 * parsim),
+      parsim = data.frame("model.name"=as.factor(model_name),"vol" = parsim,
                            act_dim)
       
       parsim_tab = parsim
@@ -2281,11 +2281,11 @@ server <- shinyServer(function(input, output, session) {
       
       fig <- plot_ly(parsim, x = ~model.name, y = ~vol, type = 'bar', hoverinfo='none') %>%
         
-        add_text(text=~paste(round(vol,2),"%",sep=""), hoverinfo='none', textposition = 'top', showlegend = FALSE, 
+        add_text(text=~round(vol,5), hoverinfo='none', textposition = 'top', showlegend = FALSE, 
                  textfont=list(size=14, color="black")) 
       
-      fig <- fig %>% layout(yaxis = list(title = 'Percentage of occupied hyperspace'
-                                         , range = c(0,105)), 
+      fig <- fig %>% layout(yaxis = list(title = 'Occupied hyperspace'
+                                         , range = c(0,1)), 
                             xaxis = list(title = 'Model', tickangle =45),
                             barmode = 'group')
       
