@@ -2223,7 +2223,7 @@ server <- shinyServer(function(input, output, session) {
           model_s4<-new("model_s4",A=left_pars,b=right_pars,
                         type ="Hpolytope")
           
-          act_vol = volume(model_s4,
+          act_vol = volume(model_s4 ,
                            settings = 
                              list("error"=  isolate(input$approx_error),
                                   "walk_length" = isolate(input$walk_length)))
