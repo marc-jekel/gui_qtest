@@ -7,9 +7,8 @@ library("stringr")
 library("plotly")
 library("dplyr")
 library("shinycssloaders")
-library("pryr")
-library("latex2exp")
 library("volesti")
+
 options(warn=-1)
 
 ui <- shinyUI(fluidPage(
@@ -155,8 +154,8 @@ ui <- shinyUI(fluidPage(
                )
                
                
-       
-            
+               
+               
                
                
                
@@ -173,13 +172,14 @@ ui <- shinyUI(fluidPage(
                  
                  
                  column(12,offset=0,
-                        numericInput("approx_error", "Approximation error", 
-                                     value = .0001, max = 1, min = 0,
-                                     step = .00001 )  ), 
+                        textInput("approx_error", "Approximation error", 
+                                     value = ".0001" )  ), 
                  column(12,offset=0,
-                        numericInput("walk_length", "Walking length", 
-                                     value = 1, min = 0,
-                                     step = 1 )  ), 
+                        textInput("walk_length", "Number of steps for random walk", 
+                                     value = "1")  ), 
+                 column(12,offset=0,
+                        textInput("win_length", "Length of the sliding window ", 
+                                  value = "400")  ), 
                  column(12,offset=0,
                         helpText("Compute (hyper-) volume")),
                  
@@ -284,10 +284,25 @@ server <- shinyServer(function(input, output, session) {
   
   ###### Global variables ####
   
-  v_representation_plot_all = numeric()
-  v_representation_plot_all <<- v_representation_plot_all
-  
-  
+  input_relations_reactive = reactiveValues(value= NA)
+  ineq_eq_left_reactive = reactiveValues(value= NA)
+  ineq_eq_right_reactive = reactiveValues(value= NA)
+  numb_p_reactive  = reactiveValues(value= NA)
+  outs_reactive = reactiveValues(value= NA)
+
+  h_representation_ex_reactive = reactiveValues(value= NA)
+  all_input_models_names_reactive  = reactiveValues(value= NA)
+  all_h_rep_in_matrix_reactive  = reactiveValues(value= NA)
+  all_h_rep_in_list_reactive = reactiveValues(value= NA)
+  v_representation_plot_all_reactive = reactiveValues(value= NA)
+  turn_this_h_to_v_reactive = reactiveValues(value= NA)
+  all_h_rep_in_list_converted_to_v_reactive = reactiveValues(value= NA)
+  names_already_converted_v_reactive =  reactiveValues(value= NA)
+  names_for_v_reactive =  reactiveValues(value= NA)
+  names_available_models_reactive = reactiveValues(value= NA)
+  all_operators_reactive =  reactiveValues(value= NA)
+  all_v_rep_in_list_reactive = reactiveValues(value=NA)
+
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 3)
   counter_ie <- reactiveValues(n=1)
@@ -374,6 +389,9 @@ server <- shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$add_models, {
+    
+    
+    names_available_models = isolate(names_available_models_reactive$value)
     
     models_to_plot = input$name_model_plot
     models_to_plot = unlist(str_split(models_to_plot,";"))
@@ -652,10 +670,15 @@ server <- shinyServer(function(input, output, session) {
   
   function_v_representation = function(turn_this_h_to_v,names_for_v){
     
-    names_for_v <<- names_for_v
-    turn_this_h_to_v <<- turn_this_h_to_v
+    all_v_rep_in_list = isolate(all_v_rep_in_list_reactive$value)
+    all_h_rep_in_list_converted_to_v = isolate(all_h_rep_in_list_converted_to_v_reactive$value)
+    names_already_converted_v = isolate(names_already_converted_v_reactive$value)
     
-    if(exists("all_h_rep_in_list_converted_to_v") == T){
+    names_for_v_reactive$value = names_for_v
+
+    turn_this_h_to_v_reactive$value = turn_this_h_to_v
+    
+    if(is.na((all_h_rep_in_list_converted_to_v)[1] ) == F){
       
       index_convert = turn_this_h_to_v %in% all_h_rep_in_list_converted_to_v
       index_convert = which(index_convert == FALSE)
@@ -667,8 +690,10 @@ server <- shinyServer(function(input, output, session) {
         all_h_rep_in_list_converted_to_v = all_h_rep_in_list_converted_to_v[-index_remove]
         names_already_converted_v  = names_already_converted_v[-index_remove]
         
-        all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v
-        names_already_converted_v <<- names_already_converted_v
+        all_h_rep_in_list_converted_to_v_reactive$value = all_h_rep_in_list_converted_to_v
+        
+        names_already_converted_v_reactive$value = names_already_converted_v
+        
         
         all_v_rep_in_list = all_v_rep_in_list[-index_remove]
         
@@ -684,19 +709,25 @@ server <- shinyServer(function(input, output, session) {
           
           all_h_rep_in_list_converted_to_v[length(all_h_rep_in_list_converted_to_v)+1] = 
             (turn_this_h_to_v)
-          all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v
+          
+          all_h_rep_in_list_converted_to_v_reactive$value = all_h_rep_in_list_converted_to_v
           names_already_converted_v = c(names_already_converted_v,names_for_v)
-          names_already_converted_v <<-names_already_converted_v
+        
           
         }
+        
+        names_already_converted_v_reactive$value = names_already_converted_v
+        
       }
       
     }else{
       
       all_h_rep_in_list_converted_to_v = turn_this_h_to_v
-      all_h_rep_in_list_converted_to_v <<- all_h_rep_in_list_converted_to_v
+      all_h_rep_in_list_converted_to_v_reactive$value = all_h_rep_in_list_converted_to_v
       names_already_converted_v = names_for_v
-      names_already_converted_v <<- names_already_converted_v
+      
+      names_already_converted_v_reactive$value = names_already_converted_v
+      
       index_convert =  length(turn_this_h_to_v)
       
     }
@@ -737,8 +768,9 @@ server <- shinyServer(function(input, output, session) {
           
           v_representation_plot = cbind("model_name" = current_name,v_representation_plot)
           
+        
           
-          if(exists("all_v_rep_in_list")== T){
+          if(is.na((all_v_rep_in_list))[1]== F){
             
             all_v_rep_in_list[length(all_v_rep_in_list)+1] = 
               list(v_representation_plot)
@@ -751,18 +783,22 @@ server <- shinyServer(function(input, output, session) {
           }
           
         }
+        
+ 
+        
+        
       } )
+      
+      all_h_rep_in_list_converted_to_v_reactive$value = all_h_rep_in_list_converted_to_v
       
     }
     
-    
+    #### TEST  ####
     ####* create table ####
     
-    all_v_rep_in_list <<- all_v_rep_in_list
+    all_v_rep_in_list_reactive$value = all_v_rep_in_list 
     
     v_table = bind_rows(all_v_rep_in_list)
-    
-    
     
     v_table[,2:ncol(v_table)] =
       
@@ -774,19 +810,21 @@ server <- shinyServer(function(input, output, session) {
     
     names_submodels = names_already_converted_v
     n_submodels = length(unique(names_already_converted_v))
-    
+
     return(all_v_rep_in_list)
-    
+
   }
   
-  #### function plot ####
   
-  function_plot = function(all_v_rep_in_list,n_submodels){
+  #### function plot ####
+
+  function_plot = function(n_submodels){
     
-    
+    all_v_rep_in_list = isolate(all_v_rep_in_list_reactive$value)
+
     output$plot = renderPlotly({
       
-      
+  
       models_to_plot = input$name_model_plot
       models_to_plot = unlist(str_split(models_to_plot,";"))
       models_to_plot = str_replace_all(models_to_plot," ","")
@@ -813,7 +851,7 @@ server <- shinyServer(function(input, output, session) {
       
       colnames(matrix_pl_all) = c("models",colnames_v_representation_plot_all)
       
-      names_available_models <<- names_available_models
+      names_available_models_reactive$value = names_available_models
       
       
       select_models_to_plot = names_available_models[names_available_models %in% models_to_plot]
@@ -1655,11 +1693,14 @@ server <- shinyServer(function(input, output, session) {
       
     }
     
-    all_operators <<- all_operators
-    ineq_eq_left <<- ineq_eq_left
-    ineq_eq_right <<- ineq_eq_right
-    numb_p <<- numb_p
-    outs <<- outs
+
+
+      
+    all_operators_reactive$value = all_operators
+    ineq_eq_left_reactive$value = ineq_eq_left
+    ineq_eq_right_reactive$value = ineq_eq_right
+    numb_p_reactive$value = numb_p
+    outs_reactive$value= outs
     
   }
   
@@ -1683,7 +1724,7 @@ server <- shinyServer(function(input, output, session) {
         
       }
       
-      input_relations <<- input_relations
+      input_relations_reactive$value = input_relations
       
       #### * single models ####
       
@@ -1760,7 +1801,7 @@ server <- shinyServer(function(input, output, session) {
         
       }
       
-      all_input_models_names <<- all_input_models_names
+      all_input_models_names_reactive$value = all_input_models_names
       
       #### h-representation for single models and intersection models ####
       
@@ -1773,6 +1814,12 @@ server <- shinyServer(function(input, output, session) {
         extract_info(eval(parse(text=paste("input_relations$rel",
                                            loop_numb_models,sep=""))))
         
+        ineq_eq_left = isolate(ineq_eq_left_reactive$value)
+        ineq_eq_right =  isolate(ineq_eq_right_reactive$value)
+        
+        
+        all_operators = isolate(all_operators_reactive$value)
+
         
         if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") > 0){
           
@@ -1801,7 +1848,7 @@ server <- shinyServer(function(input, output, session) {
           
         }
         
-        h_representation_ex <<- h_representation
+        h_representation_ex_reactive$value = h_representation
         
         if(nrow(h_representation)>1){
           
@@ -1833,7 +1880,7 @@ server <- shinyServer(function(input, output, session) {
           
         }else{
           
-          colnames(h_representation_pl) = c("ineq/eq","right",paste("p_{",1:numb_p,"}",sep=""))
+          colnames(h_representation_pl) = c("ineq/eq","right",paste("p_{",1:numb_p_reactive$value,"}",sep=""))
           
         }
         
@@ -1849,7 +1896,7 @@ server <- shinyServer(function(input, output, session) {
       
       colnames(all_h_rep_in_matrix) = col_names_h
       
-      all_h_rep_in_list <<- all_h_rep_in_list
+      all_h_rep_in_list_reactive$value = all_h_rep_in_list
       
       #### * v- and h-representation of mixtures (for mixtures, the v-rpresentation is ####
       #### necessary to derive first) ####
@@ -1870,7 +1917,7 @@ server <- shinyServer(function(input, output, session) {
           
           #### HERE IS THE ERROR ####
           
-          v_representation_plot_all_add = function_v_representation(all_h_rep_in_list[all_h_rep_in_list_index==T],
+          v_representation_plot_all_add = function_v_representation(all_h_rep_in_list_reactive$value[all_h_rep_in_list_index==T],
                                                                     do_v_for_models)
           v_representation_plot_all = rbind(v_representation_plot_all,bind_rows(v_representation_plot_all_add))
           
@@ -1933,7 +1980,7 @@ server <- shinyServer(function(input, output, session) {
             }
             
             all_h_rep_in_list[[length(all_h_rep_in_list)+1]] = (mixture_h$output)
-            all_h_rep_in_list <<- all_h_rep_in_list
+            all_h_rep_in_list_reactive$value = all_h_rep_in_list
             
             mixture_v_plot = data.frame(mixture_v)
             mixture_v_plot = mixture_v_plot[,3:ncol(mixture_v_plot)]
@@ -1984,8 +2031,8 @@ server <- shinyServer(function(input, output, session) {
         
       }
       
-      all_h_rep_in_matrix <<- all_h_rep_in_matrix
-      all_input_models_names <<- all_input_models_names
+      all_h_rep_in_matrix_reactive$value = all_h_rep_in_matrix
+      all_input_models_names_reactive$value = all_input_models_names
       
       #### * prepare h-representation of mixture ####
       
@@ -2044,7 +2091,7 @@ server <- shinyServer(function(input, output, session) {
       
       output$d_latex <- downloadHandler(
         filename = function() {
-          paste("models_",str_replace_all(Sys.time()," ","-"),".tex",sep="")
+          paste("models_",str_replace_all(Sys.Date(),"-","_"),".tex",sep="")
         },
         content = function(file) {
           
@@ -2078,7 +2125,7 @@ server <- shinyServer(function(input, output, session) {
       
       output$d_h <- downloadHandler(
         filename = function() {
-          paste("h_description_",str_replace_all(Sys.time()," ","-"),".zip",sep="")
+          paste("h_description_",str_replace_all(Sys.Date(),"-","_"),".zip",sep="")
         },content = function(file){
           
           owd <- setwd(tempdir())
@@ -2129,7 +2176,7 @@ server <- shinyServer(function(input, output, session) {
               act_v_eq_right = (act_v_eq[,3])
               act_v_eq_right = q2d(unlist(act_v_eq_right))
               act_v_eq_right = data.frame(act_v_eq_right)
-
+              
               header_eq_v = dim(act_v_eq_left)
               
               total_file=
@@ -2183,7 +2230,7 @@ server <- shinyServer(function(input, output, session) {
       withMathJax(helpText({ 
         formula_h_all
       }))
-      
+
     })
   })
   
@@ -2197,16 +2244,26 @@ server <- shinyServer(function(input, output, session) {
       
       #### * create v-representations ####
       
-      v_representation_plot_all = function_v_representation(all_h_rep_in_list,
-                                                            all_input_models_names)
+      v_representation_plot_all = function_v_representation(all_h_rep_in_list_reactive$value,
+                                                            all_input_models_names_reactive$value)
       
       #### * plot models based on v-representations ####
       
-      v_representation_plot_all <<- v_representation_plot_all
+      v_representation_plot_all_reactive$value = v_representation_plot_all
       
-      function_plot(all_v_rep_in_list,length(names_already_converted_v))
+
       
     }
+    
+    
+    if (input$tabs == "Plot"){
+    
+
+    function_plot(n_submodels = length(names_already_converted_v_reactive$value))
+    }
+    
+  
+    
   })
   
   #### parsimony ####
@@ -2222,6 +2279,9 @@ server <- shinyServer(function(input, output, session) {
       parsim = numeric()
       act_dim = numeric()
       
+      all_h_rep_in_list = isolate(all_h_rep_in_list_reactive$value)
+      all_h_rep_in_matrix = isolate(all_h_rep_in_matrix_reactive$value)
+      
       for(loop_parsimony in 1 : length(all_h_rep_in_list)){
         
         act_pars = (all_h_rep_in_list[[loop_parsimony]])
@@ -2229,8 +2289,8 @@ server <- shinyServer(function(input, output, session) {
         not_full_dim =  ifelse(sum(q2d(act_pars)[,1]) > 0,1,0)
         
         if(not_full_dim == 0){
-        
-          left_pars = q2d((act_pars[,3:ncol(h_representation_ex)]))
+          
+          left_pars = q2d((act_pars[,3:ncol(h_representation_ex_reactive$value)]))
           right_pars = q2d((act_pars[,2]))
           
           model_s4<-new("model_s4",A=left_pars,b=right_pars,
@@ -2238,8 +2298,12 @@ server <- shinyServer(function(input, output, session) {
           
           act_vol = volume(model_s4 ,
                            settings = 
-                             list("error"=  isolate(input$approx_error),
-                                  "walk_length" = isolate(input$walk_length)))
+                             list("error"=  isolate(as.numeric(input$approx_error)),
+                                  "walk_length" = isolate(as.numeric(input$walk_length)),
+                                  "win_len"  = isolate(as.numeric(input$win_length))
+                                  )
+            
+                           )
           act_dim = c(act_dim,"Full-dimensional")
           
         }else{
@@ -2260,7 +2324,7 @@ server <- shinyServer(function(input, output, session) {
       ##
       
       parsim = data.frame("model.name"=as.factor(model_name),"vol" = parsim,
-                           act_dim)
+                          act_dim)
       
       parsim_tab = parsim
       colnames(parsim_tab) = c("Model","(Hyper-)Volume","Dimensionality")
