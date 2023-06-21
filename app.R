@@ -306,7 +306,7 @@ server <- shinyServer(function(input, output, session) {
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 3)
   counter_ie <- reactiveValues(n=1)
-  # Track all user inputs
+
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
   })
