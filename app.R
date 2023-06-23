@@ -6,6 +6,7 @@ library("MASS")
 library("stringr")
 library("plotly")
 library("dplyr")
+library("tidyr")
 library("shinycssloaders")
 library("volesti")
 
@@ -119,7 +120,7 @@ ui <- shinyUI(fluidPage(
                  column(12,offset=0,
                         downloadButton("d_latex", "")),
                  column(12,offset=0,
-                        helpText("Download H-description for QTEST")),
+                        helpText("Download H-repressentation for QTEST")),
                  column(12,offset=0,
                         downloadButton("d_h", ""))
                  
@@ -142,7 +143,7 @@ ui <- shinyUI(fluidPage(
                fluidRow(
                  
                  column(12,offset=0,
-                        helpText("Download for QTEST"))
+                        helpText("Download V-repressentation for QTEST"))
                ),
                
              ),
@@ -170,16 +171,15 @@ ui <- shinyUI(fluidPage(
                fluidRow(
                  
                  
-                 
                  column(12,offset=0,
-                        textInput("approx_error", "Approximation error", 
-                                     value = ".0001" )  ), 
+                        helpText("Choose algorithm")),
                  column(12,offset=0,
-                        textInput("walk_length", "Number of steps for random walk", 
-                                     value = "1")  ), 
+                        checkboxInput("CB", "CB",value=T), 
+                        checkboxInput("SoB", "SoB",value=T) , 
+                        checkboxInput("CG", "CG",value=T)  ), 
                  column(12,offset=0,
-                        textInput("win_length", "Length of the sliding window ", 
-                                  value = "400")  ), 
+                        helpText("Number of repetitions, results are averaged")),
+                 column(12,offset=0,numericInput("repetitions", "",value=100, min =1, step =1 )  ), 
                  column(12,offset=0,
                         helpText("Compute (hyper-) volume")),
                  
@@ -289,7 +289,7 @@ server <- shinyServer(function(input, output, session) {
   ineq_eq_right_reactive = reactiveValues(value= NA)
   numb_p_reactive  = reactiveValues(value= NA)
   outs_reactive = reactiveValues(value= NA)
-
+  
   h_representation_ex_reactive = reactiveValues(value= NA)
   all_input_models_names_reactive  = reactiveValues(value= NA)
   all_h_rep_in_matrix_reactive  = reactiveValues(value= NA)
@@ -302,11 +302,11 @@ server <- shinyServer(function(input, output, session) {
   names_available_models_reactive = reactiveValues(value= NA)
   all_operators_reactive =  reactiveValues(value= NA)
   all_v_rep_in_list_reactive = reactiveValues(value=NA)
-
+  
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 3)
   counter_ie <- reactiveValues(n=1)
-
+  
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
   })
@@ -675,7 +675,7 @@ server <- shinyServer(function(input, output, session) {
     names_already_converted_v = isolate(names_already_converted_v_reactive$value)
     
     names_for_v_reactive$value = names_for_v
-
+    
     turn_this_h_to_v_reactive$value = turn_this_h_to_v
     
     if(is.na((all_h_rep_in_list_converted_to_v)[1] ) == F){
@@ -710,13 +710,13 @@ server <- shinyServer(function(input, output, session) {
           all_h_rep_in_list_converted_to_v[length(all_h_rep_in_list_converted_to_v)+1] = 
             (turn_this_h_to_v)
           
-          all_h_rep_in_list_converted_to_v_reactive$value = all_h_rep_in_list_converted_to_v
           names_already_converted_v = c(names_already_converted_v,names_for_v)
-        
+          
           
         }
         
         names_already_converted_v_reactive$value = names_already_converted_v
+        all_h_rep_in_list_converted_to_v_reactive$value = all_h_rep_in_list_converted_to_v
         
       }
       
@@ -768,7 +768,14 @@ server <- shinyServer(function(input, output, session) {
           
           v_representation_plot = cbind("model_name" = current_name,v_representation_plot)
           
-        
+          
+          if(is.null(all_v_rep_in_list) == T | length(all_v_rep_in_list) == 0){
+            
+            all_v_rep_in_list = NA
+            
+          }
+          
+          
           
           if(is.na((all_v_rep_in_list))[1]== F){
             
@@ -784,7 +791,7 @@ server <- shinyServer(function(input, output, session) {
           
         }
         
- 
+        
         
         
       } )
@@ -810,21 +817,25 @@ server <- shinyServer(function(input, output, session) {
     
     names_submodels = names_already_converted_v
     n_submodels = length(unique(names_already_converted_v))
-
+    
+    all_v_rep_in_list_reactive$value = all_v_rep_in_list
+    
     return(all_v_rep_in_list)
-
+    
   }
   
   
   #### function plot ####
-
+  
   function_plot = function(n_submodels){
     
-    all_v_rep_in_list = isolate(all_v_rep_in_list_reactive$value)
-
+    
+    
     output$plot = renderPlotly({
       
-  
+      
+      all_v_rep_in_list = isolate(all_v_rep_in_list_reactive$value)
+      
       models_to_plot = input$name_model_plot
       models_to_plot = unlist(str_split(models_to_plot,";"))
       models_to_plot = str_replace_all(models_to_plot," ","")
@@ -1693,9 +1704,9 @@ server <- shinyServer(function(input, output, session) {
       
     }
     
-
-
-      
+    
+    
+    
     all_operators_reactive$value = all_operators
     ineq_eq_left_reactive$value = ineq_eq_left
     ineq_eq_right_reactive$value = ineq_eq_right
@@ -1709,6 +1720,9 @@ server <- shinyServer(function(input, output, session) {
   observe({
     
     output$h <- renderUI({
+      
+      v_representation_plot_all = isolate(v_representation_plot_all_reactive$value)
+      all_v_rep_in_list = isolate(all_v_rep_in_list_reactive$value)
       
       all_h_rep_in_matrix = numeric()
       
@@ -1819,7 +1833,7 @@ server <- shinyServer(function(input, output, session) {
         
         
         all_operators = isolate(all_operators_reactive$value)
-
+        
         
         if(sum(all_operators != "equal") > 0 &  sum(all_operators == "equal") > 0){
           
@@ -2230,7 +2244,7 @@ server <- shinyServer(function(input, output, session) {
       withMathJax(helpText({ 
         formula_h_all
       }))
-
+      
     })
   })
   
@@ -2251,18 +2265,18 @@ server <- shinyServer(function(input, output, session) {
       
       v_representation_plot_all_reactive$value = v_representation_plot_all
       
-
+      
       
     }
     
     
     if (input$tabs == "Plot"){
-    
-
-    function_plot(n_submodels = length(names_already_converted_v_reactive$value))
+      
+      
+      function_plot(n_submodels = length(names_already_converted_v_reactive$value))
     }
     
-  
+    
     
   })
   
@@ -2276,80 +2290,192 @@ server <- shinyServer(function(input, output, session) {
                representation(A="matrix",b="numeric",
                               type = "character"))
       
-      parsim = numeric()
-      act_dim = numeric()
+      
       
       all_h_rep_in_list = isolate(all_h_rep_in_list_reactive$value)
       all_h_rep_in_matrix = isolate(all_h_rep_in_matrix_reactive$value)
       
-      for(loop_parsimony in 1 : length(all_h_rep_in_list)){
+    
+      n_rep = isolate(input$repetitions)
+        parsim_rep = numeric()
+      
+    
+      
+      withProgress(message = 'Repetition', value = 0, {
+
+     
+      
+      for(loop_repeat_parsimony in 1 : n_rep){
         
-        act_pars = (all_h_rep_in_list[[loop_parsimony]])
+        incProgress(1/n_rep, detail = paste("#", loop_repeat_parsimony,sep= ""))
         
-        not_full_dim =  ifelse(sum(q2d(act_pars)[,1]) > 0,1,0)
+        parsim = numeric()
+        act_dim = numeric()
         
-        if(not_full_dim == 0){
+        for(loop_parsimony in 1 : length(all_h_rep_in_list)){
           
-          left_pars = q2d((act_pars[,3:ncol(h_representation_ex_reactive$value)]))
-          right_pars = q2d((act_pars[,2]))
+          act_pars = (all_h_rep_in_list[[loop_parsimony]])
           
-          model_s4<-new("model_s4",A=left_pars,b=right_pars,
-                        type ="Hpolytope")
+          not_full_dim =  ifelse(sum(q2d(act_pars)[,1]) > 0,1,0)
           
-          act_vol = volume(model_s4 ,
-                           settings = 
-                             list("error"=  isolate(as.numeric(input$approx_error)),
-                                  "walk_length" = isolate(as.numeric(input$walk_length)),
-                                  "win_len"  = isolate(as.numeric(input$win_length))
-                                  )
+          if(not_full_dim == 0){
             
-                           )
-          act_dim = c(act_dim,"Full-dimensional")
+            left_pars = q2d((act_pars[,3:ncol(h_representation_ex_reactive$value)]))
+            right_pars = q2d((act_pars[,2]))
+            
+            model_s4<-new("model_s4",A=left_pars,b=right_pars,
+                          type ="Hpolytope")
+            
+            if(isolate(input$CB) == TRUE){
+              
+              act_vol_CB = volume(model_s4 ,
+                                  settings = 
+                                    list("algorithm" = "CB")
+              )
+              
+            }else{
+              
+              
+              act_vol_CB = NA
+              
+            }
+            
+            
+            if(isolate(input$SoB) == TRUE){
+              
+              act_vol_SoB = volume(model_s4 ,
+                                   settings = 
+                                     list("algorithm" = "SOB")
+              )
+              
+            }else{
+              
+              
+              act_vol_SoB = NA
+              
+            }
+            
+            if(isolate(input$CG) == TRUE){
+              
+              act_vol_CG = volume(model_s4 ,
+                                  settings = 
+                                    list("algorithm" = "CG")
+              )
+              
+              
+              
+            }else{
+              
+              
+              act_vol_CG = NA
+              
+            }
+            
+            
+            act_dim = c(act_dim,"Full-dimensional")
+            
+          }else{
+            
+
+            
+            if(isolate(input$CB) == TRUE){
+              
+              act_vol_CB = 0
+              
+              
+            }else{
+              
+              
+              act_vol_CB = NA
+              
+            }
+            
+            
+            if(isolate(input$SoB) == TRUE){
+              
+              act_vol_SoB = 0
+              
+              
+            }else{
+              
+              
+              act_vol_SoB = NA
+              
+            }
+            
+            
+            if(isolate(input$CG) == TRUE){
+              
+              act_vol_CG = 0
+              
+              
+            }else{
+              
+              
+              act_vol_CG = NA
+              
+            }
+            
+            
+            
+            
+            
+            act_dim = c(act_dim,"Not full-dimensional")
+            
+          }
           
-        }else{
-          
-          
-          act_vol = 0
-          
-          
-          act_dim = c(act_dim,"Not full-dimensional")
-          
+          parsim = c(parsim,c(act_vol_CB,act_vol_SoB,act_vol_CG))
         }
         
-        parsim = c(parsim,act_vol)
+        model_name = unique(all_h_rep_in_matrix[,1])
+        
+        ##
+        
+
+        
+        parsim = data.frame("Model"= rep(as.factor(model_name),each=3),
+                            "Algorithm" = as.factor(rep(
+                              c("CB","SoB","CG"),length(model_name))),
+                            
+                            "Volume" = parsim,
+                            "Dimensionality"=rep(act_dim,each=3))
+        
+        
+        parsim = parsim[complete.cases(parsim) ==T,]
+        
+        parsim_rep = rbind(parsim_rep,parsim)
+        
       }
+      })
       
-      model_name = unique(all_h_rep_in_matrix[,1])
       
-      ##
-      
-      parsim = data.frame("model.name"=as.factor(model_name),"vol" = parsim,
-                          act_dim)
-      
-      parsim_tab = parsim
-      colnames(parsim_tab) = c("Model","(Hyper-)Volume","Dimensionality")
-      
-      output$parsim_table =  DT::renderDataTable(parsim_tab)
+      parsim = parsim_rep %>% group_by( Model,Algorithm,Dimensionality) %>% summarize(Volume = mean(Volume))
+      parsim_wide = spread(parsim, Algorithm, Volume)
+      parsim_wide = cbind(parsim_wide,"Average of algorithms"=signif(rowMeans(parsim_wide[,3:ncol(parsim_wide)]),2))
+      parsim_wide[,3:ncol(parsim_wide)] = signif(parsim_wide[,3:ncol(parsim_wide)],2)
+   
+      output$parsim_table =  DT::renderDataTable(parsim_wide)
       
       output$download_volume <- downloadHandler(
         filename = function() {
-          paste0("volume", ".csv")
+          paste("volume_",str_replace_all(Sys.Date(),"-","_"),".csv",sep="")
         },
         content = function(file) {
           
           
-          write.csv(parsim_tab, file)
+          write.csv(parsim_wide, file)
         }
       )
       
       
-      fig <- plot_ly(parsim, x = ~model.name, y = ~vol, type = 'bar', hoverinfo='none') %>%
-        
-        add_text(text=~round(vol,5), hoverinfo='none', textposition = 'top', showlegend = FALSE, 
-                 textfont=list(size=14, color="black")) 
       
-      fig <- fig %>% layout(yaxis = list(title = 'Occupied hyperspace'
-                                         , range = c(0,1)), 
+      
+      fig <- plot_ly(parsim_wide, x = ~Model, y = ~`Average of algorithms`, type = 'bar', 
+                    hoverinfo='none',
+                     text = ~`Average of algorithms`) 
+      
+      fig <- fig %>% layout(yaxis = list(title = 'Occupied hyperspace (average of algorithms)'
+                                         , range = c(0,1)),
                             xaxis = list(title = 'Model', tickangle =45),
                             barmode = 'group')
       
@@ -2363,15 +2489,4 @@ server <- shinyServer(function(input, output, session) {
     
   })})
 
-shinyApp(ui, server,
-         onStart = function() {
-           
-           rm(list=ls(), envir = .GlobalEnv)
-           
-           onStop(function() {
-             
-             rm(list=ls(), envir = .GlobalEnv)
-           })
-         }
-         
-)
+shinyApp(ui, server)
