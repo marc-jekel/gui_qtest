@@ -270,9 +270,9 @@ ui <- shinyUI(fluidPage(
           column(
             12,
             offset = 0,
-            checkboxInput("CB", "CB", value = T),
-            checkboxInput("SoB", "SoB", value = T),
-            checkboxInput("CG", "CG", value = T)
+            checkboxInput("CB", "CoolingBodies (CB)", value = T),
+            checkboxInput("SoB", "SequenceOfBalls (SoB)", value = T),
+            checkboxInput("CG", "CoolingGaussian (CG)", value = T)
           ),
           column(
             12,
