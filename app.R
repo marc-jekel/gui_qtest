@@ -2622,18 +2622,19 @@ server <- shinyServer(function(input, output, session) {
 
       #### show table ####
 
+      show_table <- which(index_convert_to_v != 0)
 
       if (sum(index_convert_to_v) > 0) {
-        for (loop in 1:numb_models) {
-          all_v_rep_in_list[[numb_models]][, 1] <- name_model[loop]
+        for (loop in show_table) {
+          all_v_rep_in_list[[loop]][, 1] <- name_model[loop]
 
           rownames(all_v_rep_in_list[[loop]]) <-
             paste("V_", 1:nrow(all_v_rep_in_list[[loop]]), sep = "")
-        }
 
-        if (input$check_name == T) {
-          colnames(all_v_rep_in_list[[numb_models]]) <-
-            c("model_name", names_p[, 2])
+          if (input$check_name == T) {
+            colnames(all_v_rep_in_list[[loop]]) <-
+              c("model_name", names_p[, 2])
+          }
         }
 
 
