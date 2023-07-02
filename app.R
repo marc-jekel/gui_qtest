@@ -515,7 +515,7 @@ server <- shinyServer(function(input, output, session) {
         outs[loop, 1:5] <- c(
           paste("p_", loop, sep = ""),
           eval(parse(
-            text = str_replace_all(paste("unlist(AllInputs()$textin_name_", loop, ")", sep = ""),fixed(" "),"_")
+            text = str_replace_all(paste("unlist(AllInputs()$textin_name_", loop, ")", sep = ""), fixed(" "), "_")
           )),
           eval(parse(
             text = paste("unlist(AllInputs()$textin_min_", loop, ")", sep = "")
@@ -537,7 +537,7 @@ server <- shinyServer(function(input, output, session) {
                 ")",
                 sep = ""
               )
-            )),fixed(" "),""),
+            )), fixed(" "), ""),
             eval(parse(
               text = paste(
                 "unlist(AllInputs()$textin_relations_",
@@ -1146,7 +1146,7 @@ server <- shinyServer(function(input, output, session) {
           paste("p_", loop, sep = ""),
           str_replace_all(eval(parse(
             text = paste("unlist(AllInputs()$textin_name_", loop, ")", sep = "")
-          )),fixed(" "),"_"),
+          )), fixed(" "), "_"),
           eval(parse(
             text = paste("unlist(AllInputs()$textin_min_", loop, ")", sep = "")
           )),
@@ -2018,7 +2018,7 @@ server <- shinyServer(function(input, output, session) {
               ")",
               sep = ""
             )
-          )),fixed(" "),"_")
+          )), fixed(" "), "_")
         )
       }
 
@@ -2584,11 +2584,10 @@ server <- shinyServer(function(input, output, session) {
       for (loop in 1:numb_models) {
         name_model <- c(
           name_model,
-          str_replace_all(eval(parse(text = paste("unlist(AllInputs()$textin_relations_name", loop, ")", sep = "")
-          )),fixed(" "),"_")
+          str_replace_all(eval(parse(text = paste("unlist(AllInputs()$textin_relations_name", loop, ")", sep = ""))), fixed(" "), "_")
         )
       }
-      
+
       names_models_reactive$value <- name_model
 
       formula_h_all <- isolate(formula_h_all_reactive$value)
@@ -2625,18 +2624,16 @@ server <- shinyServer(function(input, output, session) {
 
 
       if (sum(index_convert_to_v) > 0) {
-        
         for (loop in 1:numb_models) {
           all_v_rep_in_list[[numb_models]][, 1] <- name_model[loop]
-          
-          rownames(all_v_rep_in_list[[loop]]) = 
-            paste("V_",1:nrow(all_v_rep_in_list[[loop]]),sep="")
+
+          rownames(all_v_rep_in_list[[loop]]) <-
+            paste("V_", 1:nrow(all_v_rep_in_list[[loop]]), sep = "")
         }
 
         if (input$check_name == T) {
           colnames(all_v_rep_in_list[[numb_models]]) <-
             c("model_name", names_p[, 2])
-          
         }
 
 
