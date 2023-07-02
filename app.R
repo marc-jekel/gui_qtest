@@ -2659,7 +2659,7 @@ server <- shinyServer(function(input, output, session) {
         plot_v <- all_v_rep_in_list
 
         for (loop in 1:length(plot_v)) {
-          plot_v[[numb_models]][, 1] <- name_model[loop]
+          plot_v[[loop]][, 1] <- name_model[loop]
         }
 
         remove_pl <- numeric()
