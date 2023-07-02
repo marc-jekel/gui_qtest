@@ -230,7 +230,7 @@ ui <- shinyUI(fluidPage(
       mainPanel(
         fluidRow(column(
           id = "v_rep",
-          12, DT::dataTableOutput("v_representation_table")
+          12, uiOutput("v_representation_table")
         )),
         tags$script(
           '
@@ -863,148 +863,6 @@ server <- shinyServer(function(input, output, session) {
     }
 
     formula_h
-  }
-
-  #### function for v-representation ####
-
-  function_v_representation <- function(turn_this_h_to_v, names_for_v) {
-    all_v_rep_in_list <- isolate(all_v_rep_in_list_reactive$value)
-    all_h_rep_in_list_converted_to_v <- isolate(all_h_rep_in_list_converted_to_v_reactive$value)
-    names_already_converted_v <- isolate(names_already_converted_v_reactive$value)
-
-
-
-
-    if (is.na((all_h_rep_in_list_converted_to_v)[1]) == F) {
-      index_convert <- turn_this_h_to_v %in% all_h_rep_in_list_converted_to_v
-      index_convert <- which(index_convert == FALSE)
-      index_remove <- all_h_rep_in_list_converted_to_v %in% turn_this_h_to_v
-      index_remove <- which(index_remove == FALSE)
-
-      if (length(index_remove) > 0) {
-        all_h_rep_in_list_converted_to_v <- all_h_rep_in_list_converted_to_v[-index_remove]
-        names_already_converted_v <- names_already_converted_v[-index_remove]
-
-        all_h_rep_in_list_converted_to_v_reactive$value <- all_h_rep_in_list_converted_to_v
-
-        names_already_converted_v_reactive$value <- names_already_converted_v
-
-
-        all_v_rep_in_list <- all_v_rep_in_list[-index_remove]
-      }
-
-      if (length(index_convert) > 0) {
-        turn_this_h_to_v <- turn_this_h_to_v[index_convert]
-        names_for_v <- names_for_v[index_convert]
-
-        for (loop_add in 1:length(turn_this_h_to_v)) {
-          all_h_rep_in_list_converted_to_v[length(all_h_rep_in_list_converted_to_v) +
-            1] <-
-            (turn_this_h_to_v)
-
-          names_already_converted_v <- c(names_already_converted_v, names_for_v)
-        }
-
-        names_already_converted_v_reactive$value <- names_already_converted_v
-        all_h_rep_in_list_converted_to_v_reactive$value <- all_h_rep_in_list_converted_to_v
-      }
-    } else {
-      all_h_rep_in_list_converted_to_v <- turn_this_h_to_v
-      all_h_rep_in_list_converted_to_v_reactive$value <- all_h_rep_in_list_converted_to_v
-      names_already_converted_v <- names_for_v
-
-      names_already_converted_v_reactive$value <- names_already_converted_v
-
-      index_convert <- length(turn_this_h_to_v)
-    }
-
-    if (length(index_convert) > 0) {
-      withProgress(message = "Creating V-representation", value = 0, {
-        for (loop_numb_models in 1:length(turn_this_h_to_v)) {
-          current_name <- names_for_v[loop_numb_models]
-
-          incProgress(
-            1 / length(turn_this_h_to_v),
-            detail = paste("Doing model: ", current_name, sep = "")
-          )
-
-          h_representation <- turn_this_h_to_v[[loop_numb_models]]
-
-          v_representation <- scdd(h_representation)
-
-          v_representation <- matrix(
-            sapply(v_representation$output, function(x) {
-              eval(parse(text = x))
-            }),
-            ncol = ncol(v_representation$output)
-          )
-
-          v_representation_plot <- data.frame(v_representation)
-          v_representation_plot <- v_representation_plot[, 3:ncol(v_representation_plot)]
-
-          if (input$check_name == T) {
-            colnames(v_representation_plot) <- outs$name
-          } else {
-            colnames(v_representation_plot) <- paste("p_", 1:ncol(v_representation_plot),
-              sep =
-                ""
-            )
-          }
-
-          row.names(v_representation_plot) <- paste("V_",
-            1:nrow(v_representation_plot),
-            "_",
-            current_name,
-            sep = ""
-          )
-
-
-          v_representation_plot <- cbind("model_name" = current_name, v_representation_plot)
-
-
-          if (is.null(all_v_rep_in_list) == T |
-            length(all_v_rep_in_list) == 0) {
-            all_v_rep_in_list <- NA
-          }
-
-
-
-          if (is.na((all_v_rep_in_list))[1] == F) {
-            all_v_rep_in_list[length(all_v_rep_in_list) + 1] <-
-              list(v_representation_plot)
-          } else {
-            all_v_rep_in_list <- list(v_representation_plot)
-          }
-        }
-      })
-
-      all_h_rep_in_list_converted_to_v_reactive$value <- all_h_rep_in_list_converted_to_v
-    }
-
-    ####* create table ####
-
-    all_v_rep_in_list_reactive$value <- all_v_rep_in_list
-
-    v_table <- bind_rows(all_v_rep_in_list)
-
-    v_table[, 2:ncol(v_table)] <-
-      as.character(fractions(matrix(
-        ((
-          unlist(v_table[, 2:ncol(v_table)])
-        )),
-        ncol =
-          ncol(v_table) - 1
-      )))
-
-
-    output$v_representation_plot_all <- DT::renderDataTable(v_table)
-
-    names_submodels <- names_already_converted_v
-    n_submodels <- length(unique(names_already_converted_v))
-
-    all_v_rep_in_list_reactive$value <- all_v_rep_in_list
-
-    return(all_v_rep_in_list)
   }
 
   #### function plot ####
@@ -2316,7 +2174,7 @@ server <- shinyServer(function(input, output, session) {
         }
       )
 
-      output$d_h <- downloadHandler(
+      output$d_h = downloadHandler(
         filename = function() {
           paste("h_representation_",
             str_replace_all(Sys.Date(), "-", "_"),
@@ -2325,46 +2183,46 @@ server <- shinyServer(function(input, output, session) {
           )
         },
         content = function(file) {
-          owd <- setwd(tempdir())
+          owd = setwd(tempdir())
           on.exit(setwd(owd))
-          files <- NULL
+          files = NULL
 
           names_models_reactive$value
           h_representation_reactive$value
 
-          all_h_rep_in_matrix <- numeric()
+          all_h_rep_in_matrix = numeric()
 
           for (loop_qtest_h in 1:length(h_representation_reactive$value)) {
-            all_h_rep_in_matrix <- rbind(
+            all_h_rep_in_matrix = rbind(
               all_h_rep_in_matrix,
-              data.frame(names_models_reactive$value[loop_qtest_h], h_representation_reactive$value[[loop_qtest_h]])
+              data.frame(isolate(names_models_reactive$value[loop_qtest_h]), isolate(h_representation_reactive$value[[loop_qtest_h]]))
             )
           }
 
-          col_names_h <- c("model name", "equ/ineq", "right", paste("p", 1:(ncol(all_h_rep_in_matrix) - 3), sep = ""))
+          col_names_h = c("model name", "equ/ineq", "right", paste("p", 1:(ncol(all_h_rep_in_matrix) - 3), sep = ""))
 
-          colnames(all_h_rep_in_matrix) <- col_names_h
+          colnames(all_h_rep_in_matrix) = col_names_h
 
 
-          unique_v <- unique(all_h_rep_in_matrix$`model name`)
-          n_v <- length(unique_v)
+          unique_v = unique(all_h_rep_in_matrix$`model name`)
+          n_v = length(unique_v)
 
           for (loop_v in unique_v) {
-            act_v <- all_h_rep_in_matrix[all_h_rep_in_matrix$`model name` == loop_v, ]
-            act_v_ineq <- act_v[act_v$`equ/ineq` == 0, ]
+            act_v = all_h_rep_in_matrix[all_h_rep_in_matrix$`model name` == loop_v, ]
+            act_v_ineq = act_v[act_v$`equ/ineq` == 0, ]
 
-            header_v <- dim(act_v_ineq) - c(0, 3)
+            header_v = dim(act_v_ineq) - c(0, 3)
 
-            act_v_left <- act_v_ineq[, 4:ncol(act_v_ineq)]
-            act_v_left <- -matrix(q2d(unlist(act_v_left)), ncol = ncol(act_v_left))
+            act_v_left = act_v_ineq[, 4:ncol(act_v_ineq)]
+            act_v_left = -matrix(q2d(unlist(act_v_left)), ncol = ncol(act_v_left))
 
-            act_v_right <- q2d(unlist(act_v_ineq[, 3]))
-            act_v_right <- data.frame(act_v_right)
+            act_v_right = q2d(unlist(act_v_ineq[, 3]))
+            act_v_right = data.frame(act_v_right)
 
-            act_v_eq <- act_v[act_v$`equ/ineq` == 1, ]
+            act_v_eq = act_v[act_v$`equ/ineq` == 1, ]
 
 
-            total_file <- paste(
+            total_file = paste(
               paste(as.character(header_v), collapse = " "),
               "\n",
               "\n",
@@ -2375,19 +2233,19 @@ server <- shinyServer(function(input, output, session) {
               sep = ""
             )
 
-            file_name_addendum <- ""
+            file_name_addendum = ""
 
             if (dim(act_v_eq)[1] > 0) {
-              act_v_eq_left <- act_v_eq[, 4:ncol(act_v_eq)]
-              act_v_eq_left <- -matrix(q2d(unlist(act_v_eq_left)), ncol = ncol(act_v_eq_left))
+              act_v_eq_left = act_v_eq[, 4:ncol(act_v_eq)]
+              act_v_eq_left = -matrix(q2d(unlist(act_v_eq_left)), ncol = ncol(act_v_eq_left))
 
-              act_v_eq_right <- (act_v_eq[, 3])
-              act_v_eq_right <- q2d(unlist(act_v_eq_right))
-              act_v_eq_right <- data.frame(act_v_eq_right)
+              act_v_eq_right = (act_v_eq[, 3])
+              act_v_eq_right = q2d(unlist(act_v_eq_right))
+              act_v_eq_right = data.frame(act_v_eq_right)
 
-              header_eq_v <- dim(act_v_eq_left)
+              header_eq_v = dim(act_v_eq_left)
 
-              total_file <-
+              total_file =
                 paste(
                   total_file,
                   "\n",
@@ -2409,10 +2267,10 @@ server <- shinyServer(function(input, output, session) {
                   sep = ""
                 )
 
-              file_name_addendum <- "_needs_editing_for_qtest"
+              file_name_addendum = "_needs_editing_for_qtest"
             }
 
-            fileName <-
+            fileName =
               paste(loop_v, file_name_addendum, ".txt", sep = "")
 
             write.table(
@@ -2424,10 +2282,10 @@ server <- shinyServer(function(input, output, session) {
             )
 
 
-            files <- c(fileName, files)
+            files = c(fileName, files)
           }
 
-          zip(file, files)
+          zip::zip(file, files)
         }
       )
 
@@ -2488,7 +2346,7 @@ server <- shinyServer(function(input, output, session) {
             }
           }
 
-          zip(file, files)
+          zip::zip(file, files)
         }
       )
 
@@ -2503,7 +2361,7 @@ server <- shinyServer(function(input, output, session) {
       ####* V-representation ####
 
       all_v_rep_in_list <- isolate(v_representation_reactive$value)
-
+      error_null_inter <- 0
 
       if (sum(index_convert_to_v) > 0) {
         for (loop_numb_models in 1:length(names_models_reactive$value)) {
@@ -2552,7 +2410,7 @@ server <- shinyServer(function(input, output, session) {
 
               v_representation_plot <- cbind("model_name" = current_name, v_representation_plot)
 
-              error_null_inter <- 0
+            
             } else {
               error_null_inter <- 1
               shinyalert("Error", paste("Intersection as defined in ", current_name, " has volume = 0. Please change or remove the model.", collapse = ""),
@@ -2588,6 +2446,33 @@ server <- shinyServer(function(input, output, session) {
 
 
             output$v_representation_table <- DT::renderDataTable(v_table)
+            
+            
+            #####. new #####
+            
+            
+              
+              output$v_representation_table <- renderUI({
+                lapply(as.list(seq_len(length(all_v_rep_in_list))), function(i) {
+                  id <- paste0("v_representation_table", i)
+                  DT::dataTableOutput(id)
+                })
+              })
+              
+                  
+                  for (loop_table in seq_len(length(all_v_rep_in_list))) {
+                    local({
+                    id <- paste0("v_representation_table", loop_table)
+                    pl_t = all_v_rep_in_list[[loop_table]]
+                    output[[id]] <- DT::renderDataTable(pl_t)
+                    })
+                 
+                 }
+              
+          
+            #######
+            
+            
           }
 
           ####** plot ####
