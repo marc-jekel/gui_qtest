@@ -111,7 +111,7 @@ ui <- shinyUI(fluidPage(
       ),
       mainPanel(
         bsTooltip("textbox_ui_rel",
-          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "p1 < {p2,3*p3}" is a shortcut for "p1 < p2; p1 < 3 * p3".',
+          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "p1 < {p2,3*p3}" is a shortcut for "p1 < p2; p1 < 3 * p3".',
           placement = "top", trigger = "hover"
         ),
         bsTooltip("textbox_ui_check",
