@@ -2547,19 +2547,18 @@ server <- shinyServer(function(input, output, session) {
         ####* Plot ####
 
         plot_v <- all_v_rep_in_list
-        
-        remove_pl <- numeric()
-        
-        for (loop_pl in 1:length(plot_v)) {
-          remove_pl <- c(remove_pl, ifelse(is.null(unlist(plot_v[loop_pl])) == T, 1, 0))
-        }
-        
-        plot_v <- plot_v[remove_pl == 0]
-        name_model <- name_model[remove_pl == 0]
 
         for (loop in 1:length(plot_v)) {
           plot_v[[loop]][, 1] <- name_model[loop]
         }
+
+        remove_pl <- numeric()
+
+        for (loop_pl in 1:length(plot_v)) {
+          remove_pl <- c(remove_pl, ifelse(is.null(unlist(plot_v[loop_pl])) == T, 1, 0))
+        }
+
+        plot_v <- plot_v[remove_pl == 0]
 
         function_plot(plot_v, length(plot_v))
       }
