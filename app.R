@@ -104,8 +104,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(column(
           12,
           offset = 0, 
-          downloadButton("download", "",
-                         icon = icon("fa-thin fa-cloud-arrow-down")
+          downloadButton("download", ""
           ),
         )),
         fluidRow(column(
