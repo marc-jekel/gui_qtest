@@ -19,7 +19,6 @@ library("shinyBS")
 options(warn = -1)
 
 ui <- shinyUI(fluidPage(
-  useShinyjs(),
   tags$head(tags$style(
     "
     .grey-out {
@@ -56,20 +55,10 @@ ui <- shinyUI(fluidPage(
           helpText("Compute H- and V-representation")
         )),
         fluidRow(column(12, offset = 0, actionButton("go_v_h", "Go"))),
-        fluidRow(column(12,
-          offset = 0,
-          helpText("Download input")
-        )),
-        fluidRow(column(
-          12,
-          offset = 0, downloadButton("download", "",
-            icon = icon("fa-thin fa-cloud-arrow-down")
-          )
-        )),
         fluidRow(
           column(12,
-            offset = 0,
-            helpText("Probabilities")
+                 offset = 0,
+                 helpText("Probabilities")
           ),
           column(
             12,
@@ -80,8 +69,8 @@ ui <- shinyUI(fluidPage(
         ),
         fluidRow(
           column(12,
-            offset = 0,
-            helpText("Models")
+                 offset = 0,
+                 helpText("Models")
           ),
           column(
             12,
@@ -92,8 +81,8 @@ ui <- shinyUI(fluidPage(
         ),
         fluidRow(
           column(12,
-            offset = 0,
-            helpText("+/- range for approximate equalities")
+                 offset = 0,
+                 helpText("+/- range for approximate equalities")
           ),
           column(
             12,
@@ -108,19 +97,40 @@ ui <- shinyUI(fluidPage(
             )
           )
         ),
+        fluidRow(column(12,
+                        offset = 0,
+                        helpText("Download and upload model specifications")
+        )),
+        fluidRow(column(
+          12,
+          offset = 0, 
+          downloadButton("download", "",
+                         icon = icon("fa-thin fa-cloud-arrow-down")
+          ),
+        )),
+        fluidRow(column(
+          12,
+          offset = 0, 
+          fileInput("upload", "",
+                    multiple = FALSE,
+                    accept = c("text/csv",
+                               "text/comma-separated-values,text/plain",
+                               ".csv")),
+        )),
       ),
       mainPanel(
+  
         bsTooltip("textbox_ui_rel",
-          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "p1 < {p2,3*p3}" is a shortcut for "p1 < p2; p1 < 3 * p3".',
-          placement = "top", trigger = "hover"
+                  'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "p1 < {p2,3*p3}" is a shortcut for "p1 < p2; p1 < 3 * p3".',
+                  placement = "top", trigger = "hover"
         ),
         bsTooltip("textbox_ui_check",
-          "V = Build V-representations. E and M are not functional yet. H-representations are built by default.",
-          placement = "top", trigger = "hover"
+                  "V = Build V-representations. E and M are not functional yet. H-representations are built by default.",
+                  placement = "top", trigger = "hover"
         ),
         bsTooltip("approx_equal",
-          "+/- .05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
-          placement = "bottom", trigger = "hover"
+                  "+/- .05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
+                  placement = "bottom", trigger = "hover"
         ),
         waiter::use_waiter(),
         fluidRow(
@@ -144,7 +154,7 @@ ui <- shinyUI(fluidPage(
             style = "background-color:#E8E8E8;"
           )
         ),
-        fluidRow(
+        fluidRow(  
           column(
             12,
             offset = 0,
@@ -153,6 +163,7 @@ ui <- shinyUI(fluidPage(
           ),
         ),
         fluidRow(
+          useShinyjs(),
           column(
             2,
             offset = 0,
@@ -160,7 +171,7 @@ ui <- shinyUI(fluidPage(
             style = "background-color:#FFFFF2;"
           ),
           column(8, uiOutput("textbox_ui_rel"), style = "background-color:#FFFFF2;"),
-          column(2, uiOutput("textbox_ui_check"), style = "background-color:#FFFFF2;")
+          column(2, uiOutput("textbox_ui_check"), style = "background-color:#FFFFF2")
         )
       )
     ),
@@ -171,20 +182,20 @@ ui <- shinyUI(fluidPage(
         width = 2,
         fluidRow(
           column(12,
-            offset = 0,
-            helpText("Download LaTeX File of H-Representation")
+                 offset = 0,
+                 helpText("Download LaTeX File of H-Representation")
           ),
           column(12,
-            offset = 0,
-            downloadButton("d_latex", ""),
+                 offset = 0,
+                 downloadButton("d_latex", ""),
           ),
           column(12,
-            offset = 0,
-            helpText("Download H-repressentation for QTEST")
+                 offset = 0,
+                 helpText("Download H-repressentation for QTEST")
           ),
           column(12,
-            offset = 0,
-            downloadButton("d_h", "")
+                 offset = 0,
+                 downloadButton("d_h", "")
           )
         )
       ),
@@ -226,8 +237,8 @@ ui <- shinyUI(fluidPage(
             helpText("Download V-repressentation for QTEST")
           ),
           column(12,
-            offset = 0,
-            downloadButton("d_v", "")
+                 offset = 0,
+                 downloadButton("d_v", "")
           )
         ),
       ),
@@ -268,8 +279,8 @@ ui <- shinyUI(fluidPage(
         width = 2,
         fluidRow(
           column(12,
-            offset = 0,
-            helpText("Choose algorithm")
+                 offset = 0,
+                 helpText("Choose algorithm")
           ),
           column(
             12,
@@ -295,20 +306,20 @@ ui <- shinyUI(fluidPage(
             )
           ),
           column(12,
-            offset = 0,
-            helpText("Compute (hyper-) volume")
+                 offset = 0,
+                 helpText("Compute (hyper-) volume")
           ),
           column(12,
-            offset = 0,
-            actionButton("go", "Go")
+                 offset = 0,
+                 actionButton("go", "Go")
           ),
           column(12,
-            offset = 0,
-            helpText("Download results as csv-table")
+                 offset = 0,
+                 helpText("Download results as csv-table")
           ),
           column(12,
-            offset = 0,
-            downloadButton("download_volume", "")
+                 offset = 0,
+                 downloadButton("download_volume", "")
           )
         )
       ),
@@ -372,24 +383,24 @@ ui <- shinyUI(fluidPage(
           12,
           offset = 0,
           selectInput("dim_1", "p #",
-            list(1, 2, 3),
-            selected = 1
+                      list(1, 2, 3),
+                      selected = 1
           )
         )),
         fluidRow(column(
           12,
           offset = 0,
           selectInput("dim_2", "p #",
-            list(1, 2, 3),
-            selected = 2
+                      list(1, 2, 3),
+                      selected = 2
           )
         )),
         fluidRow(column(
           12,
           offset = 0,
           selectInput("dim_3", "p #",
-            list(1, 2, 3),
-            selected = 3
+                      list(1, 2, 3),
+                      selected = 3
           )
         )),
         fluidRow(column(
@@ -405,8 +416,8 @@ ui <- shinyUI(fluidPage(
         )),
         fluidRow(
           column(12,
-            offset = 0,
-            helpText("Remove/add all models")
+                 offset = 0,
+                 helpText("Remove/add all models")
           ),
           column(
             12,
@@ -418,7 +429,7 @@ ui <- shinyUI(fluidPage(
       ),
       mainPanel(fluidRow(column(
         12, div(
-
+          
           plotlyOutput("plot"),
           align = "center"
         )
@@ -786,6 +797,101 @@ server <- shinyServer(function(input, output, session) {
     renderUI({
       textboxes_relations_name()
     })
+  
+  #### Download ####
+  
+  output$download <- downloadHandler(
+    filename = function() {
+      paste0("user_input", ".csv")
+    },
+    content = function(file) {
+      
+      outs <- matrix("", ncol = 3, nrow = counter_ie$n)
+      
+      
+      outs <- data.frame(outs)
+      
+      for (loop in 1:counter_ie$n) {
+        outs[loop, 1:3] <- c(
+          str_replace_all(eval(parse(
+            text = paste(
+              "unlist(AllInputs()$textin_relations_name",
+              loop,
+              ")",
+              sep = ""
+            )
+          )), fixed(" "), ""),
+          eval(parse(
+            text = paste(
+              "unlist(AllInputs()$textin_relations_",
+              loop,
+              ")",
+              sep = ""
+            )
+          )),
+          ifelse(is.null(eval(parse(
+            text = paste(
+              "unlist(AllInputs()$textin_check_",
+              loop,
+              ")",
+              sep = ""
+            )
+          )))=="TRUE",0,1)
+        )
+      }
+      
+      
+      colnames(outs) <- c(
+        "model_name",
+        "in/equalities",
+        "V-representation"
+      )
+      
+      
+      write.csv(outs, file)
+    }
+  )
+  
+  #### Upload ####
+  
+
+  observeEvent(input$upload, {
+    
+    dats = read.csv(input$upload$datapath)
+    dats = dats[,2:4]
+    
+    
+   #   if(nrow(dats) > 1){
+    
+    #  for(loop_push in 2 : nrow(dats)){
+    
+     #   click("add_ie", asis = TRUE)
+        
+    
+  #    }}
+    
+
+    
+    
+    for(loop_upload in 1 : length(dats$in.equalities)){
+      
+      updateTextAreaInput(session,inputId=paste0("textin_relations_", loop_upload),
+                          value=(dats$in.equalities[loop_upload]))
+      
+      
+      updateCheckboxGroupInput(session,paste0("textin_check_", loop_upload),
+                             selected = ifelse(dats$V.representation[loop_upload]==1,"V",""))
+      
+      updateTextAreaInput(session,inputId=paste0("textin_relations_name", loop_upload),
+                          value=(dats$model_name[loop_upload]))
+      
+      
+      
+    }
+    
+    
+  })
+  
 
   ####### Validation
 
