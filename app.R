@@ -861,17 +861,8 @@ server <- shinyServer(function(input, output, session) {
     dats = dats[,2:4]
     
     
-   #   if(nrow(dats) > 1){
     
-    #  for(loop_push in 2 : nrow(dats)){
-    
-     #   click("add_ie", asis = TRUE)
-        
-    
-  #    }}
-    
-
-    
+    counter_ie$n = nrow(dats)
     
     for(loop_upload in 1 : length(dats$in.equalities)){
       
