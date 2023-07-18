@@ -2378,18 +2378,21 @@ server <- shinyServer(function(input, output, session) {
 
         if (dim_mixture > 1) {
           mixture_h <- scdd(mixture_v$output)
-          mixture_h <- q2d(mixture_h$output)
-          mixture_h <- redundant(mixture_h)
+          mixture_h <- redundant(mixture_h$output)
+
+
         } else {
           mixture_h <- scdd(mixture_v)
-          mixture_h <- q2d(mixture_h$output)
+     
         }
+        
+        mixture_h <- (mixture_h$output) # mixture_h <- q2d(mixture_h$output)
 
-        h_representation_pl <- fractions(mixture_h$out)
+        h_representation_pl <- fractions(q2d(mixture_h)) # h_representation_pl <- fractions(mixture_h)
 
         all_h_rep_in_list[loop_mix] <- list(h_representation_pl)
 
-        h_representation_reactive$value[loop_mix] <- list(h_representation_pl)
+        h_representation_reactive$value[loop_mix] <- list(mixture_h)
 
         ####
 
@@ -2419,7 +2422,7 @@ server <- shinyServer(function(input, output, session) {
 
         ####
 
-        all_h_rep_in_list[loop_mix] <- list(mixture_h$output)
+        all_h_rep_in_list[loop_mix] <- list(mixture_h)
 
         ####
 
