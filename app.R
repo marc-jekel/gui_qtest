@@ -2028,6 +2028,8 @@ server <- shinyServer(function(input, output, session) {
       if (mix_ind[loop_inter_mix] == 1) {
         inp <- unlist(input_user_reactive$value[loop_inter_mix])
         
+        inp <- str_replace_all(inp, " ", "")
+        
         inp <- substr(
           inp, 5,
           str_length(inp) - 1
@@ -2381,9 +2383,9 @@ server <- shinyServer(function(input, output, session) {
           mixture_h <- scdd(mixture_v)
         }
         
-        mixture_h <- (mixture_h$output) # mixture_h <- q2d(mixture_h$output)
+        mixture_h <- (mixture_h$output) 
         
-        h_representation_pl <- fractions(q2d(mixture_h)) # h_representation_pl <- fractions(mixture_h)
+        h_representation_pl <- fractions(q2d(mixture_h)) 
         
         all_h_rep_in_list[loop_mix] <- list(h_representation_pl)
         
