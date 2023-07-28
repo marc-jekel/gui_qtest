@@ -13,6 +13,8 @@ library("stringr")
 library("tidyr")
 library("volesti")
 library("waiter")
+library("spsComps")
+library("shinyWidgets")
 
 options(warn = -1)
 
@@ -40,7 +42,7 @@ ui <- shinyUI(fluidPage(
                                                     font-family: Arial;
                                                     font-size: 13px;
                                                     color: #FF0000; }",
-      "body {padding-top: 60px;padding-bottom: 80px;}"
+      "body {padding-top: 60px;padding-bottom: 95px;}"
     ),
     tabPanel(
       "Input",
@@ -118,15 +120,15 @@ ui <- shinyUI(fluidPage(
         )),
       ),
       mainPanel(
-        bsTooltip("textbox_ui_rel",
+        shinyBS::bsTooltip("textbox_ui_rel",
           'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "p1 < {p2,3*p3}" is a shortcut for "p1 < p2; p1 < 3 * p3".',
           placement = "top", trigger = "hover"
         ),
-        bsTooltip("textbox_ui_check",
-          "V = Build V-representations. E and M are not functional yet. H-representations are built by default.",
+        shinyBS::bsTooltip("textbox_ui_check",
+          "Build V-representation (on/off).",
           placement = "top", trigger = "hover"
         ),
-        bsTooltip("approx_equal",
+        shinyBS::bsTooltip("approx_equal",
           "+/- .05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
           placement = "bottom", trigger = "hover"
         ),
@@ -156,20 +158,15 @@ ui <- shinyUI(fluidPage(
           column(
             12,
             offset = 0,
-            checkboxInput("check_relations", "use this", value = TRUE),
-            style = "background-color:#FFFFF2;"
+            checkboxInput("check_relations", "use this", value = TRUE)
           ),
         ),
         fluidRow(
           useShinyjs(),
-          column(
-            2,
-            offset = 0,
-            uiOutput("textbox_ui_name_rel"),
-            style = "background-color:#FFFFF2;"
-          ),
-          column(8, uiOutput("textbox_ui_rel"), style = "background-color:#FFFFF2;"),
-          column(2, uiOutput("textbox_ui_check"), style = "background-color:#FFFFF2")
+          column(2, uiOutput("textbox_ui_name_rel")),
+          column(9,  uiOutput("textbox_ui_rel")),
+          column(1,fluidRow(htmlOutput("textbox_ui_check"))),
+          heightMatcher("textbox_ui_check","textbox_ui_rel")
         )
       )
     ),
@@ -409,7 +406,7 @@ ui <- shinyUI(fluidPage(
             label = "Input field for model names",
             value = "",
             width = "100%",
-            height = "100px"
+            height = "95px"
           )
         )),
         fluidRow(
@@ -726,7 +723,7 @@ server <- shinyServer(function(input, output, session) {
             label = paste0("Model Specification"),
             value = AllInputs()[[paste0("textin_relations_", i)]],
             width = "100%",
-            height = "70px"
+            height = "95px"
           )
         })
       })
@@ -739,11 +736,13 @@ server <- shinyServer(function(input, output, session) {
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
-          checkboxGroupInput(paste0("textin_check_", i),
-            "Options",
-            c("V", "E", "M"),
-            selected = AllInputs()[[paste0("textin_check_", i)]]
-          )
+          
+          materialSwitch(paste0("textin_check_", i),
+                         HTML(paste("V",i,br(),br(),br(),br(),br(),br(),sep="")),
+                         status="success",
+                      value = AllInputs()[[paste0("textin_check_", i)]],
+                      right = T)
+          
         })
       })
     }
@@ -765,7 +764,7 @@ server <- shinyServer(function(input, output, session) {
               AllInputs()[[paste0("textin_relations_name", i)]]
             ),
             width = "100%",
-            height = "70px"
+            height = "95px"
           )
         })
       })
@@ -826,14 +825,14 @@ server <- shinyServer(function(input, output, session) {
               sep = ""
             )
           )),
-          ifelse(is.null(eval(parse(
+          ifelse((eval(parse(
             text = paste(
               "unlist(AllInputs()$textin_check_",
               loop,
               ")",
               sep = ""
             )
-          ))) == "TRUE", 0, 1)
+          ))) == "TRUE", 1, 0)
         )
       }
 
@@ -867,8 +866,8 @@ server <- shinyServer(function(input, output, session) {
       )
 
 
-      updateCheckboxGroupInput(session, paste0("textin_check_", loop_upload),
-        selected = ifelse(dats$V.representation[loop_upload] == 1, "V", "")
+      updateMaterialSwitch(session, paste0("textin_check_", loop_upload),
+        value = ifelse(dats$V.representation[loop_upload] == 1, T, F)
       )
 
       updateTextAreaInput(session,
@@ -1909,8 +1908,8 @@ server <- shinyServer(function(input, output, session) {
           text = paste("unlist(AllInputs()$textin_check_", loop, ")", sep = "")
         ))
 
-      if (sum(opt %in% "V") == 1) {
-        opt <- unique(c(opt, "H"))
+      if (opt == TRUE) {
+        opt <- unique(c("V", "H"))
       }
 
       if (is.null(opt) == F) {
@@ -2074,6 +2073,20 @@ server <- shinyServer(function(input, output, session) {
       alert_mix_v <- 1
 
       index_convert_to_v[all_input_models_names %in% models_for_mixture] <- 1
+      
+      ind_add =  which(all_input_models_names %in% models_for_mixture)
+      ind_add = c(ind_add,which(mix_ind == 1))
+      
+      for(loopAdd in ind_add){
+        updateMaterialSwitch(session, paste0("textin_check_", loopAdd),
+                             value = 1)
+        
+      }
+      
+    
+      
+      
+      
     }
 
     numb_models <- isolate(counter_ie$n)
