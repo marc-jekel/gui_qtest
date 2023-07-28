@@ -164,8 +164,8 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           useShinyjs(),
           column(2, uiOutput("textbox_ui_name_rel")),
-          column(9,  uiOutput("textbox_ui_rel")),
-          column(1,fluidRow(htmlOutput("textbox_ui_check"))),
+          column(8,  uiOutput("textbox_ui_rel")),
+          column(1,fluidRow(htmlOutput("textbox_ui_check")),offset=1),
           heightMatcher("textbox_ui_check","textbox_ui_rel")
         )
       )
