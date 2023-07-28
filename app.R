@@ -164,9 +164,9 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           useShinyjs(),
           column(2, uiOutput("textbox_ui_name_rel")),
-          column(8,  uiOutput("textbox_ui_rel")),
-          column(1,fluidRow(htmlOutput("textbox_ui_check")),offset=1),
-          heightMatcher("textbox_ui_check","textbox_ui_rel")
+          column(8, uiOutput("textbox_ui_rel")),
+          column(1, fluidRow(htmlOutput("textbox_ui_check")), offset = 1),
+          heightMatcher("textbox_ui_check", "textbox_ui_rel")
         )
       )
     ),
@@ -736,13 +736,12 @@ server <- shinyServer(function(input, output, session) {
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
-          
           materialSwitch(paste0("textin_check_", i),
-                         HTML(paste("V",i,br(),br(),br(),br(),br(),br(),sep="")),
-                         status="success",
-                      value = AllInputs()[[paste0("textin_check_", i)]],
-                      right = T)
-          
+            HTML(paste("V", i, br(), br(), br(), br(), br(), br(), sep = "")),
+            status = "success",
+            value = AllInputs()[[paste0("textin_check_", i)]],
+            right = T
+          )
         })
       })
     }
@@ -2073,20 +2072,15 @@ server <- shinyServer(function(input, output, session) {
       alert_mix_v <- 1
 
       index_convert_to_v[all_input_models_names %in% models_for_mixture] <- 1
-      
-      ind_add =  which(all_input_models_names %in% models_for_mixture)
-      ind_add = c(ind_add,which(mix_ind == 1))
-      
-      for(loopAdd in ind_add){
+
+      ind_add <- which(all_input_models_names %in% models_for_mixture)
+      ind_add <- c(ind_add, which(mix_ind == 1))
+
+      for (loopAdd in ind_add) {
         updateMaterialSwitch(session, paste0("textin_check_", loopAdd),
-                             value = 1)
-        
+          value = 1
+        )
       }
-      
-    
-      
-      
-      
     }
 
     numb_models <- isolate(counter_ie$n)
@@ -2704,10 +2698,14 @@ server <- shinyServer(function(input, output, session) {
 
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
-        summarize(Volume = mean(Volume))
-      parsim_wide <- spread(parsim, Algorithm, Volume)
-      parsim_wide <- cbind(parsim_wide, "Average of algorithms" = signif(rowMeans(parsim_wide[, 3:ncol(parsim_wide)]), 2))
-      parsim_wide[, 3:ncol(parsim_wide)] <- signif(parsim_wide[, 3:ncol(parsim_wide)], 2)
+        summarize(SD = round(sd(Volume), 2), Volume = round(mean(Volume), 2))
+
+
+      parsim_wide <- parsim %>%
+        pivot_wider(
+          names_from = c("Algorithm"),
+          values_from = c(Volume, SD)
+        )
 
       output$parsim_table <- DT::renderDataTable(parsim_wide)
 
@@ -2724,14 +2722,18 @@ server <- shinyServer(function(input, output, session) {
         }
       )
 
+
       fig <-
         plot_ly(
-          parsim_wide,
+          parsim[order(parsim$Algorithm), ],
           x = ~Model,
-          y = ~`Average of algorithms`,
+          color = ~Algorithm,
+          y = ~Volume,
           type = "bar",
-          hoverinfo = "none",
-          text = ~`Average of algorithms`
+          error_y = ~ list(
+            array = SD,
+            color = "#000000"
+          )
         )
 
       fig <-
