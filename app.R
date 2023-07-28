@@ -2698,7 +2698,7 @@ server <- shinyServer(function(input, output, session) {
 
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
-        summarize(SD = round(sd(Volume), 2), Volume = round(mean(Volume), 2))
+        summarize(SD = round(sd(Volume), 4), Volume = round(mean(Volume), 2))
 
 
       parsim_wide <- parsim %>%
