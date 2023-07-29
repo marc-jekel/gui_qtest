@@ -2739,7 +2739,7 @@ server <- shinyServer(function(input, output, session) {
       fig <-
         fig %>% layout(
           yaxis = list(
-            title = "Occupied hyperspace (average of algorithms)",
+            title = "(Hyper-)Volume",
             range = c(0, 1)
           ),
           xaxis = list(title = "Model", tickangle = 45),
