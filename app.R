@@ -2698,16 +2698,19 @@ server <- shinyServer(function(input, output, session) {
 
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
-        summarize(SD = round(sd(Volume), 4), Volume = round(mean(Volume), 2))
+        summarize(SD = round(sd(Volume), 4), Volume = round(mean(Volume), 2),
+                  Max_BF = round(1/Volume,2))
 
 
       parsim_wide <- parsim %>%
         pivot_wider(
           names_from = c("Algorithm"),
-          values_from = c(Volume, SD)
+          values_from = c(Volume, SD, Max_BF)
         )
 
-      output$parsim_table <- DT::renderDataTable(parsim_wide)
+      parsim_wide_table = (parsim_wide %>% select(-contains("SD")))
+      
+      output$parsim_table <- DT::renderDataTable(parsim_wide_table)
 
       output$download_volume <- downloadHandler(
         filename = function() {
