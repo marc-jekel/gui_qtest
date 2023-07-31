@@ -121,7 +121,7 @@ ui <- shinyUI(fluidPage(
       ),
       mainPanel(
         shinyBS::bsTooltip("textbox_ui_rel",
-          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "p1 < {p2,3*p3}" is a shortcut for "p1 < p2; p1 < 3 * p3".',
+          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".',
           placement = "top", trigger = "hover"
         ),
         shinyBS::bsTooltip("textbox_ui_check",
@@ -1261,49 +1261,49 @@ server <- shinyServer(function(input, output, session) {
       test <- unlist(str_split(test, ";"))
       test <- str_replace_all(test, " ", "")
       test <- unlist(test)
-
-      start_short <- str_locate_all(test, fixed("{"))
-      end_short <- str_locate_all(test, fixed("}"))
-
-      test_new <- numeric()
-
-      for (loop_short in 1:length(start_short)) {
-        act_start_short <- start_short[[loop_short]][1]
-        act_end_short <- end_short[[loop_short]][1]
-
-        if (is.na(act_start_short) == FALSE) {
-          if (act_start_short > 1) {
-            single_part <- str_sub(test[loop_short], 1, (act_start_short - 1))
-            multiple_part <- str_sub(test[loop_short], act_start_short, act_end_short)
-            multiple_part <- str_replace_all(multiple_part, fixed("{"), "")
-            multiple_part <- str_replace_all(multiple_part, fixed("}"), "")
-            multiple_part <- unlist(str_split(multiple_part, ","))
-
-            test_new <- c(
-              test_new,
-              paste(single_part, multiple_part, sep = "")
-            )
-          }
-
-          if (act_start_short == 1) {
-            single_part <- str_sub(test[loop_short], act_end_short + 1, nchar(test[loop_short]))
-            multiple_part <- str_sub(test[loop_short], 1, act_end_short)
-            multiple_part <- str_replace_all(multiple_part, fixed("{"), "")
-            multiple_part <- str_replace_all(multiple_part, fixed("}"), "")
-            multiple_part <- unlist(str_split(multiple_part, ","))
-
-            test_new <- c(
-              test_new,
-              paste(multiple_part, single_part, sep = "")
-            )
-          }
-        } else {
-          test_new <- c(test_new, test[loop_short])
-        }
+      
+      if(length(which(test %in% "") ) > 0){
+        test = test[-which(test %in% "")]
+        
       }
+  
+      
+      expand_scalar <- function(scalar) {
+        # Extract the first and second batches of 'p' variables
+        batches <- strsplit(gsub("[{} ]", "", scalar), "[><=]")[[1]]
+        batch1 <- unlist(strsplit(batches[1], ","))
+        batch2 <- unlist(strsplit(batches[2], ","))
+        
+        # Determine the separator used in the original scalar
+        separator <- gsub("[p{}]", "", gsub("[^><=]", "", scalar))
+        
+        comparisons <- character()
+        
+        # Generate comparisons between the first and second batch of 'p' variables
+        for (p1 in batch1) {
+          for (p2 in batch2) {
+            comparisons <- c(comparisons, paste0(p1, separator, p2))
+          }
+        }
+        
+        output <- paste(comparisons, collapse = ";")
+        return(output)
+      }
+      
+      test_new = numeric()
+      
+      for(loop_sep in 1 : length(test)){
+        
+        
+        test_new <- c(test_new,expand_scalar(test[loop_sep]))
+        
+        
+      }
+      
 
       test <- test_new
-
+      test <- unlist(str_split(test, ";"))
+      
       ####* extract structure ####
 
       loc_above <- str_locate_all(test, ">")
