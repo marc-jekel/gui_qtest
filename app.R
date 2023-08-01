@@ -2751,8 +2751,8 @@ server <- shinyServer(function(input, output, session) {
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
         summarize(
-          SD = round(sd(Volume), 4), Volume = round(mean(Volume), 2),
-          Max_BF = round(1 / Volume, 2)
+          SD = sd(Volume), Volume = mean(Volume),
+          Max_BF = 1 / Volume
         )
 
 
@@ -2763,6 +2763,7 @@ server <- shinyServer(function(input, output, session) {
         )
 
       parsim_wide_table <- (parsim_wide %>% select(-contains("SD")))
+      parsim_wide_table[3:ncol(parsim_wide_table)] = round(parsim_wide_table[3:ncol(parsim_wide_table)],3)
 
       output$parsim_table <- DT::renderDataTable(parsim_wide_table)
 
