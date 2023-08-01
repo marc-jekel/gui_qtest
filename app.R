@@ -1261,49 +1261,97 @@ server <- shinyServer(function(input, output, session) {
       test <- unlist(str_split(test, ";"))
       test <- str_replace_all(test, " ", "")
       test <- unlist(test)
-      
-      if(length(which(test %in% "") ) > 0){
-        test = test[-which(test %in% "")]
-        
+
+      if (length(which(test %in% "")) > 0) {
+        test <- test[-which(test %in% "")]
       }
-  
-      
+
+
       expand_scalar <- function(scalar) {
         # Extract the first and second batches of 'p' variables
         batches <- strsplit(gsub("[{} ]", "", scalar), "[><=]")[[1]]
         batch1 <- unlist(strsplit(batches[1], ","))
         batch2 <- unlist(strsplit(batches[2], ","))
-        
+
         # Determine the separator used in the original scalar
         separator <- gsub("[p{}]", "", gsub("[^><=]", "", scalar))
-        
+
         comparisons <- character()
-        
+
         # Generate comparisons between the first and second batch of 'p' variables
         for (p1 in batch1) {
           for (p2 in batch2) {
             comparisons <- c(comparisons, paste0(p1, separator, p2))
           }
         }
-        
+
         output <- paste(comparisons, collapse = ";")
         return(output)
       }
-      
-      test_new = numeric()
-      
-      for(loop_sep in 1 : length(test)){
-        
-        
-        test_new <- c(test_new,expand_scalar(test[loop_sep]))
-        
-        
+
+      test_new <- numeric()
+
+      for (loop_sep in 1:length(test)) {
+        test_new <- c(test_new, expand_scalar(test[loop_sep]))
       }
-      
+
 
       test <- test_new
       test <- unlist(str_split(test, ";"))
-      
+
+      # Function to reformat inequalities and equalities
+      processRelation <- function(relation_string) {
+        # Define the possible operators
+        operators <- c("=", "<", ">")
+
+        # Find which operator is in the string
+        operator <- operators[sapply(operators, function(op) grepl(op, relation_string))]
+
+        # Split the string into the left and right parts
+        parts <- strsplit(relation_string, split = operator)[[1]]
+
+        # Trim whitespace
+        parts <- trimws(parts)
+
+        # Split each part into separate terms
+        left_terms <- unlist(strsplit(parts[1], split = "[\\+\\-]"))
+        right_terms <- unlist(strsplit(parts[2], split = "[\\+\\-]"))
+
+        # Trim whitespace
+        left_terms <- trimws(left_terms)
+        right_terms <- trimws(right_terms)
+
+        # Find which terms on the left are numbers
+        left_numbers <- grepl("^\\d*\\.?\\d+$", left_terms)
+
+        # Find which terms on the right are numbers
+        right_numbers <- grepl("^\\d*\\.?\\d+$", right_terms)
+
+        # Find which terms on the left are p's or c*p's
+        left_p <- grepl("^(\\d*\\.?\\d*\\*?)?p\\d+$", left_terms)
+
+        # Find which terms on the right are p's or c*p's
+        right_p <- grepl("^(\\d*\\.?\\d*\\*?)?p\\d+$", right_terms)
+
+        # Swap the numbers from left to right and the p's from right to left
+        new_left_terms <- c(left_terms[left_p], right_terms[!right_numbers])
+        new_right_terms <- c(left_terms[!left_p], right_terms[right_numbers])
+
+        # Construct new relation string
+        new_relation_string <- paste(paste(new_left_terms, collapse = "-"), operator, paste(new_right_terms, collapse = "+"))
+
+        # Remove all blanks
+        new_relation_string <- gsub(" ", "", new_relation_string)
+
+        # Return new relation string
+        return(new_relation_string)
+      }
+
+
+      for (loop_p_swap in 1:length(test)) {
+        test[loop_p_swap] <- processRelation(test[loop_p_swap])
+      }
+
       ####* extract structure ####
 
       loc_above <- str_locate_all(test, ">")
@@ -2609,6 +2657,8 @@ server <- shinyServer(function(input, output, session) {
           for (loop_parsimony in 1:length(all_h_rep_in_list)) {
             act_pars <- (all_h_rep_in_list[[loop_parsimony]])
             act_pars <- matrix(as.character(act_pars), ncol = ncol(act_pars))
+            # act_pars = act_pars[act_pars[,1]=="0",]
+
             not_full_dim <- ifelse(sum(q2d(act_pars)[, 1]) > 0, 1, 0)
 
             if (not_full_dim == 0) {
@@ -2620,6 +2670,8 @@ server <- shinyServer(function(input, output, session) {
                 b = right_pars,
                 type = "Hpolytope"
               )
+
+
 
               if (isolate(input$CB) == TRUE) {
                 act_vol_CB <- volume(model_s4,
@@ -2698,8 +2750,10 @@ server <- shinyServer(function(input, output, session) {
 
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
-        summarize(SD = round(sd(Volume), 4), Volume = round(mean(Volume), 2),
-                  Max_BF = round(1/Volume,2))
+        summarize(
+          SD = round(sd(Volume), 4), Volume = round(mean(Volume), 2),
+          Max_BF = round(1 / Volume, 2)
+        )
 
 
       parsim_wide <- parsim %>%
@@ -2708,8 +2762,8 @@ server <- shinyServer(function(input, output, session) {
           values_from = c(Volume, SD, Max_BF)
         )
 
-      parsim_wide_table = (parsim_wide %>% select(-contains("SD")))
-      
+      parsim_wide_table <- (parsim_wide %>% select(-contains("SD")))
+
       output$parsim_table <- DT::renderDataTable(parsim_wide_table)
 
       output$download_volume <- downloadHandler(
