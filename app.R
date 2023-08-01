@@ -121,7 +121,7 @@ ui <- shinyUI(fluidPage(
       ),
       mainPanel(
         shinyBS::bsTooltip("textbox_ui_rel",
-          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)".<br><br>"2p1 + 3p2 < 1" will not work, "2 * p1 + 3 * p2 < 1" will work. <br><br>"(p1 + p2)/2 < .4" will not work, ".5 * p1 + .5 * p2 < .4" will work. <br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".',
+          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3". <br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)". <br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".',
           placement = "top", trigger = "hover"
         ),
         shinyBS::bsTooltip("textbox_ui_check",
@@ -1266,7 +1266,8 @@ server <- shinyServer(function(input, output, session) {
         test <- test[-which(test %in% "")]
       }
 
-
+      #### {p1,p2} > {p3,p4}  ####
+      
       expand_scalar <- function(scalar) {
         # Extract the first and second batches of 'p' variables
         batches <- strsplit(gsub("[{} ]", "", scalar), "[><=]")[[1]]
@@ -1298,59 +1299,106 @@ server <- shinyServer(function(input, output, session) {
 
       test <- test_new
       test <- unlist(str_split(test, ";"))
-
-      # Function to reformat inequalities and equalities
-      processRelation <- function(relation_string) {
-        # Define the possible operators
-        operators <- c("=", "<", ">")
-
-        # Find which operator is in the string
-        operator <- operators[sapply(operators, function(op) grepl(op, relation_string))]
-
-        # Split the string into the left and right parts
-        parts <- strsplit(relation_string, split = operator)[[1]]
-
-        # Trim whitespace
-        parts <- trimws(parts)
-
-        # Split each part into separate terms
-        left_terms <- unlist(strsplit(parts[1], split = "[\\+\\-]"))
-        right_terms <- unlist(strsplit(parts[2], split = "[\\+\\-]"))
-
-        # Trim whitespace
-        left_terms <- trimws(left_terms)
-        right_terms <- trimws(right_terms)
-
-        # Find which terms on the left are numbers
-        left_numbers <- grepl("^\\d*\\.?\\d+$", left_terms)
-
-        # Find which terms on the right are numbers
-        right_numbers <- grepl("^\\d*\\.?\\d+$", right_terms)
-
-        # Find which terms on the left are p's or c*p's
-        left_p <- grepl("^(\\d*\\.?\\d*\\*?)?p\\d+$", left_terms)
-
-        # Find which terms on the right are p's or c*p's
-        right_p <- grepl("^(\\d*\\.?\\d*\\*?)?p\\d+$", right_terms)
-
-        # Swap the numbers from left to right and the p's from right to left
-        new_left_terms <- c(left_terms[left_p], right_terms[!right_numbers])
-        new_right_terms <- c(left_terms[!left_p], right_terms[right_numbers])
-
-        # Construct new relation string
-        new_relation_string <- paste(paste(new_left_terms, collapse = "-"), operator, paste(new_right_terms, collapse = "+"))
-
-        # Remove all blanks
-        new_relation_string <- gsub(" ", "", new_relation_string)
-
-        # Return new relation string
-        return(new_relation_string)
+      
+      #### complex fractions ####
+      
+      convertInequality <- function(inequality) {
+        process_term <- function(term, op = "+") {
+          # remove parentheses
+          expr <- gsub("[()]", "", term)
+          
+          # get divisor if present
+          divisor <- 1
+          if (grepl("/", expr)) {
+            divisor_str <- strsplit(expr, "/")[[1]][2]
+            divisor <- as.numeric(trimws(divisor_str))
+            expr <- trimws(strsplit(expr, "/")[[1]][1])
+          }
+          
+          # split expr into parts by "+"
+          parts <- unlist(strsplit(expr, "\\+"))
+          
+          # process each part separately
+          new_parts <- sapply(parts, function(part) {
+            # split by "-" and process each sub-part
+            sub_parts <- unlist(strsplit(part, "\\-"))
+            new_sub_parts <- sapply(sub_parts, function(sub_part) {
+              multiplier <- 1
+              var <- sub_part  # assume the whole sub_part is a variable
+              # extract multiplier and variable
+              if (grepl("p", sub_part)) {
+                var <- str_extract(sub_part, "p\\d+")
+                multiplier_str <- gsub(paste0("\\*", var), "", sub_part)
+                multiplier_str <- gsub(var, "", multiplier_str) #remove var name if present
+                multiplier_str <- gsub("\\*", "", multiplier_str) #remove * if present
+                if (multiplier_str != "") {
+                  multiplier <- as.numeric(multiplier_str)
+                }
+              }
+              fraction_multiplier <- fractions(multiplier / divisor)
+              # only include multiplier if it's different from 1
+              if (fraction_multiplier != 1) {
+                return(paste0(fraction_multiplier, "*", var))
+              } else {
+                return(var)
+              }
+            })
+            
+            return(paste(new_sub_parts, collapse = "-"))
+          })
+          
+          return(paste(op, paste(new_parts, collapse = "+"), collapse = ""))
+        }
+        
+        # determine operator
+        operator <- ifelse(grepl("<", inequality), "<", ifelse(grepl(">", inequality), ">", "="))
+        
+        # split inequality into left and right side
+        sides <- strsplit(inequality, operator)[[1]]
+        
+        # process each side
+        new_sides <- lapply(sides, function(side) {
+          # split side into terms by "+"
+          plus_terms <- unlist(strsplit(side, "\\s+\\+\\s+"))
+          
+          # split each term by "-" and process each sub-term
+          new_plus_terms <- vector(mode = "character", length = length(plus_terms))
+          for (i in seq_along(plus_terms)) {
+            term <- plus_terms[i]
+            minus_terms <- unlist(strsplit(term, "\\s+-\\s+"))
+            new_minus_terms <- vector(mode = "character", length = length(minus_terms))
+            for (j in seq_along(minus_terms)) {
+              minus_term <- minus_terms[j]
+              op <- if (j == 1) "" else "-"
+              new_minus_terms[j] <- process_term(minus_term, op)
+            }
+            
+            new_plus_terms[i] <- paste(new_minus_terms, collapse = "")
+          }
+          
+          return(paste(new_plus_terms, collapse = "+"))
+        })
+        
+        # create new inequality
+        new_inequality <- paste(new_sides, collapse = operator)
+        
+        # remove all whitespace
+        new_inequality <- gsub(" ", "", new_inequality)
+        
+        return(new_inequality)
       }
-
-
-      for (loop_p_swap in 1:length(test)) {
-        test[loop_p_swap] <- processRelation(test[loop_p_swap])
+      
+      
+      for(loop_complex in 1 : length(test)){
+        
+        
+        test[loop_complex] = convertInequality(test[loop_complex])
+        
       }
+      
+      #### left p, right numbers only ####
+
+
 
       ####* extract structure ####
 
