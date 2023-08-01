@@ -2763,7 +2763,7 @@ server <- shinyServer(function(input, output, session) {
         )
 
       parsim_wide_table <- (parsim_wide %>% select(-contains("SD")))
-      parsim_wide_table[3:ncol(parsim_wide_table)] = round(parsim_wide_table[3:ncol(parsim_wide_table)],3)
+      parsim_wide_table[3:ncol(parsim_wide_table)] <- round(parsim_wide_table[3:ncol(parsim_wide_table)], 3)
 
       output$parsim_table <- DT::renderDataTable(parsim_wide_table)
 
