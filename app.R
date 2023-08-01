@@ -2796,8 +2796,7 @@ server <- shinyServer(function(input, output, session) {
       fig <-
         fig %>% layout(
           yaxis = list(
-            title = "(Hyper-)Volume",
-            range = c(0, 1)
+            title = "(Hyper-)Volume"
           ),
           xaxis = list(title = "Model", tickangle = 45),
           barmode = "group"
