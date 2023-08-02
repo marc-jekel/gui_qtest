@@ -121,7 +121,7 @@ ui <- shinyUI(fluidPage(
       ),
       mainPanel(
         shinyBS::bsTooltip("textbox_ui_rel",
-          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3".<br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)". <br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".<br><br>Limitations: (1) Put constants on one side of the in/equalities and p*s on the other side, e.g., instead of p1 > p2 + .05, write p1 - p2 > .05. (2) Do not use parantheses, e.g. for "(p1+p2)/2 < 1" write "1/2 * p1 + 1/2 * p2 < 1".',
+          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3".<br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)". <br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".<br><br>Limitations: (1) Put constants on one side of the in/equalities and p*s on the other side, e.g., instead of p1 > p2 + .05, write p1 - p2 > .05. (2) Do not use parantheses, e.g. for "(p1+p2)/2 < p3" write "1/2 * p1 + 1/2 * p2 < 3".',
           placement = "top", trigger = "hover"
         ),
         shinyBS::bsTooltip("textbox_ui_check",
