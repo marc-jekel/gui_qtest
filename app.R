@@ -1293,7 +1293,18 @@ server <- shinyServer(function(input, output, session) {
       test_new <- numeric()
 
       for (loop_sep in 1:length(test)) {
-        test_new <- c(test_new, expand_scalar(test[loop_sep]))
+        
+        if(grepl( "{", test[loop_sep], fixed = TRUE) == T){
+          
+          test_new <- c(test_new, expand_scalar(test[loop_sep]))
+          
+        }else{
+          
+          test_new <- c(test_new, test[loop_sep])
+          
+        }
+        
+       
       }
 
 
