@@ -52,7 +52,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(column(
           12,
           offset = 0,
-          helpText("Compute H- and V-representation")
+          helpText("Compute minimal description(s)")
         )),
         fluidRow(column(12, offset = 0, actionButton("go_v_h", "Go"))),
         fluidRow(
@@ -82,7 +82,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("+/- range for approximate equalities")
+            helpText("Range for approximate equalities")
           ),
           column(
             12,
@@ -164,8 +164,8 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           useShinyjs(),
           column(2, uiOutput("textbox_ui_name_rel")),
-          column(8, uiOutput("textbox_ui_rel")),
-          column(1, fluidRow(htmlOutput("textbox_ui_check")), offset = 1),
+          column(7, uiOutput("textbox_ui_rel")),
+          column(3, fluidRow(htmlOutput("textbox_ui_check")), offset = 0),
           heightMatcher("textbox_ui_check", "textbox_ui_rel")
         )
       )
@@ -280,9 +280,9 @@ ui <- shinyUI(fluidPage(
           column(
             12,
             offset = 0,
-            checkboxInput("CB", "CoolingBodies (CB)", value = T),
-            checkboxInput("SoB", "SequenceOfBalls (SoB)", value = T),
-            checkboxInput("CG", "CoolingGaussian (CG)", value = T)
+            checkboxInput("CB", "Cooling bodies", value = T),
+            checkboxInput("SoB", "Sequence of balls", value = T),
+            checkboxInput("CG", "Cooling Gaussian", value = T)
           ),
           column(
             12,
@@ -737,7 +737,7 @@ server <- shinyServer(function(input, output, session) {
       isolate({
         lapply(seq_len(n), function(i) {
           materialSwitch(paste0("textin_check_", i),
-            HTML(paste("V", i, br(), br(), br(), br(), br(), br(), sep = "")),
+            HTML(paste("Include V-representation", br(),br(), br(), br(), br(), br(), sep = "")),
             status = "success",
             value = AllInputs()[[paste0("textin_check_", i)]],
             right = T
@@ -1975,7 +1975,7 @@ server <- shinyServer(function(input, output, session) {
       for (loop_tune in 1:length(all_operators)) {
         if (all_operators[loop_tune] == "equal") {
           if (change_knob[loop_tune] == 1) {
-            add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(q2d(ineq_eq_left[loop_tune, ])))
+            add_ineq_eq_left <- rbind(add_ineq_eq_left, (ineq_eq_left[loop_tune, ]))
             add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(-1 * q2d(ineq_eq_left[loop_tune, ])))
 
             add_ineq_eq_right <- c(
@@ -1986,7 +1986,7 @@ server <- shinyServer(function(input, output, session) {
 
             add_all_operators <- c(add_all_operators, rep("below", 2))
           } else {
-            add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(q2d(ineq_eq_left[loop_tune, ])))
+            add_ineq_eq_left <- rbind(add_ineq_eq_left, (ineq_eq_left[loop_tune, ]))
             add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(-1 * q2d(ineq_eq_left[loop_tune, ])))
 
             add_ineq_eq_right <- c(
@@ -2505,13 +2505,13 @@ server <- shinyServer(function(input, output, session) {
 
         act_mix <- unlist(mix_input[loop_mix])
 
-        v_as_data_frame <- as.data.frame(do.call(rbind, all_v_rep_in_list[names_models_reactive$value %in% act_mix]))
+        v_as_data_frame <- (do.call(rbind, all_v_rep_in_list[names_models_reactive$value %in% act_mix]))
 
         v_all <- v_as_data_frame[v_as_data_frame[, 1] %in% act_mix, ]
         v_all <- v_all[, 2:ncol(v_all)]
-
-        v_all <- matrix(as.numeric(unlist(v_all)), ncol = ncol(v_all))
         v_all <- v_all[!duplicated(v_all), ]
+        v_all <- matrix(as.numeric(unlist(v_all)), ncol = ncol(v_all))
+        
 
         v_all <- d2q(v_all)
         mixture_v <- makeV(v_all)
@@ -2521,7 +2521,7 @@ server <- shinyServer(function(input, output, session) {
           mixture_v <- redundant(mixture_v)
         }
 
-        all_v_rep_in_list[loop_mix] <- list(mixture_v$output)
+        all_v_rep_in_list[loop_mix] <- list(fractions(q2d(mixture_v$output)))
 
         if (dim_mixture > 1) {
           mixture_h <- scdd(mixture_v$output)
@@ -2828,7 +2828,7 @@ server <- shinyServer(function(input, output, session) {
           parsim <- data.frame(
             "Model" = rep(as.factor(model_name), each = 3),
             "Algorithm" = as.factor(rep(
-              c("CB", "SoB", "CG"), length(model_name)
+              c("Cooling bodies", "Sequence of balls", "Cooling Gaussian"), length(model_name)
             )),
             "Volume" = parsim,
             "Dimensionality" = rep(act_dim, each = 3)
@@ -2842,6 +2842,8 @@ server <- shinyServer(function(input, output, session) {
       })
 
 
+      parsim_raw = data.frame("Repetition" = 1:n_rep, parsim_rep[order(parsim_rep$Model,parsim_rep$Algorithm),])
+      
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
         summarize(
@@ -2870,7 +2872,7 @@ server <- shinyServer(function(input, output, session) {
           )
         },
         content = function(file) {
-          write.csv(parsim_wide, file)
+          write.csv(parsim_raw, file)
         }
       )
 
@@ -2891,7 +2893,7 @@ server <- shinyServer(function(input, output, session) {
       fig <-
         fig %>% layout(
           yaxis = list(
-            title = "(Hyper-)Volume"
+            title = "Approximate volume (average over repetitions)"
           ),
           xaxis = list(title = "Model", tickangle = 45),
           barmode = "group"
