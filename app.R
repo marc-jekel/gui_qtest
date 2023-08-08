@@ -129,7 +129,7 @@ ui <- shinyUI(fluidPage(
           placement = "top", trigger = "hover"
         ),
         shinyBS::bsTooltip("approx_equal",
-          "+/- .05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
+          ".05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
           placement = "bottom", trigger = "hover"
         ),
         waiter::use_waiter(),
