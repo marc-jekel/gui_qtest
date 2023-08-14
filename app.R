@@ -51,7 +51,11 @@ ui <- shinyUI(fluidPage(
         tags$head(
           tags$style(type="text/css", "select { max-width: 240px; }"),
           tags$style(type="text/css", ".span4 { max-width: 240px; }"),
-          tags$style(type="text/css", ".well { max-width: 240px; }")
+          tags$style(type="text/css", ".well { max-width: 240px; }"),
+          tags$style(type="text/css", "select { min-width: 240px; }"),
+          tags$style(type="text/css", ".span4 { min-width: 240px; }"),
+          tags$style(type="text/css", ".well { min-width: 240px; }")
+          
 
         ),
         width = 2,
