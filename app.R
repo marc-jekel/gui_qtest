@@ -49,14 +49,12 @@ ui <- shinyUI(fluidPage(
       sidebarPanel(
         style = "position:fixed;width:inherit;",
         tags$head(
-          tags$style(type="text/css", "select { max-width: 240px; }"),
-          tags$style(type="text/css", ".span4 { max-width: 240px; }"),
-          tags$style(type="text/css", ".well { max-width: 240px; }"),
-          tags$style(type="text/css", "select { min-width: 240px; }"),
-          tags$style(type="text/css", ".span4 { min-width: 240px; }"),
-          tags$style(type="text/css", ".well { min-width: 240px; }")
-          
-
+          tags$style(type = "text/css", "select { max-width: 240px; }"),
+          tags$style(type = "text/css", ".span4 { max-width: 240px; }"),
+          tags$style(type = "text/css", ".well { max-width: 240px; }"),
+          tags$style(type = "text/css", "select { min-width: 240px; }"),
+          tags$style(type = "text/css", ".span4 { min-width: 240px; }"),
+          tags$style(type = "text/css", ".well { min-width: 240px; }")
         ),
         width = 2,
         fluidRow(column(
@@ -127,28 +125,26 @@ ui <- shinyUI(fluidPage(
         waiter::use_waiter(),
         fluidRow(
           splitLayout(
-          column(
-            12,
-            offset = 0,
-            checkboxInput("check_name", "use this", value = FALSE),
-            uiOutput("textbox_ui_name"),
-            style = "background-color:#E8E8E8;"
-          ),
-          column(
-            12,
-            checkboxInput("check_min", "use this", value = TRUE),
-            uiOutput("textbox_ui_min"),
-            style = "background-color:#F8F8F8;"
-          ),
-          column(
-            12,
-            checkboxInput("check_max", "use this", value = TRUE),
-            uiOutput("textbox_ui_max"),
-            style = "background-color:#E8E8E8;"
-          ),
-          cellWidths = c(400,400,400),
-          
-   
+            column(
+              12,
+              offset = 0,
+              checkboxInput("check_name", "use this", value = FALSE),
+              uiOutput("textbox_ui_name"),
+              style = "background-color:#E8E8E8;"
+            ),
+            column(
+              12,
+              checkboxInput("check_min", "use this", value = TRUE),
+              uiOutput("textbox_ui_min"),
+              style = "background-color:#F8F8F8;"
+            ),
+            column(
+              12,
+              checkboxInput("check_max", "use this", value = TRUE),
+              uiOutput("textbox_ui_max"),
+              style = "background-color:#E8E8E8;"
+            ),
+            cellWidths = c(400, 400, 400),
           )
         ),
         fluidRow(
@@ -161,13 +157,14 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           useShinyjs(),
           splitLayout(
-        uiOutput("textbox_ui_name_rel"),
-       uiOutput("textbox_ui_rel"),
-        htmlOutput("textbox_ui_check"),
+            uiOutput("textbox_ui_name_rel"),
+            uiOutput("textbox_ui_rel"),
+            htmlOutput("textbox_ui_check"),
             htmlOutput("textbox_approx"),
-       cellWidths = c(180,620,200,200),
-       cellArgs = list(style = "padding: 6px")
-        ))
+            cellWidths = c(180, 620, 200, 200),
+            cellArgs = list(style = "padding: 6px")
+          )
+        )
       )
     ),
     tabPanel(
@@ -663,7 +660,7 @@ server <- shinyServer(function(input, output, session) {
       isolate({
         lapply(seq_len(n), function(i) {
           materialSwitch(paste0("textin_check_", i),
-            HTML(paste("Include V for m",i, sep = "")),
+            HTML(paste("Include V for m", i, sep = "")),
             status = "success",
             value = AllInputs()[[paste0("textin_check_", i)]],
             right = T
@@ -675,21 +672,18 @@ server <- shinyServer(function(input, output, session) {
 
   textboxes_approx <- reactive({
     n <- counter_ie$n
-    
+
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
-          
           numericInput(
             min = 0,
             max = 1,
             step = .01,
-            inputId =  paste0("textin_approx_", i),
-            label = paste("Approx. equalities for m",i,sep=""),
-            value =  ifelse(is.null(AllInputs()[[paste0("textin_approx_", i)]])==T,0, AllInputs()[[paste0("textin_approx_", i)]])
+            inputId = paste0("textin_approx_", i),
+            label = paste("Approx. equalities for m", i, sep = ""),
+            value = ifelse(is.null(AllInputs()[[paste0("textin_approx_", i)]]) == T, 0, AllInputs()[[paste0("textin_approx_", i)]])
           )
-          
-
         })
       })
     }
@@ -790,10 +784,7 @@ server <- shinyServer(function(input, output, session) {
               sep = ""
             )
           )),
-          input$approx_equal,
-          counter$n 
-          
-          
+          counter$n
         )
       }
 
@@ -1192,7 +1183,7 @@ server <- shinyServer(function(input, output, session) {
 
   #### Function to extract In/equalities from Input ####
 
-  extract_info <- function(test = input_relations$rel1,loop_numb_models) {
+  extract_info <- function(test = input_relations$rel1, loop_numb_models) {
     outs <- data.frame()
 
     for (loop in 1:counter$n) {
@@ -1257,18 +1248,11 @@ server <- shinyServer(function(input, output, session) {
       test_new <- numeric()
 
       for (loop_sep in 1:length(test)) {
-        
-        if(grepl( "{", test[loop_sep], fixed = TRUE) == T){
-          
+        if (grepl("{", test[loop_sep], fixed = TRUE) == T) {
           test_new <- c(test_new, expand_scalar(test[loop_sep]))
-          
-        }else{
-          
+        } else {
           test_new <- c(test_new, test[loop_sep])
-          
         }
-        
-       
       }
 
 
@@ -1288,30 +1272,30 @@ server <- shinyServer(function(input, output, session) {
       }
 
       test <- test_new
-      
+
       #### insert * between coefficient and p ####
-      
+
       fix_coeff <- function(x) {
         # If 'p' is preceded by a number not followed by *, insert *
-        if (grepl("\\d+(?!\\*)p", x, perl=TRUE)) {
-          x <- gsub("(\\d+)(?!\\*)(p)", "\\1*\\2", x, perl=TRUE)
+        if (grepl("\\d+(?!\\*)p", x, perl = TRUE)) {
+          x <- gsub("(\\d+)(?!\\*)(p)", "\\1*\\2", x, perl = TRUE)
         }
-        
+
         # If 'p' is not preceded by a digit or *, insert 1*
-        if (grepl("(?<!\\d|\\*)p", x, perl=TRUE)) {
-          x <- gsub("(?<!\\d|\\*)(p)", "1*\\1", x, perl=TRUE)
+        if (grepl("(?<!\\d|\\*)p", x, perl = TRUE)) {
+          x <- gsub("(?<!\\d|\\*)(p)", "1*\\1", x, perl = TRUE)
         }
-        
+
         # If there is a '.' and not a number before the '.', add '0'
-        if (grepl("(?<!\\d\\.)\\.", x, perl=TRUE)) {
-          x <- gsub("(?<!\\d\\.)\\.", "0.", x, perl=TRUE)
+        if (grepl("(?<!\\d\\.)\\.", x, perl = TRUE)) {
+          x <- gsub("(?<!\\d\\.)\\.", "0.", x, perl = TRUE)
         }
-        
+
         return(x)
       }
-      
-      
-      test = sapply(test, fix_coeff)
+
+
+      test <- sapply(test, fix_coeff)
 
       #### complex fractions ####
 
@@ -1319,7 +1303,7 @@ server <- shinyServer(function(input, output, session) {
       #   process_term <- function(term, op = "+") {
       #     # remove parentheses
       #     expr <- gsub("[()]", "", term)
-      # 
+      #
       #     # get divisor if present
       #     divisor <- 1
       #     if (grepl("/", expr)) {
@@ -1327,10 +1311,10 @@ server <- shinyServer(function(input, output, session) {
       #       divisor <- as.numeric(trimws(divisor_str))
       #       expr <- trimws(strsplit(expr, "/")[[1]][1])
       #     }
-      # 
+      #
       #     # split expr into parts by "+"
       #     parts <- unlist(strsplit(expr, "\\+"))
-      # 
+      #
       #     # process each part separately
       #     new_parts <- sapply(parts, function(part) {
       #       # split by "-" and process each sub-part
@@ -1356,24 +1340,24 @@ server <- shinyServer(function(input, output, session) {
       #           return(var)
       #         }
       #       })
-      # 
+      #
       #       return(paste(new_sub_parts, collapse = "-"))
       #     })
-      # 
+      #
       #     return(paste(op, paste(new_parts, collapse = "+"), collapse = ""))
       #   }
-      # 
+      #
       #   # determine operator
       #   operator <- ifelse(grepl("<", inequality), "<", ifelse(grepl(">", inequality), ">", "="))
-      # 
+      #
       #   # split inequality into left and right side
       #   sides <- strsplit(inequality, operator)[[1]]
-      # 
+      #
       #   # process each side
       #   new_sides <- lapply(sides, function(side) {
       #     # split side into terms by "+"
       #     plus_terms <- unlist(strsplit(side, "\\s+\\+\\s+"))
-      # 
+      #
       #     # split each term by "-" and process each sub-term
       #     new_plus_terms <- vector(mode = "character", length = length(plus_terms))
       #     for (i in seq_along(plus_terms)) {
@@ -1385,23 +1369,23 @@ server <- shinyServer(function(input, output, session) {
       #         op <- if (j == 1) "" else "-"
       #         new_minus_terms[j] <- process_term(minus_term, op)
       #       }
-      # 
+      #
       #       new_plus_terms[i] <- paste(new_minus_terms, collapse = "")
       #     }
-      # 
+      #
       #     return(paste(new_plus_terms, collapse = "+"))
       #   })
-      # 
+      #
       #   # create new inequality
       #   new_inequality <- paste(new_sides, collapse = operator)
-      # 
+      #
       #   # remove all whitespace
       #   new_inequality <- gsub(" ", "", new_inequality)
-      # 
+      #
       #   return(new_inequality)
       # }
-      # 
-      # 
+      #
+      #
       # for (loop_complex in 1:length(test)) {
       #   test[loop_complex] <- convertInequality(test[loop_complex])
       # }
@@ -1926,22 +1910,22 @@ server <- shinyServer(function(input, output, session) {
 
     #### approx equal
 
- 
+
     add_ineq_eq_left <- numeric()
     add_ineq_eq_right <- numeric()
     add_all_operators <- numeric()
-    
-    ####*** add approx equalities when selected ####
-    
-    input_approx <- numeric()
-    
-    tune_knob <-
-        eval(parse(
-          text = paste("unlist(AllInputs()$textin_approx_", loop_numb_models, ")", sep = "")
-        ))
-      
 
-    
+    ####*** add approx equalities when selected ####
+
+    input_approx <- numeric()
+
+    tune_knob <-
+      eval(parse(
+        text = paste("unlist(AllInputs()$textin_approx_", loop_numb_models, ")", sep = "")
+      ))
+
+
+
     ####
 
     if (tune_knob != 0) {
@@ -2001,14 +1985,14 @@ server <- shinyServer(function(input, output, session) {
 
   ####* H-representation ####
 
-  observeEvent(input$approx_equal, {
-    for (loop_approx in 1:length(input_user_reactive$value)) {
-      if (grepl("=", input_user_reactive$value[loop_approx]) == T) {
-        h_representation_reactive$value[loop_approx] <- NULL
-        v_representation_reactive$value[loop_approx] <- NULL
-      }
-    }
-  })
+  # observeEvent(input$approx_equal, {
+  #   for (loop_approx in 1:length(input_user_reactive$value)) {
+  #     if (grepl("=", input_user_reactive$value[loop_approx]) == T) {
+  #       h_representation_reactive$value[loop_approx] <- NULL
+  #       v_representation_reactive$value[loop_approx] <- NULL
+  #     }
+  #   }
+  # })
 
   observeEvent(input$go_v_h, {
     outs <- isolate(outs_reactive$value)
@@ -2035,7 +2019,7 @@ server <- shinyServer(function(input, output, session) {
         input_options[[paste0("opt", loop)]] <- ""
       }
     }
-    
+
 
     ####*** check if input is the same ####
 
@@ -2283,7 +2267,7 @@ server <- shinyServer(function(input, output, session) {
                 loop_numb_models,
                 sep = ""
               )
-            )),loop_numb_models)
+            )), loop_numb_models)
 
             outs <- isolate(outs_reactive$value)
 
@@ -2488,7 +2472,7 @@ server <- shinyServer(function(input, output, session) {
         v_all <- v_all[, 2:ncol(v_all)]
         v_all <- v_all[!duplicated(v_all), ]
         v_all <- matrix(as.numeric(unlist(v_all)), ncol = ncol(v_all))
-        
+
 
         v_all <- d2q(v_all)
         mixture_v <- makeV(v_all)
@@ -2663,8 +2647,8 @@ server <- shinyServer(function(input, output, session) {
           local({
             id <- paste0("v_representation_table", loop_table)
             pl_t <- all_v_rep_in_list[[loop_table]]
-            pl_t = cbind(pl_t[,1],(matrix(as.character(fractions(unlist(pl_t[,2:ncol(pl_t)]))),ncol=ncol(pl_t)-1)))
-            
+            pl_t <- cbind(pl_t[, 1], (matrix(as.character(fractions(unlist(pl_t[, 2:ncol(pl_t)]))), ncol = ncol(pl_t) - 1)))
+
             output[[id]] <- DT::renderDataTable(pl_t)
           })
         }
@@ -2821,8 +2805,8 @@ server <- shinyServer(function(input, output, session) {
       })
 
 
-      parsim_raw = data.frame("Repetition" = 1:n_rep, parsim_rep[order(parsim_rep$Model,parsim_rep$Algorithm),])
-      
+      parsim_raw <- data.frame("Repetition" = 1:n_rep, parsim_rep[order(parsim_rep$Model, parsim_rep$Algorithm), ])
+
       parsim <- parsim_rep %>%
         group_by(Model, Algorithm, Dimensionality) %>%
         summarize(
