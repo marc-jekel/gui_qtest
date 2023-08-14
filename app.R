@@ -13,7 +13,6 @@ library("stringr")
 library("tidyr")
 library("volesti")
 library("waiter")
-library("spsComps")
 library("shinyWidgets")
 
 options(warn = -1)
@@ -29,9 +28,10 @@ ui <- shinyUI(fluidPage(
   )),
   navbarPage(
     id = "tabs",
-    position = "fixed-top",
+  # position = "fixed-top",
+    fluid = T,
     inverse = T,
-    windowTitle = "Model representations",
+    windowTitle = "Modeling Fariy App",
     tags$style(
       type = "text/css",
       ".navbar { background-color: #000000;
@@ -47,7 +47,12 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "Input",
       sidebarPanel(
-        style = "position:fixed;width:13%",
+        tags$head(
+          tags$style(type="text/css", "select { max-width: 250px; }"),
+          tags$style(type="text/css", ".span4 { max-width: 250px; }"),
+          tags$style(type="text/css", ".well { max-width: 250px; }")
+
+        ),
         width = 2,
         fluidRow(column(
           12,
@@ -77,24 +82,6 @@ ui <- shinyUI(fluidPage(
             offset = 0,
             actionButton("rm_ie", "", icon = icon("fa-regular fa-square-minus")),
             actionButton("add_ie", "", icon = icon("fa-regular fa-square-plus"))
-          )
-        ),
-        fluidRow(
-          column(12,
-            offset = 0,
-            helpText("Range for approximate equalities")
-          ),
-          column(
-            12,
-            offset = 0,
-            numericInput(
-              min = 0,
-              max = 1,
-              step = .01,
-              inputId = "approx_equal",
-              label = NULL,
-              value = 0
-            )
           )
         ),
         fluidRow(column(12,
@@ -128,30 +115,35 @@ ui <- shinyUI(fluidPage(
           "Build V-representation (on/off).",
           placement = "top", trigger = "hover"
         ),
-        shinyBS::bsTooltip("approx_equal",
+        shinyBS::bsTooltip("textbox_approx",
           ".05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
-          placement = "bottom", trigger = "hover"
+          placement = "top", trigger = "hover"
         ),
         waiter::use_waiter(),
         fluidRow(
+          splitLayout(
           column(
-            4,
+            12,
             offset = 0,
             checkboxInput("check_name", "use this", value = FALSE),
             uiOutput("textbox_ui_name"),
             style = "background-color:#E8E8E8;"
           ),
           column(
-            4,
+            12,
             checkboxInput("check_min", "use this", value = TRUE),
             uiOutput("textbox_ui_min"),
             style = "background-color:#F8F8F8;"
           ),
           column(
-            4,
+            12,
             checkboxInput("check_max", "use this", value = TRUE),
             uiOutput("textbox_ui_max"),
             style = "background-color:#E8E8E8;"
+          ),
+          cellWidths = c(400,400,400),
+          
+   
           )
         ),
         fluidRow(
@@ -163,17 +155,20 @@ ui <- shinyUI(fluidPage(
         ),
         fluidRow(
           useShinyjs(),
-          column(2, uiOutput("textbox_ui_name_rel")),
-          column(7, uiOutput("textbox_ui_rel")),
-          column(3, fluidRow(htmlOutput("textbox_ui_check")), offset = 0),
-          heightMatcher("textbox_ui_check", "textbox_ui_rel")
-        )
+          splitLayout(
+        uiOutput("textbox_ui_name_rel"),
+       uiOutput("textbox_ui_rel"),
+        htmlOutput("textbox_ui_check"),
+            htmlOutput("textbox_approx"),
+       cellWidths = c(180,620,200,200),
+       cellArgs = list(style = "padding: 6px")
+        ))
       )
     ),
     tabPanel(
       "H-representation",
       sidebarPanel(
-        style = "position:fixed;width:13%",
+     
         width = 2,
         fluidRow(
           column(12,
@@ -450,7 +445,7 @@ ui <- shinyUI(fluidPage(
    bottom:0;
    width:100%;
    z-index:1000;
-   height:25px; /* Height of the footer */
+   height:30px; /* Height of the footer */
    color: white;
    padding: 5px;
    background-color: #000200"
@@ -499,80 +494,6 @@ server <- shinyServer(function(input, output, session) {
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
   })
-
-
-  output$download <- downloadHandler(
-    filename = function() {
-      paste0("user_input", ".csv")
-    },
-    content = function(file) {
-      numb_rows_outs <- ifelse(counter$n > counter_ie$n, counter$n, counter_ie$n)
-
-      if (input$check_relations == T) {
-        outs <- matrix("", ncol = 7, nrow = numb_rows_outs)
-      } else {
-        outs <- matrix("", ncol = 5, nrow = counter$n)
-      }
-
-      outs <- data.frame(outs)
-
-      for (loop in 1:counter$n) {
-        outs[loop, 1:5] <- c(
-          paste("p_", loop, sep = ""),
-          eval(parse(
-            text = str_replace_all(paste("unlist(AllInputs()$textin_name_",
-              loop, ")",
-              sep = ""
-            ), fixed(" "), "_")
-          )),
-          eval(parse(
-            text = paste("unlist(AllInputs()$textin_min_", loop, ")", sep = "")
-          )),
-          eval(parse(
-            text = paste("unlist(AllInputs()$textin_max_", loop, ")", sep = "")
-          )),
-          input$approx_equal
-        )
-      }
-
-      if (input$check_relations == T) {
-        for (loop in 1:counter_ie$n) {
-          outs[loop, 6:7] <- c(
-            str_replace_all(eval(parse(
-              text = paste(
-                "unlist(AllInputs()$textin_relations_name",
-                loop,
-                ")",
-                sep = ""
-              )
-            )), fixed(" "), ""),
-            eval(parse(
-              text = paste(
-                "unlist(AllInputs()$textin_relations_",
-                loop,
-                ")",
-                sep = ""
-              )
-            ))
-          )
-        }
-
-        colnames(outs) <- c(
-          "variable",
-          "p_name",
-          "p_min",
-          "p_max",
-          "approx_equal",
-          "model_name",
-          "in/equalities"
-        )
-      } else {
-        colnames(outs) <- c("variable", "p_name", "p_min", "p_max", "approx_equal")
-      }
-
-      write.csv(outs, file)
-    }
-  )
 
 
   #### Button Events ####
@@ -737,7 +658,7 @@ server <- shinyServer(function(input, output, session) {
       isolate({
         lapply(seq_len(n), function(i) {
           materialSwitch(paste0("textin_check_", i),
-            HTML(paste("Include V-representation", br(),br(), br(), br(), br(), br(), sep = "")),
+            HTML(paste("Include V for m",i, sep = "")),
             status = "success",
             value = AllInputs()[[paste0("textin_check_", i)]],
             right = T
@@ -747,6 +668,27 @@ server <- shinyServer(function(input, output, session) {
     }
   })
 
+  textboxes_approx <- reactive({
+    n <- counter_ie$n
+    
+    if (n > 0) {
+      isolate({
+        lapply(seq_len(n), function(i) {
+          
+          numericInput(
+            min = 0,
+            max = 1,
+            step = .01,
+            inputId =  paste0("textin_approx_", i),
+            label = paste("Approx. equalities for m",i,sep=""),
+            value =  ifelse(is.null(AllInputs()[[paste0("textin_approx_", i)]])==T,0, AllInputs()[[paste0("textin_approx_", i)]])
+          )
+          
+
+        })
+      })
+    }
+  })
 
   textboxes_relations_name <- reactive({
     n <- counter_ie$n
@@ -786,6 +728,9 @@ server <- shinyServer(function(input, output, session) {
   output$textbox_ui_check <- renderUI({
     textboxes_check()
   })
+  output$textbox_approx <- renderUI({
+    textboxes_approx()
+  })
   output$checkbox_ui_row <- renderUI({
     check_box_row()
   })
@@ -801,13 +746,13 @@ server <- shinyServer(function(input, output, session) {
       paste0("user_input", ".csv")
     },
     content = function(file) {
-      outs <- matrix("", ncol = 3, nrow = counter_ie$n)
+      outs <- matrix("", ncol = 5, nrow = counter_ie$n)
 
 
       outs <- data.frame(outs)
 
       for (loop in 1:counter_ie$n) {
-        outs[loop, 1:3] <- c(
+        outs[loop, 1:6] <- c(
           str_replace_all(eval(parse(
             text = paste(
               "unlist(AllInputs()$textin_relations_name",
@@ -831,15 +776,29 @@ server <- shinyServer(function(input, output, session) {
               ")",
               sep = ""
             )
-          ))) == "TRUE", 1, 0)
+          ))) == "TRUE", 1, 0),
+          eval(parse(
+            text = paste(
+              "unlist(AllInputs()$textin_approx_",
+              loop,
+              ")",
+              sep = ""
+            )
+          )),
+          input$approx_equal,
+          counter$n 
+          
+          
         )
       }
-
 
       colnames(outs) <- c(
         "model_name",
         "in/equalities",
-        "V-representation"
+        "V-representation",
+        "Approximate Equalities",
+        "Value Approximate Equalities",
+        "Number of p-values"
       )
 
 
@@ -1228,7 +1187,7 @@ server <- shinyServer(function(input, output, session) {
 
   #### Function to extract In/equalities from Input ####
 
-  extract_info <- function(test = input_relations$rel1) {
+  extract_info <- function(test = input_relations$rel1,loop_numb_models) {
     outs <- data.frame()
 
     for (loop in 1:counter$n) {
@@ -1962,11 +1921,23 @@ server <- shinyServer(function(input, output, session) {
 
     #### approx equal
 
-    tune_knob <- input$approx_equal
-
+ 
     add_ineq_eq_left <- numeric()
     add_ineq_eq_right <- numeric()
     add_all_operators <- numeric()
+    
+    ####*** add approx equalities when selected ####
+    
+    input_approx <- numeric()
+    
+    tune_knob <-
+        eval(parse(
+          text = paste("unlist(AllInputs()$textin_approx_", loop_numb_models, ")", sep = "")
+        ))
+      
+
+    
+    ####
 
     if (tune_knob != 0) {
       change_knob <- ifelse(rowSums(ineq_eq_left != "0") > 1, 1, 0)
@@ -2059,6 +2030,7 @@ server <- shinyServer(function(input, output, session) {
         input_options[[paste0("opt", loop)]] <- ""
       }
     }
+    
 
     ####*** check if input is the same ####
 
@@ -2306,7 +2278,7 @@ server <- shinyServer(function(input, output, session) {
                 loop_numb_models,
                 sep = ""
               )
-            )))
+            )),loop_numb_models)
 
             outs <- isolate(outs_reactive$value)
 
@@ -2686,6 +2658,8 @@ server <- shinyServer(function(input, output, session) {
           local({
             id <- paste0("v_representation_table", loop_table)
             pl_t <- all_v_rep_in_list[[loop_table]]
+            pl_t = cbind(pl_t[,1],(matrix(as.character(fractions(unlist(pl_t[,2:ncol(pl_t)]))),ncol=ncol(pl_t)-1)))
+            
             output[[id]] <- DT::renderDataTable(pl_t)
           })
         }
