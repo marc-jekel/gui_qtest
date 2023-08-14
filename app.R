@@ -28,7 +28,6 @@ ui <- shinyUI(fluidPage(
   )),
   navbarPage(
     id = "tabs",
-  # position = "fixed-top",
     fluid = T,
     inverse = T,
     windowTitle = "Modeling Fariy App",
@@ -218,7 +217,6 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "V-representation",
       sidebarPanel(
-        style = "position:fixed;width:13%",
         width = 2,
         fluidRow(
           column(
@@ -265,7 +263,6 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "Parsimony",
       sidebarPanel(
-        style = "position:fixed;width:15%",
         width = 2,
         fluidRow(
           column(12,
@@ -362,7 +359,6 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "Plot",
       sidebarPanel(
-        style = "position:fixed;width:15%",
         width = 2,
         fluidRow(column(
           12,
