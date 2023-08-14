@@ -27,6 +27,7 @@ ui <- shinyUI(fluidPage(
     "
   )),
   navbarPage(
+    position = "fixed-top",
     id = "tabs",
     fluid = T,
     inverse = T,
@@ -46,10 +47,11 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "Input",
       sidebarPanel(
+        style = "position:fixed;width:inherit;",
         tags$head(
-          tags$style(type="text/css", "select { max-width: 250px; }"),
-          tags$style(type="text/css", ".span4 { max-width: 250px; }"),
-          tags$style(type="text/css", ".well { max-width: 250px; }")
+          tags$style(type="text/css", "select { max-width: 240px; }"),
+          tags$style(type="text/css", ".span4 { max-width: 240px; }"),
+          tags$style(type="text/css", ".well { max-width: 240px; }")
 
         ),
         width = 2,
@@ -167,7 +169,7 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "H-representation",
       sidebarPanel(
-     
+        style = "position:fixed;width:inherit;",
         width = 2,
         fluidRow(
           column(12,
@@ -217,6 +219,7 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "V-representation",
       sidebarPanel(
+        style = "position:fixed;width:inherit;",
         width = 2,
         fluidRow(
           column(
@@ -263,6 +266,7 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "Parsimony",
       sidebarPanel(
+        style = "position:fixed;width:inherit;",
         width = 2,
         fluidRow(
           column(12,
@@ -359,6 +363,7 @@ ui <- shinyUI(fluidPage(
     tabPanel(
       "Plot",
       sidebarPanel(
+        style = "position:fixed;width:inherit;",
         width = 2,
         fluidRow(column(
           12,
