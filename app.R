@@ -49,12 +49,12 @@ ui <- shinyUI(fluidPage(
       sidebarPanel(
         style = "position:fixed;width:inherit;",
         tags$head(
-          tags$style(type = "text/css", "select { max-width: 240px; }"),
-          tags$style(type = "text/css", ".span4 { max-width: 240px; }"),
-          tags$style(type = "text/css", ".well { max-width: 240px; }"),
-          tags$style(type = "text/css", "select { min-width: 240px; }"),
-          tags$style(type = "text/css", ".span4 { min-width: 240px; }"),
-          tags$style(type = "text/css", ".well { min-width: 240px; }")
+          tags$style(type = "text/css", "select { max-width: 200px; }"),
+          tags$style(type = "text/css", ".span4 { max-width: 200px; }"),
+          tags$style(type = "text/css", ".well { max-width: 200px; }"),
+          tags$style(type = "text/css", "select { min-width: 200px; }"),
+          tags$style(type = "text/css", ".span4 { min-width: 200px; }"),
+          tags$style(type = "text/css", ".well { min-width: 200px; }")
         ),
         width = 2,
         fluidRow(column(
@@ -752,14 +752,14 @@ server <- shinyServer(function(input, output, session) {
               sep = ""
             )
           )),
-          ifelse((eval(parse(
+          (eval(parse(
             text = paste(
               "unlist(AllInputs()$textin_check_",
               loop,
               ")",
               sep = ""
             )
-          ))) == "TRUE", 1, 0),
+          ))) ,
           eval(parse(
             text = paste(
               "unlist(AllInputs()$textin_approx_",
@@ -850,7 +850,7 @@ server <- shinyServer(function(input, output, session) {
       
       
       updateMaterialSwitch(session, paste0("textin_check_", loop_upload),
-                           value = ifelse(dats$Include.V[loop_upload] == 1, T, F)
+                           value = dats$Include.V[loop_upload]
       )
       
       updateNumericInput(
@@ -2609,8 +2609,10 @@ server <- shinyServer(function(input, output, session) {
             local({
               id <- paste0("v_representation_table", loop_table)
               pl_t <- all_v_rep_in_list[[loop_table]]
+              colnames_pl_t = colnames(pl_t)
               pl_t <- cbind(pl_t[, 1], (matrix(as.character(fractions(unlist(pl_t[, 2:ncol(pl_t)]))), ncol = ncol(pl_t) - 1)))
-              
+              colnames(pl_t) = colnames_pl_t
+              colnames(pl_t)[1] = "Model Name"
               output[[id]] <- DT::renderDataTable(pl_t)
             })
           }
