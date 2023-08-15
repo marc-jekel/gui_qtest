@@ -2066,6 +2066,7 @@ server <- shinyServer(function(input, output, session) {
       
       if (inter_ind[loop_inter_mix] == 1) {
         inp <- unlist(input_user_reactive$value[loop_inter_mix])
+        inp <- gsub(" ","",inp)
         
         inp <- substr(
           inp, 7,
@@ -2155,6 +2156,7 @@ server <- shinyServer(function(input, output, session) {
       sum(index_convert_to_v) != 0 |
       sum(h_available) < length(h_available) |
       sum(was_input_before) < length(was_input_before))) {
+      
       showTab(inputId = "tabs", target = "Parsimony")
       showTab(inputId = "tabs", target = "Plot")
       showTab(inputId = "tabs", target = "V-representation")
@@ -2202,7 +2204,7 @@ server <- shinyServer(function(input, output, session) {
       }
       
       ####
-      
+
       for (loop_numb_models in 1:length(inter_ind)) {
         if (inter_ind[loop_numb_models] == 1) {
           pick_for_inter <- unlist(inter_input[loop_numb_models])
@@ -2223,12 +2225,57 @@ server <- shinyServer(function(input, output, session) {
              h_available[loop_numb_models] == 1 & was_input_before[loop_numb_models] == 0)
         ) {
           if (mix_ind[loop_numb_models] == 0) {
+            
+            
+            if(inter_ind[loop_numb_models] == 1){
+              
+    
+              pick_for_inter <- unlist(inter_input[loop_numb_models])
+              
+              pick_for_inter <- names_models_reactive$value %in% pick_for_inter
+              inter_complete = do.call(rbind, h_representation_reactive$value[pick_for_inter])
+              
+              inter_equal = ifelse(inter_complete[,1] == "1",1,0)
+              inter_right = inter_complete[,2]
+              inter_left = inter_complete[,3:ncol(inter_complete)]
+              inter_left_without_sign = gsub("-","",inter_left)
+              inter_left_sign = - sign(q2d(inter_left))
+              inter_left_sign = ifelse(inter_left_sign == -1,"-",inter_left_sign)
+              inter_left_sign = ifelse(inter_left_sign == +1,"+",inter_left_sign)
+              
+              
+              p_blank = t(matrix(paste("p",1:ncol(inter_left),sep=""),nrow = ncol(inter_left),
+                     ncol = nrow(inter_left)))
+              
+              
+              
+              final_inter = matrix(paste(inter_left_sign,inter_left_without_sign,sep=""),
+                     ncol=ncol(inter_left_sign),nrow=nrow(inter_left_sign))
+              
+              
+              final_inter = matrix(paste(final_inter,p_blank,sep="*"),
+                                   ncol=ncol(final_inter),nrow=nrow(final_inter))
+              
+              final_inter = ifelse(inter_left_sign == "0","",final_inter)
+              
+              final_inter = cbind(final_inter,
+                                  ifelse(inter_equal == 0, " < " , " = "),
+                                  inter_right,";")
+              
+             
+              
+              input_relations[loop_numb_models] =  paste(c(t(final_inter)),collapse="")
+              
+              
+            }
+            
             extract_info(eval(parse(
               text = paste("input_relations$rel",
                            loop_numb_models,
                            sep = ""
               )
             )), loop_numb_models)
+
             
             outs <- isolate(outs_reactive$value)
             
