@@ -1334,21 +1334,21 @@ server <- shinyServer(function(input, output, session) {
       #   if (grepl("\\d+(?!\\*)p", x, perl = TRUE)) {
       #     x <- gsub("(\\d+)(?!\\*)(p)", "\\1*\\2", x, perl = TRUE)
       #   }
-      # 
+      #
       #   # If 'p' is not preceded by a digit or *, insert 1*
       #   if (grepl("(?<!\\d|\\*)p", x, perl = TRUE)) {
       #     x <- gsub("(?<!\\d|\\*)(p)", "1*\\1", x, perl = TRUE)
       #   }
-      # 
+      #
       #   # If there is a '.' and not a number before the '.', add '0'
       #   if (grepl("(?<!\\d\\.)\\.", x, perl = TRUE)) {
       #     x <- gsub("(?<!\\d\\.)\\.", "0.", x, perl = TRUE)
       #   }
-      # 
+      #
       #   return(x)
       # }
-      # 
-      # 
+      #
+      #
       # test <- sapply(test, fix_coeff)
 
       ####* extract structure ####
@@ -1881,41 +1881,21 @@ server <- shinyServer(function(input, output, session) {
         text = paste("unlist(AllInputs()$textin_approx_", loop_numb_models, ")", sep = "")
       ))
 
-
-
     ####
 
     if (tune_knob != 0) {
-      change_knob <- ifelse(rowSums(ineq_eq_left != "0") > 1, 1, 0)
-
-
       for (loop_tune in 1:length(all_operators)) {
         if (all_operators[loop_tune] == "equal") {
-          if (change_knob[loop_tune] == 1) {
-            add_ineq_eq_left <- rbind(add_ineq_eq_left, (ineq_eq_left[loop_tune, ]))
-            add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(-1 * q2d(ineq_eq_left[loop_tune, ])))
+          add_ineq_eq_left <- rbind(add_ineq_eq_left, (ineq_eq_left[loop_tune, ]))
+          add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(-1 * q2d(ineq_eq_left[loop_tune, ])))
 
-            add_ineq_eq_right <- c(
-              add_ineq_eq_right,
-              q2d(ineq_eq_right[loop_tune]) + tune_knob,
-              (q2d(ineq_eq_right[loop_tune]) + tune_knob)
-            )
+          add_ineq_eq_right <- c(
+            add_ineq_eq_right,
+            q2d(ineq_eq_right[loop_tune]) + tune_knob,
+            -(q2d(ineq_eq_right[loop_tune])) + tune_knob
+          )
 
-            add_all_operators <- c(add_all_operators, rep("below", 2))
-          } else {
-            add_ineq_eq_left <- rbind(add_ineq_eq_left, (ineq_eq_left[loop_tune, ]))
-            add_ineq_eq_left <- rbind(add_ineq_eq_left, d2q(-1 * q2d(ineq_eq_left[loop_tune, ])))
-
-            add_ineq_eq_right <- c(
-              add_ineq_eq_right,
-              q2d(ineq_eq_right[loop_tune]) + tune_knob,
-              (-(
-                q2d(ineq_eq_right[loop_tune]) - tune_knob
-              ))
-            )
-
-            add_all_operators <- c(add_all_operators, rep("below", 2))
-          }
+          add_all_operators <- c(add_all_operators, rep("below", 2))
         }
       }
 
@@ -2456,9 +2436,9 @@ server <- shinyServer(function(input, output, session) {
         on.exit(waiter$hide())
 
         updateMaterialSwitch(session, paste0("textin_check_", loop_mix),
-                             value = 1
+          value = 1
         )
-        
+
         act_mix <- unlist(mix_input[loop_mix])
 
         v_as_data_frame <- (do.call(rbind, all_v_rep_in_list[names_models_reactive$value %in% act_mix]))
