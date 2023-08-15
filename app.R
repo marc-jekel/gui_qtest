@@ -865,7 +865,7 @@ server <- shinyServer(function(input, output, session) {
     updateCheckboxInput(inputId = "check_max", value = dats$Use.This.Max.of.P[1])
     updateCheckboxInput(inputId = "check_relations", value = dats$Use.Model.Spectification[1])
 
-    counter$n <- sum(dats$Min.of.P != "")
+    counter$n <- sum(is.na(dats$Min.of.P) == FALSE)
 
     for (loop_upload in 1:counter$n) {
       updateTextInput(
@@ -2455,6 +2455,10 @@ server <- shinyServer(function(input, output, session) {
         waiter$show()
         on.exit(waiter$hide())
 
+        updateMaterialSwitch(session, paste0("textin_check_", loop_mix),
+                             value = 1
+        )
+        
         act_mix <- unlist(mix_input[loop_mix])
 
         v_as_data_frame <- (do.call(rbind, all_v_rep_in_list[names_models_reactive$value %in% act_mix]))
