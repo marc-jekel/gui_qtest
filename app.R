@@ -1329,27 +1329,27 @@ server <- shinyServer(function(input, output, session) {
 
       #### insert * between coefficient and p ####
 
-      fix_coeff <- function(x) {
-        # If 'p' is preceded by a number not followed by *, insert *
-        if (grepl("\\d+(?!\\*)p", x, perl = TRUE)) {
-          x <- gsub("(\\d+)(?!\\*)(p)", "\\1*\\2", x, perl = TRUE)
-        }
-
-        # If 'p' is not preceded by a digit or *, insert 1*
-        if (grepl("(?<!\\d|\\*)p", x, perl = TRUE)) {
-          x <- gsub("(?<!\\d|\\*)(p)", "1*\\1", x, perl = TRUE)
-        }
-
-        # If there is a '.' and not a number before the '.', add '0'
-        if (grepl("(?<!\\d\\.)\\.", x, perl = TRUE)) {
-          x <- gsub("(?<!\\d\\.)\\.", "0.", x, perl = TRUE)
-        }
-
-        return(x)
-      }
-
-
-      test <- sapply(test, fix_coeff)
+      # fix_coeff <- function(x) {
+      #   # If 'p' is preceded by a number not followed by *, insert *
+      #   if (grepl("\\d+(?!\\*)p", x, perl = TRUE)) {
+      #     x <- gsub("(\\d+)(?!\\*)(p)", "\\1*\\2", x, perl = TRUE)
+      #   }
+      # 
+      #   # If 'p' is not preceded by a digit or *, insert 1*
+      #   if (grepl("(?<!\\d|\\*)p", x, perl = TRUE)) {
+      #     x <- gsub("(?<!\\d|\\*)(p)", "1*\\1", x, perl = TRUE)
+      #   }
+      # 
+      #   # If there is a '.' and not a number before the '.', add '0'
+      #   if (grepl("(?<!\\d\\.)\\.", x, perl = TRUE)) {
+      #     x <- gsub("(?<!\\d\\.)\\.", "0.", x, perl = TRUE)
+      #   }
+      # 
+      #   return(x)
+      # }
+      # 
+      # 
+      # test <- sapply(test, fix_coeff)
 
       ####* extract structure ####
 
