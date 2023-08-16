@@ -66,7 +66,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Add or remove probabilities")
+            helpText("Remove or add probabilities")
           ),
           column(
             12,
@@ -78,7 +78,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Add or remove models")
+            helpText("Remove or add models")
           ),
           column(
             12,
