@@ -108,6 +108,11 @@ ui <- shinyUI(fluidPage(
             )
           ),
         )),
+        fluidRow(column(
+          12,
+          offset = 0,
+          actionButton("show_future", "Options")
+        ))
       ),
       mainPanel(
         shinyBS::bsTooltip("textbox_ui_rel",
@@ -3337,6 +3342,18 @@ server <- shinyServer(function(input, output, session) {
     input_volume_reactive$value[13] <- isolate(input$walk_length_cg)
     input_volume_reactive$value[14] <- isolate(input$win_len_cg)
     input_volume_reactive$value[15] <- isolate(input$seed_cg)
+  })
+
+  #### Future Study ###
+
+  observeEvent(input$show_future, {
+    input_volume <- isolate(input_volume_reactive)
+
+    showModal(modalDialog(
+
+      helpText("We might add additional options here in the future. For now, you can click 'Dismiss'."),
+      easyClose = TRUE
+    ))
   })
 })
 
