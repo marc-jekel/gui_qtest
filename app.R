@@ -298,10 +298,10 @@ ui <- shinyUI(fluidPage(
             )
           ),
           column(12,
-                 offset = 0,
-                 helpText("Change settings of algorithms")
+            offset = 0,
+            helpText("Change settings of algorithms")
           ),
-          column(12,offset=0,actionButton("show", "Settings")),
+          column(12, offset = 0, actionButton("show", "Settings")),
           column(12,
             offset = 0,
             helpText("Compute (hyper-) volume")
@@ -318,7 +318,6 @@ ui <- shinyUI(fluidPage(
             offset = 0,
             downloadButton("download_volume", "")
           )
-     
         )
       ),
       mainPanel(
@@ -487,8 +486,8 @@ server <- shinyServer(function(input, output, session) {
   ####** global variables new ####
 
 
-  input_volume_reactive <- reactiveValues(value = c(rep("default",5),"none"))
-    input_user_reactive <- reactiveValues(value = NA)
+  input_volume_reactive <- reactiveValues(value = c(rep("default", 5), "none"))
+  input_user_reactive <- reactiveValues(value = NA)
 
   h_representation_reactive <- reactiveValues(value = NULL)
   all_h_rep_in_matrix_reactive <- reactiveValues(value = NULL)
@@ -2671,15 +2670,12 @@ server <- shinyServer(function(input, output, session) {
   })
 
   #### Parsimony ####
-  
 
-  observeEvent(input$go , {
-    
-    input_volume = isolate(input_volume_reactive)
-    
+
+  observeEvent(input$go, {
+    input_volume <- isolate(input_volume_reactive)
+
     output$plot_parsimony <- renderPlotly({
-      
-      
       setClass(
         "model_s4",
         representation(
@@ -2687,45 +2683,51 @@ server <- shinyServer(function(input, output, session) {
           type = "character"
         )
       )
-      
-     
-      
-      ####** settings strings ####
-  
-      
-      settings_string = rep(NA,6)
-      
-      settings_string[1] = ifelse(input_volume$value[1] == "default","",
-                               paste("'error' =",input_volume$value[1],sep=""))
-      
-      settings_string[2] = ifelse(input_volume$value[2] == "default","",
-                               paste("'walk_length' =",input_volume$value[2],sep=""))
-      
-      settings_string[3] = ifelse(input_volume$value[3] == "default","",
-                                  paste("'win_len' =",input_volume$value[3],sep=""))
-      
-      rand_w = ifelse(input_volume$value[4] == "default", "default",input_volume_reactive$value[4])
-      rand_w = ifelse(rand_w == "Coordinate Directions Hit-and-Run", "CDHR",rand_w)
-      rand_w = ifelse(rand_w == "Random Directions Hit-and-Run", "RDHR",rand_w)  
-      rand_w = ifelse(rand_w == "Ball Walk", "BaW",rand_w)  
-      rand_w = ifelse(rand_w == "Billiard Walk", "BiW",rand_w)  
 
-      
-      settings_string[4] = ifelse(rand_w == "default","",
-                                  paste("'random_walk' = '",rand_w,"'",sep=""))
-      
-      settings_string[5] = ifelse(input_volume$value[5] == "default","",
-                                  paste("'hpoly' =",input_volume$value[5],sep=""))
-      
-      settings_string[6] = ifelse(input_volume$value[6] == "none","",
-                                  paste("'seed' =",input_volume$value[6],sep=""))
-           
-      settings_string = settings_string[settings_string!=""] 
-      
-      settings_string = paste(settings_string,collapse = ",")
-     
+
+
+      ####** settings strings ####
+
+
+      settings_string <- rep(NA, 6)
+
+      settings_string[1] <- ifelse(input_volume$value[1] == "default", "",
+        paste("'error' =", input_volume$value[1], sep = "")
+      )
+
+      settings_string[2] <- ifelse(input_volume$value[2] == "default", "",
+        paste("'walk_length' =", input_volume$value[2], sep = "")
+      )
+
+      settings_string[3] <- ifelse(input_volume$value[3] == "default", "",
+        paste("'win_len' =", input_volume$value[3], sep = "")
+      )
+
+      rand_w <- ifelse(input_volume$value[4] == "default", "default", input_volume_reactive$value[4])
+      rand_w <- ifelse(rand_w == "Coordinate Directions Hit-and-Run", "CDHR", rand_w)
+      rand_w <- ifelse(rand_w == "Random Directions Hit-and-Run", "RDHR", rand_w)
+      rand_w <- ifelse(rand_w == "Ball Walk", "BaW", rand_w)
+      rand_w <- ifelse(rand_w == "Billiard Walk", "BiW", rand_w)
+
+
+      settings_string[4] <- ifelse(rand_w == "default", "",
+        paste("'random_walk' = '", rand_w, "'", sep = "")
+      )
+
+      settings_string[5] <- ifelse(input_volume$value[5] == "default", "",
+        paste("'hpoly' =", input_volume$value[5], sep = "")
+      )
+
+      settings_string[6] <- ifelse(input_volume$value[6] == "none", "",
+        paste("'seed' =", input_volume$value[6], sep = "")
+      )
+
+      settings_string <- settings_string[settings_string != ""]
+
+      settings_string <- paste(settings_string, collapse = ",")
+
       ####
-      
+
       all_h_rep_in_list <- isolate(h_representation_reactive$value)
       model_name <- isolate(names_models_reactive$value)
 
@@ -2745,13 +2747,13 @@ server <- shinyServer(function(input, output, session) {
           for (loop_parsimony in 1:length(all_h_rep_in_list)) {
             act_pars <- (all_h_rep_in_list[[loop_parsimony]])
             act_pars <- matrix(as.character(act_pars), ncol = ncol(act_pars))
-       
+
 
             not_full_dim <- ifelse(sum(q2d(act_pars)[, 1]) > 0, 1, 0)
 
-            
-            #summary(prcomp( data.frame(((v_representation_reactive$value)[1]))[,2:4]))$importance[2,]
-            
+
+            # summary(prcomp( data.frame(((v_representation_reactive$value)[1]))[,2:4]))$importance[2,]
+
             if (not_full_dim == 0) {
               left_pars <- q2d((act_pars[, 3:ncol(act_pars)]))
               right_pars <- q2d((act_pars[, 2]))
@@ -2762,27 +2764,22 @@ server <- shinyServer(function(input, output, session) {
                 type = "Hpolytope"
               )
 
-            
+
 
               if (isolate(input$CB) == TRUE) {
-                
-                if(settings_string[1] != ""){
-                  
-                  settings_string_final = paste("list('algorithm' = 'CB',", settings_string,")")
-                  
-                }else{
-                  
-                  
-                  settings_string_final = "list('algorithm' = 'CB')"
-                  
+                if (settings_string[1] != "") {
+                  settings_string_final <- paste("list('algorithm' = 'CB',", settings_string, ")")
+                } else {
+                  settings_string_final <- "list('algorithm' = 'CB')"
                 }
-                
-                
-                
+
+
+
                 act_vol_CB <- volume(model_s4,
                   settings =
                     eval(parse(
-                      text = (settings_string_final)))
+                      text = (settings_string_final)
+                    ))
                 )
               } else {
                 act_vol_CB <- NA
@@ -2790,44 +2787,33 @@ server <- shinyServer(function(input, output, session) {
 
 
               if (isolate(input$SoB) == TRUE) {
-                
-                if(settings_string[1] != ""){
-                  
-                  settings_string_final = paste("list('algorithm' = 'SOB',", settings_string,")")
-                  
-                }else{
-                  
-                  
-                  settings_string_final = "list('algorithm' = 'SOB')"
-                  
+                if (settings_string[1] != "") {
+                  settings_string_final <- paste("list('algorithm' = 'SOB',", settings_string, ")")
+                } else {
+                  settings_string_final <- "list('algorithm' = 'SOB')"
                 }
-                
-                
+
+
                 act_vol_SoB <- volume(model_s4,
                   settings = eval(parse(
-                    text = (settings_string_final)))
+                    text = (settings_string_final)
+                  ))
                 )
               } else {
                 act_vol_SoB <- NA
               }
 
               if (isolate(input$CG) == TRUE) {
-                
-                
-                if(settings_string[1] != ""){
-                  
-                  settings_string_final = paste("list('algorithm' = 'CG',", settings_string,")")
-                  
-                }else{
-                  
-                  
-                  settings_string_final = "list('algorithm' = 'CG')"
-                  
+                if (settings_string[1] != "") {
+                  settings_string_final <- paste("list('algorithm' = 'CG',", settings_string, ")")
+                } else {
+                  settings_string_final <- "list('algorithm' = 'CG')"
                 }
-                
+
                 act_vol_CG <- volume(model_s4,
-                  settings =eval(parse(
-                    text = (settings_string_final)))
+                  settings = eval(parse(
+                    text = (settings_string_final)
+                  ))
                 )
               } else {
                 act_vol_CG <- NA
@@ -2937,7 +2923,7 @@ server <- shinyServer(function(input, output, session) {
           barmode = "group"
         )
     })
-    
+
 
 
     output$parsimony_spinner_table <- renderUI({
@@ -2952,11 +2938,7 @@ server <- shinyServer(function(input, output, session) {
         color.background = "black"
       )
     })
-    
-    
-    
-
-    })
+  })
 
   ##### Download Functions ####
 
@@ -3177,54 +3159,53 @@ server <- shinyServer(function(input, output, session) {
       )
     }
   )
-  
+
   ##### Options Volume #####
-  
+
   observeEvent(input$show, {
-    
-    input_volume = isolate(input_volume_reactive)
-      
+    input_volume <- isolate(input_volume_reactive)
+
     showModal(modalDialog(
-      helpText("Consult the description of the settings of the function 'volume' in the", tags$a(href="https://cran.r-project.org/web/packages/volesti/volesti.pdf","manual",target="_blank") ,"of the package 'volesti' for details."),
-      textInput("error", "A numeric value to set the upper bound for the approximation error",value=input_volume$value[1]
+      helpText("Consult the description of the settings of the function 'volume' in the", tags$a(href = "https://cran.r-project.org/web/packages/volesti/volesti.pdf", "manual", target = "_blank"), "of the package 'volesti' for details."),
+      textInput("error", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[1]),
+      textInput("walk_length",
+        "An integer to set the number of the steps for the random walk",
+        value = input_volume$value[2]
       ),
-      textInput("walk_length", 
-                "An integer to set the number of the steps for the random walk",value=input_volume$value[2]
-      ),
-      textInput("win_len", 
-                "The length of the sliding window for Cooling Bodies or Cooling Gaussian algorithm",value=input_volume$value[3]
+      textInput("win_len",
+        "The length of the sliding window for Cooling Bodies or Cooling Gaussian algorithm",
+        value = input_volume$value[3]
       ),
       selectInput("random_walk", "Random walk method",
-                  choices=c("default","Coordinate Directions Hit-and-Run","Random Directions Hit-and-Run","Ball Walk","Billiard Walk"),
-                                                                selected= input_volume$value[4]
+        choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk", "Billiard Walk"),
+        selected = input_volume$value[4]
       ),
       selectInput("hpoly", "A boolean parameter to use H-polytopes in MMC of Cooling Bodies algorithm when the input polytope is a zonotope",
-                  choices=c("default","TRUE","FALSE"),
-                  selected= input_volume$value[5]
+        choices = c("default", "TRUE", "FALSE"),
+        selected = input_volume$value[5]
       ),
-      textInput("seed", 
-                "A fixed seed for the number generator",value=input_volume$value[6]
+      textInput("seed",
+        "A fixed seed for the number generator",
+        value = input_volume$value[6]
       ),
-      footer = tagList(actionButton('submit', 'Submit'),
-                       modalButton('Dismiss')
+      footer = tagList(
+        actionButton("submit", "Submit"),
+        modalButton("Dismiss")
       ),
       easyClose = TRUE
     ))
   })
-  
-  observeEvent(input$submit, {
-    
-    removeModal()
-   
-    input_volume_reactive$value[1] = isolate(input$error)
-    input_volume_reactive$value[3] = isolate(input$win_len)
-    input_volume_reactive$value[3] = isolate(input$win_len)
-    input_volume_reactive$value[4] = isolate(input$random_walk)
-    input_volume_reactive$value[5] =isolate( input$hpoly)
-    input_volume_reactive$value[6] =isolate( input$seed)
-  })
 
-  
+  observeEvent(input$submit, {
+    removeModal()
+
+    input_volume_reactive$value[1] <- isolate(input$error)
+    input_volume_reactive$value[3] <- isolate(input$win_len)
+    input_volume_reactive$value[3] <- isolate(input$win_len)
+    input_volume_reactive$value[4] <- isolate(input$random_walk)
+    input_volume_reactive$value[5] <- isolate(input$hpoly)
+    input_volume_reactive$value[6] <- isolate(input$seed)
+  })
 })
 
 shinyApp(ui, server)
