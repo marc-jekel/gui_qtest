@@ -180,19 +180,19 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Download LaTeX File of H-Representation")
-          ),
-          column(12,
-            offset = 0,
-            downloadButton("d_latex", ""),
-          ),
-          column(12,
-            offset = 0,
             helpText("Download H-repressentation for QTEST")
           ),
           column(12,
             offset = 0,
             downloadButton("d_h", "")
+          ),
+          column(12,
+                 offset = 0,
+                 helpText("Download LaTeX File of H-Representation")
+          ),
+          column(12,
+                 offset = 0,
+                 downloadButton("d_latex", "")
           )
         )
       ),
