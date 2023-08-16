@@ -89,7 +89,7 @@ ui <- shinyUI(fluidPage(
         ),
         fluidRow(column(12,
           offset = 0,
-          helpText("Download and upload model specifications")
+          helpText("Download or upload model specifications")
         )),
         fluidRow(column(
           12,
