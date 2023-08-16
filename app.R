@@ -66,7 +66,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Probabilities")
+            helpText("Add or remove probabilities")
           ),
           column(
             12,
@@ -78,7 +78,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Models")
+            helpText("Add or remove models")
           ),
           column(
             12,
@@ -277,7 +277,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Choose algorithm")
+            helpText("Choose algorithm(s)")
           ),
           column(
             12,
@@ -289,7 +289,7 @@ ui <- shinyUI(fluidPage(
           column(
             12,
             offset = 0,
-            helpText("Number of repetitions, results are averaged")
+            helpText("Set number of repetitions, results are averaged")
           ),
           column(
             12,
@@ -317,7 +317,7 @@ ui <- shinyUI(fluidPage(
           ),
           column(12,
             offset = 0,
-            helpText("Download results as csv-table")
+            helpText("Download unaveraged results as csv-table")
           ),
           column(12,
             offset = 0,
@@ -419,7 +419,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Remove/add all models")
+            helpText("Remove or add all models")
           ),
           column(
             12,
