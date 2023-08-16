@@ -486,7 +486,13 @@ server <- shinyServer(function(input, output, session) {
   ####** global variables new ####
 
 
-  input_volume_reactive <- reactiveValues(value = c(rep("default", 5), "none"))
+  input_volume_reactive <- reactiveValues(value = c(
+    rep("default", 5), "none",
+    rep("default", 3), "none",
+    rep("default", 4), "none"
+  ))
+
+
   input_user_reactive <- reactiveValues(value = NA)
 
   h_representation_reactive <- reactiveValues(value = NULL)
@@ -2685,49 +2691,6 @@ server <- shinyServer(function(input, output, session) {
       )
 
 
-
-      ####** settings strings ####
-
-
-      settings_string <- rep(NA, 6)
-
-      settings_string[1] <- ifelse(input_volume$value[1] == "default", "",
-        paste("'error' =", input_volume$value[1], sep = "")
-      )
-
-      settings_string[2] <- ifelse(input_volume$value[2] == "default", "",
-        paste("'walk_length' =", input_volume$value[2], sep = "")
-      )
-
-      settings_string[3] <- ifelse(input_volume$value[3] == "default", "",
-        paste("'win_len' =", input_volume$value[3], sep = "")
-      )
-
-      rand_w <- ifelse(input_volume$value[4] == "default", "default", input_volume_reactive$value[4])
-      rand_w <- ifelse(rand_w == "Coordinate Directions Hit-and-Run", "CDHR", rand_w)
-      rand_w <- ifelse(rand_w == "Random Directions Hit-and-Run", "RDHR", rand_w)
-      rand_w <- ifelse(rand_w == "Ball Walk", "BaW", rand_w)
-      rand_w <- ifelse(rand_w == "Billiard Walk", "BiW", rand_w)
-
-
-      settings_string[4] <- ifelse(rand_w == "default", "",
-        paste("'random_walk' = '", rand_w, "'", sep = "")
-      )
-
-      settings_string[5] <- ifelse(input_volume$value[5] == "default", "",
-        paste("'hpoly' =", input_volume$value[5], sep = "")
-      )
-
-      settings_string[6] <- ifelse(input_volume$value[6] == "none", "",
-        paste("'seed' =", input_volume$value[6], sep = "")
-      )
-
-      settings_string <- settings_string[settings_string != ""]
-
-      settings_string <- paste(settings_string, collapse = ",")
-
-      ####
-
       all_h_rep_in_list <- isolate(h_representation_reactive$value)
       model_name <- isolate(names_models_reactive$value)
 
@@ -2765,20 +2728,63 @@ server <- shinyServer(function(input, output, session) {
               )
 
 
+              ####* CB ####
 
               if (isolate(input$CB) == TRUE) {
-                if (settings_string[1] != "") {
-                  settings_string_final <- paste("list('algorithm' = 'CB',", settings_string, ")")
+                #####* settings strings ####
+
+
+                settings_string_CB <- rep(NA, 6)
+
+                settings_string_CB[1] <- ifelse(input_volume$value[1] == "default", "",
+                  paste("'error' =", input_volume$value[1], sep = "")
+                )
+
+
+                rand_w <- ifelse(input_volume$value[2] == "default", "default", input_volume_reactive$value[2])
+                rand_w <- ifelse(rand_w == "Coordinate Directions Hit-and-Run", "CDHR", rand_w)
+                rand_w <- ifelse(rand_w == "Random Directions Hit-and-Run", "RDHR", rand_w)
+                rand_w <- ifelse(rand_w == "Ball Walk", "BaW", rand_w)
+                rand_w <- ifelse(rand_w == "Billiard Walk", "BiW", rand_w)
+
+
+                settings_string_CB[2] <- ifelse(rand_w == "default", "",
+                  paste("'random_walk' = '", rand_w, "'", sep = "")
+                )
+
+                settings_string_CB[3] <- ifelse(input_volume$value[3] == "default", "",
+                  paste("'walk_length' =", input_volume$value[3], sep = "")
+                )
+
+                settings_string_CB[4] <- ifelse(input_volume$value[4] == "default", "",
+                  paste("'win_len' =", input_volume$value[4], sep = "")
+                )
+
+
+                settings_string_CB[5] <- ifelse(input_volume$value[5] == "default", "",
+                  paste("'hpoly' =", input_volume$value[5], sep = "")
+                )
+
+                settings_string_CB[6] <- ifelse(input_volume$value[6] == "none", "",
+                  paste("'seed' =", input_volume$value[6], sep = "")
+                )
+
+                settings_string_CB <- settings_string_CB[settings_string_CB != ""]
+
+                settings_string_CB <- paste(settings_string_CB, collapse = ",")
+
+                if (settings_string_CB[1] != "") {
+                  settings_string_final_CB <- paste("list('algorithm' = 'CB',", settings_string_CB, ")")
                 } else {
-                  settings_string_final <- "list('algorithm' = 'CB')"
+                  settings_string_final_CB <- "list('algorithm' = 'CB')"
                 }
 
-
+                #####* calc volume ####
 
                 act_vol_CB <- volume(model_s4,
                   settings =
                     eval(parse(
-                      text = (settings_string_final)
+                      text = (settings_string_final_CB)
                     ))
                 )
               } else {
@@ -2786,33 +2792,115 @@ server <- shinyServer(function(input, output, session) {
               }
 
 
+              ####* SoB ####
+
               if (isolate(input$SoB) == TRUE) {
-                if (settings_string[1] != "") {
-                  settings_string_final <- paste("list('algorithm' = 'SOB',", settings_string, ")")
+                #####* settings strings ####
+
+
+                settings_string_SoB <- rep(NA, 4)
+
+                settings_string_SoB[1] <- ifelse(input_volume$value[7] == "default", "",
+                  paste("'error' =", input_volume$value[7], sep = "")
+                )
+
+
+                rand_w <- ifelse(input_volume$value[8] == "default", "default", input_volume_reactive$value[8])
+                rand_w <- ifelse(rand_w == "Coordinate Directions Hit-and-Run", "CDHR", rand_w)
+                rand_w <- ifelse(rand_w == "Random Directions Hit-and-Run", "RDHR", rand_w)
+                rand_w <- ifelse(rand_w == "Ball Walk", "BaW", rand_w)
+                rand_w <- ifelse(rand_w == "Billiard Walk", "BiW", rand_w)
+
+
+                settings_string_SoB[2] <- ifelse(rand_w == "default", "",
+                  paste("'random_walk' = '", rand_w, "'", sep = "")
+                )
+
+                settings_string_SoB[3] <- ifelse(input_volume$value[9] == "default", "",
+                  paste("'walk_length' =", input_volume$value[9], sep = "")
+                )
+
+
+                settings_string_SoB[4] <- ifelse(input_volume$value[10] == "none", "",
+                  paste("'seed' =", input_volume$value[10], sep = "")
+                )
+
+                settings_string_SoB <- settings_string_SoB[settings_string_SoB != ""]
+
+                settings_string_SoB <- paste(settings_string_SoB, collapse = ",")
+
+                if (settings_string_SoB[1] != "") {
+                  settings_string_final_SoB <- paste("list('algorithm' = 'SOB',", settings_string_SoB, ")")
                 } else {
-                  settings_string_final <- "list('algorithm' = 'SOB')"
+                  settings_string_final_SoB <- "list('algorithm' = 'SOB')"
                 }
 
 
+                #####* calc volume ####
+
                 act_vol_SoB <- volume(model_s4,
                   settings = eval(parse(
-                    text = (settings_string_final)
+                    text = (settings_string_final_SoB)
                   ))
                 )
               } else {
                 act_vol_SoB <- NA
               }
 
+              ####* CG ####
+
               if (isolate(input$CG) == TRUE) {
-                if (settings_string[1] != "") {
-                  settings_string_final <- paste("list('algorithm' = 'CG',", settings_string, ")")
+                #####* settings strings ####
+
+
+                settings_string_CG <- rep(NA, 5)
+
+                settings_string_CG[1] <- ifelse(input_volume$value[11] == "default", "",
+                  paste("'error' =", input_volume$value[11], sep = "")
+                )
+
+
+                rand_w <- ifelse(input_volume$value[12] == "default", "default", input_volume_reactive$value[12])
+                rand_w <- ifelse(rand_w == "Coordinate Directions Hit-and-Run", "CDHR", rand_w)
+                rand_w <- ifelse(rand_w == "Random Directions Hit-and-Run", "RDHR", rand_w)
+                rand_w <- ifelse(rand_w == "Ball Walk", "BaW", rand_w)
+                rand_w <- ifelse(rand_w == "Billiard Walk", "BiW", rand_w)
+
+
+                settings_string_CG[2] <- ifelse(rand_w == "default", "",
+                  paste("'random_walk' = '", rand_w, "'", sep = "")
+                )
+
+                settings_string_CG[3] <- ifelse(input_volume$value[13] == "default", "",
+                  paste("'walk_length' =", input_volume$value[13], sep = "")
+                )
+
+                settings_string_CG[4] <- ifelse(input_volume$value[14] == "default", "",
+                  paste("'win_len' =", input_volume$value[14], sep = "")
+                )
+
+
+                settings_string_CG[5] <- ifelse(input_volume$value[15] == "none", "",
+                  paste("'seed' =", input_volume$value[15], sep = "")
+                )
+
+                settings_string_CG <- settings_string_CG[settings_string_CG != ""]
+
+                settings_string_CG <- paste(settings_string_CG, collapse = ",")
+
+                if (settings_string_CG[1] != "") {
+                  settings_string_final_CG <- paste("list('algorithm' = 'CG',", settings_string_CG, ")")
                 } else {
-                  settings_string_final <- "list('algorithm' = 'CG')"
+                  settings_string_final_CG <- "list('algorithm' = 'CG')"
                 }
+
+                #####* calc volume ####
+
+
 
                 act_vol_CG <- volume(model_s4,
                   settings = eval(parse(
-                    text = (settings_string_final)
+                    text = (settings_string_final_CG)
                   ))
                 )
               } else {
@@ -3167,26 +3255,59 @@ server <- shinyServer(function(input, output, session) {
 
     showModal(modalDialog(
       helpText("Consult the description of the settings of the function 'volume' in the", tags$a(href = "https://cran.r-project.org/web/packages/volesti/volesti.pdf", "manual", target = "_blank"), "of the package 'volesti' for details."),
-      textInput("error", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[1]),
-      textInput("walk_length",
-        "An integer to set the number of the steps for the random walk",
-        value = input_volume$value[2]
+      tags$h3("Settings for 'Cooling Bodies'"),
+      textInput("error_cb", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[1]),
+      selectInput("random_walk_cb", "Random walk method",
+        choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk", "Billiard Walk"),
+        selected = input_volume$value[2]
       ),
-      textInput("win_len",
-        "The length of the sliding window for Cooling Bodies or Cooling Gaussian algorithm",
+      textInput("walk_length_cb",
+        "An integer to set the number of the steps for the random walk",
         value = input_volume$value[3]
       ),
-      selectInput("random_walk", "Random walk method",
-        choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk", "Billiard Walk"),
-        selected = input_volume$value[4]
+      textInput("win_len_cb",
+        "The length of the sliding window",
+        value = input_volume$value[4]
       ),
-      selectInput("hpoly", "A boolean parameter to use H-polytopes in MMC of Cooling Bodies algorithm when the input polytope is a zonotope",
+      selectInput("hpoly_cb", "A boolean parameter to use H-polytopes in MMC when the input polytope is a zonotope",
         choices = c("default", "TRUE", "FALSE"),
         selected = input_volume$value[5]
       ),
-      textInput("seed",
+      textInput("seed_cb",
         "A fixed seed for the number generator",
         value = input_volume$value[6]
+      ),
+      tags$h3("Settings for 'Sequence of Balls'"),
+      textInput("error_sob", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[7]),
+      selectInput("random_walk_sob", "Random walk method",
+        choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk", "Billiard Walk"),
+        selected = input_volume$value[8]
+      ),
+      textInput("walk_length_sob",
+        "An integer to set the number of the steps for the random walk",
+        value = input_volume$value[9]
+      ),
+      textInput("seed_sob",
+        "A fixed seed for the number generator",
+        value = input_volume$value[10]
+      ),
+      tags$h3("Settings for 'Cooling Gaussian'"),
+      textInput("error_cg", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[11]),
+      selectInput("random_walk_cg", "Random walk method",
+        choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk"),
+        selected = input_volume$value[12]
+      ),
+      textInput("walk_length_cg",
+        "An integer to set the number of the steps for the random walk",
+        value = input_volume$value[13]
+      ),
+      textInput("win_len_cg",
+        "The length of the sliding window for Cooling Gaussian algorithm",
+        value = input_volume$value[14]
+      ),
+      textInput("seed_cg",
+        "A fixed seed for the number generator",
+        value = input_volume$value[15]
       ),
       footer = tagList(
         actionButton("submit", "Submit"),
@@ -3199,12 +3320,23 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(input$submit, {
     removeModal()
 
-    input_volume_reactive$value[1] <- isolate(input$error)
-    input_volume_reactive$value[3] <- isolate(input$win_len)
-    input_volume_reactive$value[3] <- isolate(input$win_len)
-    input_volume_reactive$value[4] <- isolate(input$random_walk)
-    input_volume_reactive$value[5] <- isolate(input$hpoly)
-    input_volume_reactive$value[6] <- isolate(input$seed)
+    input_volume_reactive$value[1] <- isolate(input$error_cb)
+    input_volume_reactive$value[2] <- isolate(input$random_walk_cb)
+    input_volume_reactive$value[3] <- isolate(input$walk_length_cb)
+    input_volume_reactive$value[4] <- isolate(input$win_len_cb)
+    input_volume_reactive$value[5] <- isolate(input$hpoly_cb)
+    input_volume_reactive$value[6] <- isolate(input$seed_cb)
+
+    input_volume_reactive$value[7] <- isolate(input$error_sob)
+    input_volume_reactive$value[8] <- isolate(input$random_walk_sob)
+    input_volume_reactive$value[9] <- isolate(input$walk_length_sob)
+    input_volume_reactive$value[10] <- isolate(input$seed_sob)
+
+    input_volume_reactive$value[11] <- isolate(input$error_cg)
+    input_volume_reactive$value[12] <- isolate(input$random_walk_cg)
+    input_volume_reactive$value[13] <- isolate(input$walk_length_cg)
+    input_volume_reactive$value[14] <- isolate(input$win_len_cg)
+    input_volume_reactive$value[15] <- isolate(input$seed_cg)
   })
 })
 
