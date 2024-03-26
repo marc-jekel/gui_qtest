@@ -1,19 +1,40 @@
+if (!require("dplyr")) install.packages("dplyr")
 library("dplyr")
+if (!require("DT")) install.packages("DT")
 library("DT")
+if (!require("MASS")) install.packages("MASS")
 library("MASS")
+if (!require("plotly")) install.packages("plotly")
 library("plotly")
+if (!require("rcdd")) install.packages("rcdd")
 library("rcdd")
+if (!require("shiny")) install.packages("shiny")
 library("shiny")
+if (!require("shinyalert")) install.packages("shinyalert")
 library("shinyalert")
+if (!require("shinyBS")) install.packages("shinyBS")
 library("shinyBS")
+if (!require("shinycssloaders")) install.packages("shinycssloaders")
 library("shinycssloaders")
+if (!require("shinyjs")) install.packages("shinyjs")
 library("shinyjs")
+if (!require("shinyvalidate")) install.packages("shinyvalidate")
 library("shinyvalidate")
+if (!require("stringr")) install.packages("stringr")
 library("stringr")
+if (!require("tidyr")) install.packages("tidyr")
 library("tidyr")
+if (!require("volesti")) install.packages("volesti")
 library("volesti")
+if (!require("waiter")) install.packages("waiter")
 library("waiter")
+if (!require("shinyWidgets")) install.packages("shinyWidgets")
 library("shinyWidgets")
+if (!require("rhandsontable")) install.packages("rhandsontable")
+library("rhandsontable")
+if (!require("writexl")) install.packages("writexl")
+library("writexl")
+if (!require("readxl")) install.packages("readxl")
 
 options(warn = -1)
 
@@ -60,36 +81,84 @@ ui <- shinyUI(fluidPage(
         fluidRow(column(
           12,
           offset = 0,
-          helpText("Compute minimal description(s)")
+          h5("Compute minimal description(s)")
         )),
-        fluidRow(column(12, offset = 0, actionButton("go_v_h", "Go"))),
+        fluidRow(column(12, offset = 0, actionBttn("go_v_h", "Go", style = "jelly", color = "primary", size = "md"))),
         fluidRow(
           column(12,
+            hr(),
             offset = 0,
-            helpText("Remove or add probabilities")
+            h5("Remove last probability or add probability")
           ),
           column(
             12,
             offset = 0,
-            actionButton("rm_btn", "", icon = icon("fa-regular fa-square-minus")),
-            actionButton("add_btn", "", icon = icon("fa-regular fa-square-plus"))
+            actionBttn("rm_btn", "",
+              icon = icon("fa-regular fa-square-minus"), size = "sm",
+              style = "jelly", color = "default"
+            ),
+            actionBttn("add_btn", "",
+              icon = icon("fa-regular fa-square-plus"), size = "sm",
+              style = "jelly", color = "primary"
+            )
           ),
         ),
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Remove or add models")
+            h5("Remove last model or add model")
           ),
           column(
             12,
             offset = 0,
-            actionButton("rm_ie", "", icon = icon("fa-regular fa-square-minus")),
-            actionButton("add_ie", "", icon = icon("fa-regular fa-square-plus"))
+            actionBttn("rm_ie", "",
+              icon = icon("fa-regular fa-square-minus"), size = "sm",
+              style = "jelly", color = "default"
+            ),
+            actionBttn("add_ie", "",
+              icon = icon("fa-regular fa-square-plus"), size = "sm",
+              style = "jelly", color = "primary"
+            )
           )
         ),
+        hr(),
+        h5("Settings"),
+        fluidRow(column(
+          12,
+          offset = 0,
+          actionBttn("show_approx_erros", "Approximate equalities",
+            style = "unite", color = "default", size = "xs"
+          ),
+          condition = "model_sel_multiple_reactive$value=='None'",
+          actionBttn("show_mult_items", "Multiple items",
+            size = "xs",
+            style = "unite", color = "default"
+          ),
+          actionBttn("show_replication", "Replication",
+            style = "unite", color = "default", size = "xs"
+          ),
+          actionBttn("show_inter", "Intersection model(s)",
+            style = "unite", color = "default", size = "xs"
+          ),
+          bsTooltip("show_inter", "Create at least two models to enable this option.",
+            "right",
+            options = list(container = "body")
+          ),
+          actionBttn("show_mix", "Mixture model(s)",
+            style = "unite", color = "default", size = "xs"
+          ),
+          bsTooltip("show_mix", "Create at least two models to enable this option.",
+            "right",
+            options = list(container = "body")
+          ),
+          actionBttn("show_v_rep", "V-representation(s)",
+            style = "unite", color = "default", size = "xs"
+          )
+        )),
         fluidRow(column(12,
           offset = 0,
-          helpText("Download or upload model specifications")
+          hr(),
+          h5("Download or upload model specifications")
         )),
         fluidRow(column(
           12,
@@ -102,72 +171,57 @@ ui <- shinyUI(fluidPage(
           fileInput("upload", "",
             multiple = FALSE,
             accept = c(
-              "text/csv",
-              "text/comma-separated-values,text/plain",
-              ".csv"
+              ".xlsx"
             )
           ),
         )),
         fluidRow(column(
           12,
           offset = 0,
-          actionButton("show_future", "Options")
-        ))
+          hr(),
+          actionBttn("show_future", "Options", style = "jelly", color = "default", size = "xs")
+        )),
       ),
       mainPanel(
         shinyBS::bsTooltip("textbox_ui_rel",
-          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3".<br><br> Indicate intersections with "inter()" such as "inter(m1,m2)", and mixtures with mix() such as "mix(m1,m2)". <br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".<br><br>Limitations: (1) Put constants on one side of the in/equalities and p*s on the other side, e.g., instead of p1 > p2 + .05, write p1 - p2 > .05. (2) Do not use parantheses, e.g., instead of "(p1+p2)/2 < p3", write "1/2 * p1 + 1/2 * p2 < p3".',
-          placement = "top", trigger = "hover"
-        ),
-        shinyBS::bsTooltip("textbox_ui_check",
-          "Build V-representation (on/off).",
-          placement = "top", trigger = "hover"
+          'Use +, -, *, fractional and decimal numbers, p1, p2, p3, <, >, and =. Separate constraints with ";" such as "p1 < p2; p2 < p3".<br><br> "{p1,p2} < {p3,3*p4}" is a shortcut for "p1 < p3; p1 < 3 * p4; p2 < p3; p2 < 3*p4".<br><br>Limitations: (1) Put constants on one side of the in/equalities and p*s on the other side, e.g., instead of p1 > p2 + .05, write p1 - p2 > .05. (2) Do not use parantheses, e.g., instead of "(p1+p2)/2 < p3", write "1/2 * p1 + 1/2 * p2 < p3".',
+          placement = "bottom", trigger = "hover"
         ),
         shinyBS::bsTooltip("textbox_approx",
           ".05 means... <br><br> ... p1 = .5 will be set to p1 < .55 and p1 > .45, <br> ...  p1 = 1 will be set to p1 < 1 and p1 > .95,  <br> ... p1 = p2 will be set to p1 - p2 < .05 and  - p1 + p2 < .05.",
           placement = "top", trigger = "hover"
         ),
         waiter::use_waiter(),
+        waiter::useWaitress(),
         fluidRow(
+          align = "center",
           splitLayout(
-            column(
-              12,
-              offset = 0,
-              checkboxInput("check_name", "use this", value = FALSE),
-              uiOutput("textbox_ui_name"),
-              style = "background-color:#E8E8E8;"
+            h3(), # h2(textOutput("info_text")),
+            h3(),
+            h3(),
+            textAreaInput(
+              inputId = "add_for_all_models",
+              label = "Shared Model Specification",
+              value = "",
+              width = "100%",
+              height = "80px",
+              placeholder = "p1 < .5; p2 < .5; ...",
+              resize = "none",
             ),
-            column(
-              12,
-              checkboxInput("check_min", "use this", value = TRUE),
-              uiOutput("textbox_ui_min"),
-              style = "background-color:#F8F8F8;"
-            ),
-            column(
-              12,
-              checkboxInput("check_max", "use this", value = TRUE),
-              uiOutput("textbox_ui_max"),
-              style = "background-color:#E8E8E8;"
-            ),
-            cellWidths = c(400, 400, 400),
+            cellWidths = c(600, 0, 0, 300),
+            cellArgs = list(style = "padding: 0px")
           )
         ),
         fluidRow(
-          column(
-            12,
-            offset = 0,
-            checkboxInput("check_relations", "use this", value = TRUE)
-          ),
-        ),
-        fluidRow(
           useShinyjs(),
+          align = "center",
           splitLayout(
+            uiOutput("textbox_ui_name", style = "background-color:#5188FB;border:dotted;border-width:1px"),
             uiOutput("textbox_ui_name_rel"),
             uiOutput("textbox_ui_rel"),
-            htmlOutput("textbox_ui_check"),
-            htmlOutput("textbox_approx"),
-            cellWidths = c(180, 620, 200, 200),
-            cellArgs = list(style = "padding: 6px")
+            uiOutput("textbox_ui_rel_complete"),
+            cellWidths = c(150, 150, 300, 300),
+            cellArgs = list(style = "padding: 2px")
           )
         )
       )
@@ -180,26 +234,28 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Download H-repressentation for QTEST")
+            h4("Downloads"),
+            h5("H-repressentation for QTEST")
           ),
           column(12,
             offset = 0,
             downloadButton("d_h", "")
           ),
           column(12,
-                 offset = 0,
-                 helpText("Download LaTeX File of H-Representation")
+            offset = 0,
+            h5("LaTeX File of H-Representation")
           ),
           column(12,
-                 offset = 0,
-                 downloadButton("d_latex", "")
+            offset = 0,
+            downloadButton("d_latex", "")
           )
         )
       ),
       mainPanel(
         id = "outP", fluidPage(
           withMathJax(),
-          uiOutput("h")
+          uiOutput("h"),
+          uiOutput("h_repl")
         ),
         tags$script(
           '
@@ -231,7 +287,7 @@ ui <- shinyUI(fluidPage(
           column(
             12,
             offset = 0,
-            helpText("Download V-repressentation for QTEST")
+            h5("Download V-repressentation for QTEST")
           ),
           column(12,
             offset = 0,
@@ -270,30 +326,36 @@ ui <- shinyUI(fluidPage(
     ),
     # navbarPage
     tabPanel(
-      "Parsimony",
+      "Parsimony & Model Overlap",
       sidebarPanel(
         style = "position:fixed;width:inherit;",
         width = 2,
+        h5(("Compute (hyper-) volume")),
         fluidRow(
           column(12,
             offset = 0,
-            helpText("Choose algorithm(s)")
-          ),
+            actionBttn("go", "Go", style = "jelly", color = "primary", size = "md")
+          )
+        ),
+        hr(),
+        h5(("Include algorithm(s)")),
+        fluidRow(
           column(
             12,
             offset = 0,
-            checkboxInput("CB", "Cooling Bodies", value = T),
-            checkboxInput("SoB", "Sequence of Balls", value = T),
-            checkboxInput("CG", "Cooling Gaussian", value = T)
+            materialSwitch("CB", "Cooling Bodies", value = T, status = "primary", right = T),
+            materialSwitch("SoB", "Sequ. of Balls", value = T, status = "primary", right = T),
+            materialSwitch("CG", "Cooling Gaussian", value = T, status = "primary", right = T)
           ),
+          column(12, offset = 0, actionBttn("show", "Settings",
+            size = "xs",
+            style = "jelly", color = "default"
+          )),
+          hr(),
           column(
             12,
             offset = 0,
-            helpText("Set number of repetitions, results are averaged")
-          ),
-          column(
-            12,
-            offset = 0,
+            h5("# repetitions"),
             numericInput(
               "repetitions",
               "",
@@ -304,24 +366,26 @@ ui <- shinyUI(fluidPage(
           ),
           column(12,
             offset = 0,
-            helpText("Change settings of algorithms")
-          ),
-          column(12, offset = 0, actionButton("show", "Settings")),
-          column(12,
-            offset = 0,
-            helpText("Compute (hyper-) volume")
-          ),
-          column(12,
-            offset = 0,
-            actionButton("go", "Go")
-          ),
-          column(12,
-            offset = 0,
-            helpText("Download unaveraged results as csv-table")
+            h5("Download unaveraged results as csv-table")
           ),
           column(12,
             offset = 0,
             downloadButton("download_volume", "")
+          ),
+          hr(),
+          column(12,
+            offset = 0,
+            hr(),
+            pickerInput("target_model", "Pick target model",
+              list("m1"),
+              selected = 1
+            ),
+            pickerInput("pick_algorithm", "Pick algorithm",
+              list(""),
+              selected = 1
+            ),
+            sliderInput("height", "Height (in pixel):", 200, 3000, 600, step = 100),
+            sliderInput("width", "Width (in pixel):", 200, 3000, 600, step = 100)
           )
         )
       ),
@@ -329,12 +393,19 @@ ui <- shinyUI(fluidPage(
         fluidRow(
           column(
             id = "parsim_gr_out",
-            12, div(uiOutput("parsimony_spinner"), align = "center")
+            12,
+            div(uiOutput("parsimony_spinner"), align = "center")
           )
         ),
         fluidRow(column(
           id = "parsim_out",
           12, div(uiOutput("parsimony_spinner_table"), align = "center")
+        )),
+        fluidRow(column(
+          id = "pl_inters",
+          12,
+          hr(),
+          plotOutput("plot_inter")
         )),
         tags$script(
           '
@@ -370,21 +441,75 @@ ui <- shinyUI(fluidPage(
                         '
         )
       )
-    ),
-    tabPanel(
-      "Plot",
+    ), tabPanel(
+      "Plot extreme cases",
       sidebarPanel(
         style = "position:fixed;width:inherit;",
         width = 2,
+        fluidRow(
+          column(12,
+            offset = 0,
+            h5("Choose a model")
+          ),
+          column(12,
+            offset = 0,
+            pickerInput("go_example", "", choices = NA)
+          )
+        ),
+      ),
+      mainPanel(fluidRow(
+        column(
+          id = "example_out",
+          12, div(plotlyOutput("plot_example"), align = "center")
+        )
+      ))
+    ),
+    tabPanel(
+      "Plot Polytope(s)",
+      sidebarPanel(
+        style = "position:fixed;width:inherit;",
+        width = 2,
+        fluidRow(
+          column(12,
+            offset = 0,
+            h5("Remove or add all models")
+          ),
+          column(
+            12,
+            offset = 0,
+            actionBttn("subtr_models", "",
+              icon = icon("fa-regular fa-square-minus"), size = "sm",
+              style = "jelly", color = "default"
+            ),
+            actionBttn("add_models", "",
+              icon = icon("fa-regular fa-square-plus"), size = "sm",
+              style = "jelly", color = "primary"
+            )
+          )
+        ),
         fluidRow(column(
           12,
           offset = 0,
-          helpText("Select probabilities")
+          hr(),
+          textAreaInput(
+            inputId = "name_model_plot",
+            label = "Input field for model names",
+            value = "",
+            width = "100%",
+            height = "120px",
+            resize = "none"
+          )
         )),
         fluidRow(column(
           12,
           offset = 0,
-          selectInput("dim_1", "p #",
+          hr(),
+          h5("Select probabilities")
+        )),
+        fluidRow(column(
+          12,
+          offset = 0,
+          pickerInput("dim_1", "p #",
             list(1, 2, 3),
             selected = 1
           )
@@ -392,7 +517,7 @@ ui <- shinyUI(fluidPage(
         fluidRow(column(
           12,
           offset = 0,
-          selectInput("dim_2", "p #",
+          pickerInput("dim_2", "p #",
             list(1, 2, 3),
             selected = 2
           )
@@ -400,34 +525,11 @@ ui <- shinyUI(fluidPage(
         fluidRow(column(
           12,
           offset = 0,
-          selectInput("dim_3", "p #",
+          pickerInput("dim_3", "p #",
             list(1, 2, 3),
             selected = 3
           )
-        )),
-        fluidRow(column(
-          12,
-          offset = 0,
-          textAreaInput(
-            inputId = "name_model_plot",
-            label = "Input field for model names",
-            value = "",
-            width = "100%",
-            height = "95px"
-          )
-        )),
-        fluidRow(
-          column(12,
-            offset = 0,
-            helpText("Remove or add all models")
-          ),
-          column(
-            12,
-            offset = 0,
-            actionButton("subtr_models", "", icon = icon("fa-regular fa-square-minus")),
-            actionButton("add_models", "", icon = icon("fa-regular fa-square-plus"))
-          )
-        )
+        ))
       ),
       mainPanel(fluidRow(column(
         12, div(
@@ -436,31 +538,6 @@ ui <- shinyUI(fluidPage(
           align = "center"
         )
       )))
-    ),
-    tags$footer(
-      column(3, "Pre-publication version"),
-      column(
-        2,
-        offset = 7,
-        tags$a(
-          href = "mailto:mjekel@uni-koeln.de",
-          tags$b("Email feedback"),
-          class = "externallink",
-          style = "color: white",
-          icon = icon("fa-duotone fa-envelope")
-        )
-      ),
-      style = "
-   position:fixed;
-   text-align:center;
-   left: 0;
-   bottom:0;
-   width:100%;
-   z-index:1000;
-   height:30px; /* Height of the footer */
-   color: white;
-   padding: 5px;
-   background-color: #000200"
     )
   )
 ))
@@ -471,24 +548,45 @@ server <- shinyServer(function(input, output, session) {
 
   hideTab(inputId = "tabs", target = "H-representation")
   hideTab(inputId = "tabs", target = "V-representation")
-  hideTab(inputId = "tabs", target = "Parsimony")
-  hideTab(inputId = "tabs", target = "Plot")
+  hideTab(inputId = "tabs", target = "Parsimony & Model Overlap")
+  hideTab(inputId = "tabs", target = "Plot Polytope(s)")
+  hideTab(inputId = "tabs", target = "Plot extreme cases")
 
-  ###### Global Variables ####
+  ##### Global Variables ####
+
+  h_reactive <- reactiveValues()
+  v_reactive <- reactiveValues()
+
+  h_reactive_multi <- reactiveValues()
+  v_reactive_multi <- reactiveValues()
+
+  h_reactive_repl <- reactiveValues()
+  v_reactive_repl <- reactiveValues()
+
+  mytable_inter_reactive <- reactiveValues(value = NULL)
+  mytable_multiple_reactive <- reactiveValues(value = NULL)
+  mytable_mix_reactive <- reactiveValues(value = NULL)
+  mytable_v_reactive <- reactiveValues(value = NULL)
+  mytable_approx_reactive <- reactiveValues(value = NULL)
+
+  model_sel_multiple_reactive <- reactiveValues(value = "None")
+  model_sel_replication_reactive <- reactiveValues(value = "None")
+
+  equation_all_total_reactive <- reactiveValues(value = NULL)
+  parsim_wide_table_reactive <- reactiveValues(value = NULL)
+
+  input_multi_knob_reactive <- reactiveValues(value = 0)
+  input_replication_knob_reactive <- reactiveValues(value = 0)
 
   ineq_eq_left_reactive <- reactiveValues(value = NA)
   ineq_eq_right_reactive <- reactiveValues(value = NA)
   numb_p_reactive <- reactiveValues(value = NA)
-  outs_reactive <- reactiveValues(value = NA)
-  all_h_rep_in_matrix_reactive <- reactiveValues(value = NA)
-  v_representation_plot_all_reactive <- reactiveValues(value = NA)
-  all_h_rep_in_list_converted_to_v_reactive <- reactiveValues(value = NA)
-  names_already_converted_v_reactive <- reactiveValues(value = NA)
+  probs_reactive <- reactiveValues(value = NA)
+
   names_available_models_reactive <- reactiveValues(value = NA)
   all_operators_reactive <- reactiveValues(value = NA)
-  all_v_rep_in_list_reactive <- reactiveValues(value = NA)
 
-  ####** global variables new ####
+  input_replication_reactive <- reactiveValues(value = c(1, 1, 1, 1, 0))
 
 
   input_volume_reactive <- reactiveValues(value = c(
@@ -497,48 +595,81 @@ server <- shinyServer(function(input, output, session) {
     rep("default", 4), "none"
   ))
 
-
-  input_user_reactive <- reactiveValues(value = NA)
-
-  h_representation_reactive <- reactiveValues(value = NULL)
-  all_h_rep_in_matrix_reactive <- reactiveValues(value = NULL)
-
-  v_representation_reactive <- reactiveValues(value = NULL)
-  names_models_reactive <- reactiveValues(value = NULL)
-  formula_h_all_reactive <- reactiveValues(value = NULL)
-
-  # Track the number of input boxes to render
   counter <- reactiveValues(n = 3)
-  counter_ie <- reactiveValues(n = 1)
+  counter_inter <- reactiveValues(n = 1)
+  counter_input <- reactiveValues(n = 1)
+  count_all_inter <- reactiveValues(n = 0)
 
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
   })
 
 
+
   #### Button Events ####
+
+  observeEvent(input$remove_inter, {
+    counter_inter$n <- 1
+  })
+
+  observeEvent(input$more_inter, {
+    counter_inter$n <- isolate(counter_inter$n + 1)
+  })
+
+  observeEvent(input$less_inter, {
+    if (counter_inter$n > 1) {
+      counter_inter$n <- counter_inter$n - 1
+    }
+  })
 
   observeEvent(input$add_btn, {
     counter$n <- counter$n + 1
-
-    input_user_reactive$value <- NA
   })
 
   observeEvent(input$add_ie, {
-    counter_ie$n <- counter_ie$n + 1
+    counter_input$n <- counter_input$n + 1
+
+    input_replication_reactive$value <- c(input_replication_reactive$value, 0)
+
+
+    if (counter_input$n > 1) {
+      count_all_inter_total <- 0
+
+      for (loop_c in 2:counter_input$n) {
+        count_all_inter_total <- count_all_inter_total +
+          factorial(counter_input$n) /
+            (factorial(counter_input$n - loop_c) * factorial(loop_c))
+      }
+
+      count_all_inter$n <- count_all_inter_total
+    } else {
+      count_all_inter$n <- 0
+    }
   })
 
   observeEvent(input$rm_btn, {
-    if (counter$n > 2) {
+    if (counter$n > 3) {
       counter$n <- counter$n - 1
     }
-
-    input_user_reactive$value <- NA
   })
 
   observeEvent(input$rm_ie, {
-    if (counter_ie$n > 1) {
-      counter_ie$n <- counter_ie$n - 1
+    if (counter_input$n > 1) {
+      counter_input$n <- counter_input$n - 1
+    }
+
+    if (counter_input$n > 1) {
+      count_all_inter_total <- 0
+
+      for (loop_c in 1:counter_input$n) {
+        count_all_inter_total <- count_all_inter_total +
+          factorial(counter_input$n) /
+            (factorial(counter_input$n - loop_c) * factorial(loop_c))
+      }
+
+      count_all_inter$n <- count_all_inter_total
+    } else {
+      count_all_inter$n <- 0
     }
   })
 
@@ -573,6 +704,27 @@ server <- shinyServer(function(input, output, session) {
     )
   })
 
+  observeEvent(input$submit_inter, {
+    removeModal()
+  })
+
+  observeEvent(input$submit_v_repr, {
+    removeModal()
+  })
+
+
+  ###
+
+  observeEvent(counter_input$n, {
+    if (counter_input$n < 2) {
+      disable("show_inter")
+      disable("show_mix")
+    } else {
+      enable("show_inter")
+      enable("show_mix")
+    }
+  })
+
   #### Checkbox Events ####
 
   textboxes_min <- reactive({
@@ -595,7 +747,6 @@ server <- shinyServer(function(input, output, session) {
       })
     }
   })
-
 
   textboxes_max <- reactive({
     n <- counter$n
@@ -624,48 +775,103 @@ server <- shinyServer(function(input, output, session) {
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
-          textInput(
+          (textAreaInput(
             inputId = paste0("textin_name_", i),
             label = paste0("Name of p", i),
             value = ifelse(
               is.null(AllInputs()[[paste0("textin_name_", i)]]) == TRUE,
-              paste0("p", i),
+              paste0("p_{", i, "}"),
               AllInputs()[[paste0("textin_name_", i)]]
-            )
-          )
+            ),
+            width = "80px",
+            height = "50px",
+            resize = "none"
+          ))
         })
       })
     }
   })
 
   textboxes_relations <- reactive({
-    n <- counter_ie$n
+    n <- counter_input$n
 
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
           textAreaInput(
             inputId = paste0("textin_relations_", i),
-            label = paste0("Model Specification"),
+            label = paste0("Unique Model Specification"),
             value = AllInputs()[[paste0("textin_relations_", i)]],
             width = "100%",
-            height = "95px"
+            height = "95px",
+            placeholder = "p1 > p2; ...",
+            resize = "none"
           )
         })
       })
     }
   })
 
-  textboxes_check <- reactive({
-    n <- counter_ie$n
+  ####
+
+  observeEvent(c(counter_input$n, input$add_for_all_models), {
+    for (loop_n in 1:counter_input$n) {
+      full_descri <- paste("observeEvent(input$textin_relations_", loop_n, ", {for(loop_conjung in 1 : counter_input$n){updateTextAreaInput(inputId = paste0('textin_relations_complete_', loop_conjung),value =  paste(AllInputs()[[paste0('textin_relations_', loop_conjung)]],input$add_for_all_models,sep='',collapse='`'))}})", sep = "")
+      eval(parse(text = full_descri))
+    }
+  })
+
+  ####
+
+  textboxes_relations_complete <- reactive({
+    n <- counter_input$n
 
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
-          materialSwitch(paste0("textin_check_", i),
-            HTML(paste("Include V for m", i, sep = "")),
-            status = "success",
-            value = AllInputs()[[paste0("textin_check_", i)]],
+          (textAreaInput(
+            inputId = paste0("textin_relations_complete_", i),
+            label = paste0("Model Specification"),
+            value = AllInputs()[[paste0("textin_relations_", i)]],
+            width = "100%",
+            height = "95px",
+            resize = "none"
+          ))
+        })
+      })
+    }
+  })
+
+  textboxes_repl <- reactive({
+    n <- counter_input$n
+
+    if (n > 0) {
+      lapply(seq_len(n), function(i) {
+        materialSwitch(paste0("textin_repl_", i),
+          HTML(paste("Include V-representation for ",
+            isolate(AllInputs()[[paste0("textin_relations_name", i)]]),
+            sep = ""
+          )), # isolate? yes, necessary
+          status = "primary",
+          value = (input_replication_reactive$value[4 + i]),
+          right = T
+        )
+      })
+    }
+  })
+
+  textboxes_check <- reactive({
+    n <- counter_input$n
+    if (n > 0) {
+      ({
+        lapply(seq_len(n), function(i) {
+          materialSwitch(paste0("textin_include_v_", i),
+            label = HTML(paste("Include V-repres. for ",
+              (AllInputs()[[paste("textin_relations_name", i, sep = "")]]),
+              sep = ""
+            )),
+            status = "primary",
+            value = AllInputs()[[paste0("textin_include_v_", i)]],
             right = T
           )
         })
@@ -673,32 +879,38 @@ server <- shinyServer(function(input, output, session) {
     }
   })
 
-  textboxes_approx <- reactive({
-    n <- counter_ie$n
+  textboxes_inter_check <- reactive({
+    if ((input$show_inter) != 0) {
+      inters_models <- hot_to_r(input$mytable_inter)
 
-    if (n > 0) {
-      isolate({
-        lapply(seq_len(n), function(i) {
-          numericInput(
-            min = 0,
-            max = 1,
-            step = .01,
-            inputId = paste0("textin_approx_", i),
-            label = paste("Approx. equalities for m", i, sep = ""),
-            value = ifelse(is.null(AllInputs()[[paste0("textin_approx_", i)]]) == T, 0, AllInputs()[[paste0("textin_approx_", i)]])
-          )
+      n <- nrow(inters_models)
+
+      if (n > 0) {
+        ({
+          lapply(seq_len(n), function(i) {
+            materialSwitch(paste0("textin_include_inter_v_", i),
+              label = HTML(paste("Include V-repres. for ",
+                inters_models[i, 1],
+                sep = ""
+              )),
+              status = "primary",
+              value = AllInputs()[[paste0("textin_include_inter_v_", i)]],
+              right = T
+            )
+          })
         })
-      })
+      }
     }
   })
 
+
   textboxes_relations_name <- reactive({
-    n <- counter_ie$n
+    n <- counter_input$n
 
     if (n > 0) {
       isolate({
         lapply(seq_len(n), function(i) {
-          textAreaInput(
+          (textAreaInput(
             inputId = paste0("textin_relations_name", i),
             label = paste0("Model Name"),
             value = ifelse(
@@ -707,13 +919,13 @@ server <- shinyServer(function(input, output, session) {
               AllInputs()[[paste0("textin_relations_name", i)]]
             ),
             width = "100%",
-            height = "95px"
-          )
+            height = "95px",
+            resize = "none"
+          ))
         })
       })
     }
   })
-
 
   output$textbox_ui_min <- renderUI({
     textboxes_min()
@@ -727,12 +939,24 @@ server <- shinyServer(function(input, output, session) {
   output$textbox_ui_rel <- renderUI({
     textboxes_relations()
   })
+  output$textbox_ui_rel_complete <- renderUI({
+    textboxes_relations_complete()
+  })
   output$textbox_ui_check <- renderUI({
     textboxes_check()
   })
-  output$textbox_approx <- renderUI({
-    textboxes_approx()
+
+  output$textbox_ui_inter_check <- renderUI({
+    textboxes_inter_check()
   })
+
+
+  output$textbox_ui_repl <- renderUI({
+    textboxes_repl()
+  })
+
+  #### Display Intersection
+
   output$checkbox_ui_row <- renderUI({
     check_box_row()
   })
@@ -741,199 +965,181 @@ server <- shinyServer(function(input, output, session) {
       textboxes_relations_name()
     })
 
+  ###
+
+  observe({
+    if (counter_input$n > 1) {
+      output$info_text <- renderText(paste(
+        counter$n,
+        " probabilities and ",
+        counter_input$n,
+        " models",
+        sep = ""
+      ))
+    } else {
+      output$info_text <- renderText(paste(
+        counter$n,
+        " probabilities and ",
+        counter_input$n,
+        " model",
+        sep = ""
+      ))
+    }
+  })
+
   #### Download ####
 
   output$download <- downloadHandler(
     filename = function() {
-      paste0("user_input", ".csv")
+      paste0("user_input_", Sys.Date(), ".xlsx", sep = "")
     },
     content = function(file) {
-      outs <- matrix("", ncol = 11, nrow = max(c(counter$n, counter_ie$n)))
+      missing_table <- data.frame("none")
+      colnames(missing_table) <- ""
 
-      outs <- data.frame(outs)
-
-      for (loop in 1:counter_ie$n) {
-        outs[loop, 1:4] <- c(
-          str_replace_all(eval(parse(
-            text = paste(
-              "unlist(AllInputs()$textin_relations_name",
-              loop,
-              ")",
-              sep = ""
-            )
-          )), fixed(" "), ""),
-          eval(parse(
-            text = paste(
-              "unlist(AllInputs()$textin_relations_",
-              loop,
-              ")",
-              sep = ""
-            )
-          )),
-          (eval(parse(
-            text = paste(
-              "unlist(AllInputs()$textin_check_",
-              loop,
-              ")",
-              sep = ""
-            )
-          ))),
-          eval(parse(
-            text = paste(
-              "unlist(AllInputs()$textin_approx_",
-              loop,
-              ")",
-              sep = ""
-            )
-          ))
-        )
+      mytable_v <- hot_to_r(input$mytable_v)
+      if (is.null(mytable_v) == T) {
+        mytable_v <- missing_table
       }
 
-
-      outs[1, 5:8] <- c(
-        input$check_name,
-        input$check_min,
-        input$check_max,
-        input$check_relations
-      )
-
-      for (loop in 1:counter$n) {
-        outs[loop, 9:11] <-
-          c(
-            eval(parse(
-              text = paste(
-                "unlist(AllInputs()$textin_name_",
-                loop,
-                ")",
-                sep = ""
-              )
-            )),
-            eval(parse(
-              text = paste(
-                "unlist(AllInputs()$textin_min_",
-                loop,
-                ")",
-                sep = ""
-              )
-            )),
-            eval(parse(
-              text = paste(
-                "unlist(AllInputs()$textin_max_",
-                loop,
-                ")",
-                sep = ""
-              )
-            ))
-          )
+      mytable_inter <- hot_to_r(input$mytable_inter)
+      if (is.null(mytable_inter) == T) {
+        mytable_inter <- missing_table
       }
 
+      mytable_mix <- hot_to_r(input$mytable_mix)
+      if (is.null(mytable_mix) == T) {
+        mytable_mix <- missing_table
+      }
 
-      colnames(outs) <- c(
-        "Model Name",
-        "Model Specification",
-        "Include V",
-        "Approx. Equalities",
-        "Use This Name of P",
-        "Use This Min of P",
-        "Use This Max of P",
-        "Use Model Spectification",
-        "Name of P",
-        "Min of P",
-        "Max of P"
+      mytable_mutliple <- hot_to_r(input$mytable_multiple)
+      if (is.null(mytable_mutliple) == T) {
+        mytable_mutliple <- missing_table
+      }
+
+      name_probs <- numeric()
+
+      for (loop_save in 1:counter$n) {
+        name_probs <- c(name_probs, eval(parse(text = paste("AllInputs()$textin_name_", loop_save, sep = ""))))
+      }
+
+      name_models <- numeric()
+
+      for (loop_save in 1:counter_input$n) {
+        name_models <- c(name_models, eval(parse(text = paste("AllInputs()$textin_relations_name", loop_save, sep = ""))))
+      }
+
+      input_models <- numeric()
+
+      for (loop_save in 1:counter_input$n) {
+        input_models <- c(input_models, eval(parse(text = paste("AllInputs()$textin_relations_", loop_save, sep = ""))))
+      }
+
+      shared_input_model <- AllInputs()$add_for_all_models
+
+      mytable_approx <- hot_to_r(input$mytable_approx)
+      if (is.null(mytable_approx) == T) {
+        mytable_v <- missing_table
+      }
+
+      out <- list(
+        "V-description" = mytable_v,
+        "Intersection model(s)" = mytable_inter,
+        "Mixture model(s)" = mytable_mix,
+        "Multiple items" = mytable_mutliple,
+        "Number of models" = data.frame(counter_input$n),
+        "Type of replication model" = data.frame(model_sel_replication_reactive$value),
+        "Approximately identical replication" = data.frame((input_replication_knob_reactive$value)),
+        "Number of replications" = data.frame((input_replication_reactive$value)),
+        "Type of mutliple items model" = data.frame(model_sel_multiple_reactive$value),
+        "Aproximately identical multiple items" = data.frame(input_multi_knob_reactive$value),
+        "Number of probabilitiy" = data.frame(counter$n),
+        "Names of probabilities" = data.frame(name_probs),
+        "Name of models" = data.frame(name_models),
+        "Unique input models" = data.frame(input_models),
+        "Shared input models" = data.frame(shared_input_model),
+        "Approximately identical equalities" = data.frame(mytable_approx)
       )
 
-
-      write.csv(outs, file)
+      write_xlsx(out, file)
     }
   )
 
   #### Upload ####
 
-
   observeEvent(input$upload, {
-    dats <- read.csv(input$upload$datapath)
-    dats <- dats[, 2:12]
+    mytable_v_reactive$value <- read_excel(input$upload$datapath, 1)
+    mytable_inter_reactive$value <- read_excel(input$upload$datapath, 2)
+    mytable_mix_reactive$value <- read_excel(input$upload$datapath, 3)
+    mytable_multiple_reactive$value <- read_excel(input$upload$datapath, 4)
+    counter_input$n <- unlist(read_excel(input$upload$datapath, 5))
 
-    counter_ie$n <- sum(dats$Model.Specification != "")
+    model_sel_replication_reactive$value <- unlist(read_excel(input$upload$datapath, 6))
+    input_replication_knob_reactive$value <- unlist(read_excel(input$upload$datapath, 7))
+    input_replication_reactive$value <- unlist(read_excel(input$upload$datapath, 8))
 
-    for (loop_upload in 1:counter_ie$n) {
+    model_sel_multiple_reactive$value <- unlist(read_excel(input$upload$datapath, 9))
+    input_multi_knob_reactive$value <- unlist(read_excel(input$upload$datapath, 10))
+
+    if (length(mytable_v_reactive$value) == 1) {
+      mytable_v_reactive$value <- NULL
+    }
+
+    if (length(mytable_inter_reactive$value) == 1) {
+      mytable_inter_reactive$value <- NULL
+    }
+
+    if (length(mytable_mix_reactive$value) == 1) {
+      mytable_mix_reactive$value <- NULL
+    }
+
+    if (length(mytable_multiple_reactive$value) == 1) {
+      mytable_multiple_reactive$value <- NULL
+    }
+
+    counter$n <- unlist(read_excel(input$upload$datapath, 11))
+
+    name_probs <- unlist(read_excel(input$upload$datapath, 12))
+    names(name_probs) <- NULL
+
+    for (loop_load in 1:length(name_probs)) {
       updateTextAreaInput(session,
-        inputId = paste0("textin_relations_name", loop_upload),
-        value = (dats$Model.Name[loop_upload])
-      )
-
-      updateTextAreaInput(session,
-        inputId = paste0("textin_relations_", loop_upload),
-        value = (dats$Model.Specification[loop_upload])
-      )
-
-
-      updateMaterialSwitch(session, paste0("textin_check_", loop_upload),
-        value = dats$Include.V[loop_upload]
-      )
-
-      updateNumericInput(
-        inputId = paste0("textin_approx_", loop_upload),
-        value = (dats$Approx..Equalities[loop_upload])
+        inputId = paste0("textin_name_", loop_load),
+        value = (name_probs[loop_load])
       )
     }
 
-    updateCheckboxInput(inputId = "check_name", value = dats$Use.This.Name.of.P[1])
-    updateCheckboxInput(inputId = "check_min", value = dats$Use.This.Min.of.P[1])
-    updateCheckboxInput(inputId = "check_max", value = dats$Use.This.Max.of.P[1])
-    updateCheckboxInput(inputId = "check_relations", value = dats$Use.Model.Spectification[1])
+    name_models <- unlist(read_excel(input$upload$datapath, 13))
+    names(name_models) <- NULL
 
-    counter$n <- sum(is.na(dats$Min.of.P) == FALSE)
-
-    for (loop_upload in 1:counter$n) {
-      updateTextInput(
-        inputId = paste0("textin_name_", loop_upload),
-        value = dats$Name.of.P[loop_upload]
-      )
-
-      updateNumericInput(
-        inputId = paste0("textin_min_", loop_upload),
-        value = dats$Min.of.P[loop_upload]
-      )
-
-      updateNumericInput(
-        inputId = paste0("textin_max_", loop_upload),
-        value = dats$Max.of.P[loop_upload]
+    for (loop_load in 1:length(name_models)) {
+      updateTextAreaInput(session,
+        inputId = paste0("textin_relations_name", loop_load),
+        value = (name_models[loop_load])
       )
     }
+
+    input_models <- unlist(read_excel(input$upload$datapath, 14))
+    names(input_models) <- NULL
+
+    for (loop_load in 1:length(input_models)) {
+      updateTextAreaInput(session,
+        inputId = paste0("textin_relations_", loop_load),
+        value = (input_models[loop_load])
+      )
+    }
+
+    shared_input_model <- unlist(read_excel(input$upload$datapath, 15))
+    names(shared_input_model) <- NULL
+
+    updateTextAreaInput(session,
+      inputId = "add_for_all_models",
+      value = shared_input_model
+    )
+
+    mytable_approx_reactive$value <- (read_excel(input$upload$datapath, 16))
   })
 
-
-  ####### Validation
-
-  observe({
-    n <- counter$n
-    iv <- InputValidator$new()
-
-    for (loop_val in 1:n) {
-      iv$add_rule(paste0("textin_max_", loop_val), sv_between(0, 1))
-    }
-
-    for (loop_val in 1:n) {
-      comp_max <- AllInputs()[[paste0("textin_max_", loop_val)]]
-      comp_min <- AllInputs()[[paste0("textin_min_", loop_val)]]
-
-      iv$add_rule(paste0("textin_min_", loop_val), sv_between(0, 1))
-
-      if (is.null(comp_max) == F) {
-        if (comp_max >= 0 & comp_max <= 1 & is.na(comp_max) == F) {
-          iv$add_rule(paste0("textin_min_", loop_val), sv_lte(comp_max))
-        }
-      }
-
-      if (is.null(comp_min) == F) {
-        if (comp_min >= 0 & comp_min <= 1 & is.na(comp_min) == F) {
-          iv$add_rule(paste0("textin_max_", loop_val), sv_gte(comp_min))
-        }
-      }
-    }
-    iv$enable()
-  })
 
   #### Function LaTeX ####
 
@@ -946,7 +1152,8 @@ server <- shinyServer(function(input, output, session) {
     sign_p <- ifelse(data.frame(h_representation_pl_minus[, 3:ncol(h_representation_pl_minus)]) < 0, "-", "+")
     sign_p <- ifelse(data.frame(h_representation_pl_minus[, 3:ncol(h_representation_pl_minus)]) == 0, "", sign_p)
 
-    h_representation_pl_minus[, 3:ncol(h_representation_pl_minus)] <- abs(h_representation_pl_minus[, 3:ncol(h_representation_pl_minus)])
+    h_representation_pl_minus[, 3:ncol(h_representation_pl_minus)] <-
+      abs(h_representation_pl_minus[, 3:ncol(h_representation_pl_minus)])
 
     for (loop_pl in 1:nrow(latex_object)) {
       formula_h_act <- ((as.character(h_representation_pl_minus[loop_pl, ])))
@@ -955,14 +1162,16 @@ server <- shinyServer(function(input, output, session) {
 
       sign_pl <- ifelse(formula_h_act[1] == "1", "=", "\\leq")
 
-
-      col_names_p <- colnames(latex_object)
-      col_names_p <- ifelse(formula_h_act[3:(length(formula_h_act))] != "0", col_names_p[3:length(col_names_p)], "")
+      col_names_p <- colnames(h_representation_pl_minus)[3:ncol(h_representation_pl_minus)]
 
       p_with_factors <- paste(formula_h_act[3:(length(formula_h_act))], " \\times  ", col_names_p,
         sep =
           ""
       )
+
+      p_with_factors[formula_h_act[3:(length(formula_h_act))] == "0"] <- ""
+
+
 
       p_with_factors <- paste(sign_p_act, " & ", p_with_factors, sep = "")
 
@@ -992,6 +1201,11 @@ server <- shinyServer(function(input, output, session) {
   #### Function Plot ####
 
   function_plot <- function(pl_obj, n_submodels) {
+    showTab(inputId = "tabs", target = "Plot Polytope(s)")
+    showTab(inputId = "tabs", target = "Plot extreme cases")
+
+
+
     output$plot <- renderPlotly({
       all_v_rep_in_list <- pl_obj
 
@@ -1013,7 +1227,7 @@ server <- shinyServer(function(input, output, session) {
         all_plot_actual <- all_plot_actual[, 2:ncol(all_plot_actual)]
         colnames_v_representation_plot_all <- colnames(all_plot_actual)
 
-        all_plot_actual <- matrix(as.character(d2q(unlist((all_plot_actual)))), ncol = ncol(all_plot_actual))
+        all_plot_actual <- matrix(as.numeric(q2d(unlist(all_plot_actual))), ncol = ncol(all_plot_actual))
 
         matrix_pl_all <- rbind(
           matrix_pl_all,
@@ -1037,40 +1251,31 @@ server <- shinyServer(function(input, output, session) {
           mixture_v_plot_names <- colnames(all_plot_actual)
 
           name_model <- select_models_to_plot[loop_pl]
-          all_plot_actual <- matrix(as.character((unlist(
-            all_plot_actual
-          ))), ncol = ncol(all_plot_actual))
-          matrix_pl <- q2d(all_plot_actual)
+          matrix_pl <- data.frame(all_plot_actual)
+          colnames(matrix_pl) <- colnames(all_plot_actual)
 
           select_plot <- as.numeric(c(input$dim_1, input$dim_2, input$dim_3))
 
-          updateSelectInput(
+          updatePickerInput(
+            session,
             inputId = "dim_1",
             choices = (1:ncol(matrix_pl))[-select_plot[c(2, 3)]],
             selected = input$dim_1
           )
-          updateSelectInput(
+          updatePickerInput(
+            session,
             inputId = "dim_2",
             choices = (1:ncol(matrix_pl))[-select_plot[c(1, 3)]],
             selected = input$dim_2
           )
-          updateSelectInput(
+          updatePickerInput(
+            session,
             inputId = "dim_3",
             choices = (1:ncol(matrix_pl))[-select_plot[c(1, 2)]],
             selected = input$dim_3
           )
 
           matrix_pl <- matrix_pl[, select_plot]
-
-          if (is.null(dim(matrix_pl)) != TRUE) {
-            matrix_pl <- data.frame(matrix(as.numeric(c(
-              matrix_pl
-            )), ncol = ncol(matrix_pl)))
-          } else {
-            matrix_pl <- t(data.frame(matrix(as.numeric(
-              c(matrix_pl)
-            ))))
-          }
 
 
           dim_names <- mixture_v_plot_names[c(
@@ -1116,10 +1321,7 @@ server <- shinyServer(function(input, output, session) {
             y = (matrix_pl[, 2]),
             z = (matrix_pl[, 3]),
             opacity = 0.05,
-            alphahull = 0,
-            colors = colorRamp(
-              c("blue", "lightblue", "chartreuse3", "yellow", "red")
-            )
+            alphahull = 0
           )
 
           ### check dimensionality using principal component analysis
@@ -1137,21 +1339,13 @@ server <- shinyServer(function(input, output, session) {
               y = (matrix_pl[, 2]),
               z = (matrix_pl[, 3]),
               opacity = 0.05,
-              alphahull = 0,
-              colors = colorRamp(
-                c(
-                  "blue",
-                  "lightblue",
-                  "chartreuse3",
-                  "yellow",
-                  "red"
-                )
-              )
+              alphahull = 0
             )
           }
 
           if (loop_pl == 1) {
             p <- plot_ly(
+              colors = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999"),
               width = 750,
               height = 750,
               name = name_model
@@ -1256,11 +1450,11 @@ server <- shinyServer(function(input, output, session) {
   #### Function to extract In/equalities from Input ####
 
   extract_info <- function(test = input_relations$rel1, loop_numb_models) {
-    outs <- data.frame()
+    probs <- data.frame()
 
     for (loop in 1:counter$n) {
-      outs <- rbind(
-        outs,
+      probs <- rbind(
+        probs,
         c(
           paste("p_", loop, sep = ""),
           str_replace_all(eval(parse(
@@ -1277,449 +1471,452 @@ server <- shinyServer(function(input, output, session) {
     }
 
     ####
+    probs <- data.frame(probs, rep(0, nrow(probs)), rep(1, nrow(probs)))
+    colnames(probs) <- c("variable", "name", "p_min", "p_max")
+    min_values <- rep(0, nrow(probs))
+    max_values <- rep(1, nrow(probs))
 
-    colnames(outs) <- c("variable", "name", "p_min", "p_max")
-    min_values <- as.numeric(outs$p_min)
-    max_values <- as.numeric(outs$p_max)
 
-    if (input$check_relations == TRUE) {
-      ####* split and remove ####
+    ####* split and remove ####
 
-      test <- unlist(str_split(test, ";"))
-      test <- str_replace_all(test, " ", "")
-      test <- unlist(test)
+    limits <- paste(paste(paste("p", 1:counter$n, sep = ""), "< 1", collapse = ";"),
+      paste(paste("p", 1:counter$n, sep = ""), "> 0", collapse = ";"),
+      sep = ";"
+    )
 
-      if (length(which(test %in% "")) > 0) {
-        test <- test[-which(test %in% "")]
+
+    test <- paste0(test, ";", limits, collapse = "")
+
+    test <- unlist(str_split(test, ";"))
+    test <- str_replace_all(test, " ", "")
+    test <- unlist(test)
+
+    if (length(which(test %in% "")) > 0) {
+      test <- test[-which(test %in% "")]
+    }
+
+    #### new ####
+
+    numb_test <- length(test)
+
+
+    for (loop_test in 1:numb_test) {
+      pos_signs <- str_locate_all(test[loop_test], "[=><]")[[1]][, 1]
+
+      signs <- numeric()
+
+      for (loop_string in 1:length(pos_signs)) {
+        signs <- c(signs, substr(test[loop_test], pos_signs[loop_string], pos_signs[loop_string]))
       }
 
-      #### {p1,p2} > {p3,p4}  ####
+      arguments <- strsplit(test[loop_test], "[=><]")[[1]]
 
-      expand_scalar <- function(scalar) {
-        # Extract the first and second batches of 'p' variables
-        batches <- strsplit(gsub("[{} ]", "", scalar), "[><=]")[[1]]
-        batch1 <- unlist(strsplit(batches[1], ","))
-        batch2 <- unlist(strsplit(batches[2], ","))
-
-        # Determine the separator used in the original scalar
-        separator <- gsub("[p{}]", "", gsub("[^><=]", "", scalar))
-
-        comparisons <- character()
-
-        # Generate comparisons between the first and second batch of 'p' variables
-        for (p1 in batch1) {
-          for (p2 in batch2) {
-            comparisons <- c(comparisons, paste0(p1, separator, p2))
-          }
-        }
-
-        output <- paste(comparisons, collapse = ";")
-        return(output)
+      for (loop_length_arguments in 1:(length(arguments) - 1)) {
+        test <- c(test, paste(arguments[loop_length_arguments],
+          signs[loop_length_arguments],
+          arguments[loop_length_arguments + 1],
+          sep = ""
+        ))
       }
+    }
 
-      test_new <- numeric()
+    test <- test[-(1:numb_test)]
 
-      for (loop_sep in 1:length(test)) {
-        if (grepl("{", test[loop_sep], fixed = TRUE) == T) {
-          test_new <- c(test_new, expand_scalar(test[loop_sep]))
-        } else {
-          test_new <- c(test_new, test[loop_sep])
-        }
-      }
+    #### {p1,p2} > {p3,p4}  ####
 
+    expand_scalar <- function(scalar) {
+      # Extract the first and second batches of 'p' variables
+      batches <- strsplit(gsub("[{} ]", "", scalar), "[><=]")[[1]]
+      batch1 <- unlist(strsplit(batches[1], ","))
+      batch2 <- unlist(strsplit(batches[2], ","))
 
-      test <- test_new
-      test <- unlist(str_split(test, ";"))
+      # Determine the separator used in the original scalar
+      separator <- gsub("[p{}]", "", gsub("[^><=]", "", scalar))
 
-      #### cut string ####
+      comparisons <- character()
 
-      test_new <- numeric()
-
-      for (loop_check in 1:length(test)) {
-        lr_side <- unlist(str_split(test[loop_check], ">|=|<"))
-
-        if (lr_side[1] != lr_side[2]) {
-          test_new <- c(test_new, test[loop_check])
+      # Generate comparisons between the first and second batch of 'p' variables
+      for (p1 in batch1) {
+        for (p2 in batch2) {
+          comparisons <- c(comparisons, paste0(p1, separator, p2))
         }
       }
 
-      test <- test_new
+      output <- paste(comparisons, collapse = ";")
+      return(output)
+    }
 
-      #### insert * between coefficient and p ####
+    test_new <- numeric()
 
-      # fix_coeff <- function(x) {
-      #   # If 'p' is preceded by a number not followed by *, insert *
-      #   if (grepl("\\d+(?!\\*)p", x, perl = TRUE)) {
-      #     x <- gsub("(\\d+)(?!\\*)(p)", "\\1*\\2", x, perl = TRUE)
-      #   }
-      #
-      #   # If 'p' is not preceded by a digit or *, insert 1*
-      #   if (grepl("(?<!\\d|\\*)p", x, perl = TRUE)) {
-      #     x <- gsub("(?<!\\d|\\*)(p)", "1*\\1", x, perl = TRUE)
-      #   }
-      #
-      #   # If there is a '.' and not a number before the '.', add '0'
-      #   if (grepl("(?<!\\d\\.)\\.", x, perl = TRUE)) {
-      #     x <- gsub("(?<!\\d\\.)\\.", "0.", x, perl = TRUE)
-      #   }
-      #
-      #   return(x)
-      # }
-      #
-      #
-      # test <- sapply(test, fix_coeff)
+    for (loop_sep in 1:length(test)) {
+      if (grepl("{", test[loop_sep], fixed = TRUE) == T) {
+        test_new <- c(test_new, expand_scalar(test[loop_sep]))
+      } else {
+        test_new <- c(test_new, test[loop_sep])
+      }
+    }
 
-      ####* extract structure ####
 
-      loc_above <- str_locate_all(test, ">")
-      loc_equal <- str_locate_all(test, "=")
-      loc_below <- str_locate_all(test, "<")
+    test <- test_new
+    test <- unlist(str_split(test, ";"))
 
-      loc_add <- str_locate_all(test, fixed("+"))
-      loc_subtract <- str_locate_all(test, "-")
-      loc_divide <- str_locate_all(test, "/")
-      loc_multiply <- str_locate_all(test, fixed("*"))
+    #### cut string ####
 
-      loc_digits <- str_locate_all(test, "[:digit:]")
-      loc_prob <- str_locate_all(test, fixed("p"))
+    test_new <- numeric()
 
-      loc_paren_open <- str_locate_all(test, fixed("("))
-      loc_paren_closed <- str_locate_all(test, fixed(")"))
-      loc_point <- str_locate_all(test, fixed("."))
+    for (loop_check in 1:length(test)) {
+      lr_side <- unlist(str_split(test[loop_check], ">|=|<"))
 
-      #** loop here
+      if (lr_side[1] != lr_side[2]) {
+        test_new <- c(test_new, test[loop_check])
+      }
+    }
 
-      loop_all <- 1
-      all_extracted <- list()
+    test <- test_new
 
-      for (loop_bit in 1:length(test)) {
-        test_actual <- test[loop_bit]
-        test_actual_single <- unlist(str_split(test_actual, ""))
+    ####* extract structure ####
 
-        pos <- rbind(
-          "above" = data.frame(loc_above[loop_bit]),
-          "below" = data.frame(loc_below[loop_bit]),
-          "equal" = data.frame(loc_equal[loop_bit]),
-          "add" = data.frame(loc_add[loop_bit]),
-          "subtract" = data.frame(loc_subtract[loop_bit]),
-          "multiply" = data.frame(loc_multiply[loop_bit]),
-          "divide" = data.frame(loc_divide[loop_bit]),
-          "digit" = data.frame(loc_digits[loop_bit]),
-          "p" = data.frame(loc_prob[loop_bit]),
-          "point" = data.frame(loc_point[loop_bit]),
-          "open" = data.frame(loc_paren_open[loop_bit]),
-          "closed" = data.frame(loc_paren_closed[loop_bit])
-        )
-        pos <- pos[order(pos[, 1]), ]
+    loc_above <- str_locate_all(test, ">")
+    loc_equal <- str_locate_all(test, "=")
+    loc_below <- str_locate_all(test, "<")
 
-        length_str <- str_length(test_actual)
+    loc_add <- str_locate_all(test, fixed("+"))
+    loc_subtract <- str_locate_all(test, "-")
+    loc_divide <- str_locate_all(test, "/")
+    loc_multiply <- str_locate_all(test, fixed("*"))
 
-        pos <- data.frame(t(pos))
+    loc_digits <- str_locate_all(test, "[:digit:]")
+    loc_prob <- str_locate_all(test, fixed("p"))
 
-        info_type <- colnames(pos)
+    loc_paren_open <- str_locate_all(test, fixed("("))
+    loc_paren_closed <- str_locate_all(test, fixed(")"))
+    loc_point <- str_locate_all(test, fixed("."))
 
-        info_type <- str_replace_all(info_type, fixed("."), "")
-        info_type <- str_replace_all(info_type, "[:digit:]", "")
+    #** loop here
 
-        #####* extract sub inequalities and equalities
+    loop_all <- 1
+    all_extracted <- list()
 
-        ineq_equ_parts_loc <- which(info_type == "above" |
-          info_type == "below" |
-          info_type == "equal")
+    for (loop_bit in 1:length(test)) {
+      test_actual <- test[loop_bit]
+      test_actual_single <- unlist(str_split(test_actual, ""))
 
-        ineq_equ_parts_loc <- c(1, ineq_equ_parts_loc, length(info_type))
+      pos <- rbind(
+        "above" = data.frame(loc_above[loop_bit]),
+        "below" = data.frame(loc_below[loop_bit]),
+        "equal" = data.frame(loc_equal[loop_bit]),
+        "add" = data.frame(loc_add[loop_bit]),
+        "subtract" = data.frame(loc_subtract[loop_bit]),
+        "multiply" = data.frame(loc_multiply[loop_bit]),
+        "divide" = data.frame(loc_divide[loop_bit]),
+        "digit" = data.frame(loc_digits[loop_bit]),
+        "p" = data.frame(loc_prob[loop_bit]),
+        "point" = data.frame(loc_point[loop_bit]),
+        "open" = data.frame(loc_paren_open[loop_bit]),
+        "closed" = data.frame(loc_paren_closed[loop_bit])
+      )
+      pos <- pos[order(pos[, 1]), ]
 
-        loc_subparts <- numeric()
+      length_str <- str_length(test_actual)
 
-        for (loop_loc in 1:(length(ineq_equ_parts_loc) - 2)) {
-          loc_act <- ineq_equ_parts_loc[c(1, 3) + (loop_loc - 1)]
+      pos <- data.frame(t(pos))
 
-          if (loop_loc == 1) {
-            loc_act[2] <- loc_act[2] - 1
-          }
+      info_type <- colnames(pos)
 
-          if (loop_loc < (length(ineq_equ_parts_loc) - 2) &
-            loop_loc != 1) {
-            loc_act[1] <- loc_act[1] + 1
-            loc_act[2] <- loc_act[2] - 1
-          }
+      info_type <- str_replace_all(info_type, fixed("."), "")
+      info_type <- str_replace_all(info_type, "[:digit:]", "")
 
-          if (loop_loc == (length(ineq_equ_parts_loc) - 2)) {
-            loc_act[1] <- loc_act[1] + 1
-            loc_act[2] <- loc_act[2]
-          }
+      #####* extract sub inequalities and equalities
 
-          loc_subparts <- c(loc_subparts, loc_act)
+      ineq_equ_parts_loc <- which(info_type == "above" |
+        info_type == "below" |
+        info_type == "equal")
+
+      ineq_equ_parts_loc <- c(1, ineq_equ_parts_loc, length(info_type))
+
+      loc_subparts <- numeric()
+
+      for (loop_loc in 1:(length(ineq_equ_parts_loc) - 2)) {
+        loc_act <- ineq_equ_parts_loc[c(1, 3) + (loop_loc - 1)]
+
+        if (loop_loc == 1) {
+          loc_act[2] <- loc_act[2] - 1
         }
 
-        loc_subparts <- t(matrix(loc_subparts, nrow = 2))
+        if (loop_loc < (length(ineq_equ_parts_loc) - 2) &
+          loop_loc != 1) {
+          loc_act[1] <- loc_act[1] + 1
+          loc_act[2] <- loc_act[2] - 1
+        }
 
-        subparts <- list()
+        if (loop_loc == (length(ineq_equ_parts_loc) - 2)) {
+          loc_act[1] <- loc_act[1] + 1
+          loc_act[2] <- loc_act[2]
+        }
 
-        if (nrow(loc_subparts) == 1) {
+        loc_subparts <- c(loc_subparts, loc_act)
+      }
+
+      loc_subparts <- t(matrix(loc_subparts, nrow = 2))
+
+      subparts <- list()
+
+      if (nrow(loc_subparts) == 1) {
+        subparts[[paste0("part", loop_loc)]] <-
+          rbind(
+            info_type[1:length(info_type)],
+            test_actual_single[1:length(info_type)]
+          )
+      } else {
+        for (loop_loc in 1:nrow(loc_subparts)) {
           subparts[[paste0("part", loop_loc)]] <-
             rbind(
-              info_type[1:length(info_type)],
-              test_actual_single[1:length(info_type)]
+              info_type[loc_subparts[loop_loc, 1]:loc_subparts[loop_loc, 2]],
+              test_actual_single[loc_subparts[loop_loc, 1]:loc_subparts[loop_loc, 2]]
             )
-        } else {
-          for (loop_loc in 1:nrow(loc_subparts)) {
-            subparts[[paste0("part", loop_loc)]] <-
-              rbind(
-                info_type[loc_subparts[loop_loc, 1]:loc_subparts[loop_loc, 2]],
-                test_actual_single[loc_subparts[loop_loc, 1]:loc_subparts[loop_loc, 2]]
-              )
-          }
+        }
+      }
+
+      ###* loop over subparts
+
+      for (loop_sub_part in 1:length(subparts)) {
+        subparts_actual <- data.frame(subparts[loop_sub_part])
+
+
+        pos_p <- which(subparts_actual[1, ] == "p")
+        pos_before_p <- pos_p - 1
+
+        if (pos_before_p[1] == 0) {
+          subparts_actual <- cbind(cbind(c("add", "+"), c("digit", "1"), c("multiply", "*")), subparts_actual)
         }
 
-        ###* loop over subparts
+        if (subparts_actual[1, 1] == "digit") {
+          subparts_actual <- cbind(cbind(c("add", "+")), subparts_actual)
+        }
 
-        for (loop_sub_part in 1:length(subparts)) {
-          subparts_actual <- data.frame(subparts[loop_sub_part])
+        ####
+
+        loc_after_relation <- which(
+          subparts_actual[1, ] == "below" |
+            subparts_actual[1, ] == "above" |
+            subparts_actual[1, ] == "equal"
+        ) + 1
+
+        if (subparts_actual[1, loc_after_relation] == "digit" |
+          subparts_actual[1, loc_after_relation] == "point") {
+          subparts_actual <- cbind(
+            subparts_actual[, 1:(loc_after_relation - 1)],
+            c("add", "+"),
+            subparts_actual[, loc_after_relation:ncol(subparts_actual)]
+          )
+        }
 
 
+        add_multiply_function <- function() {
           pos_p <- which(subparts_actual[1, ] == "p")
           pos_before_p <- pos_p - 1
 
-          if (pos_before_p[1] == 0) {
-            subparts_actual <- cbind(cbind(c("add", "+"), c("digit", "1"), c("multiply", "*")), subparts_actual)
-          }
+          add_multiply <- ifelse(
+            subparts_actual[1, pos_before_p] == "add" |
+              subparts_actual[1, pos_before_p] ==
+                "below" |
+              subparts_actual[1, pos_before_p] ==
+                "above" |
+              subparts_actual[1, pos_before_p] ==
+                "equal",
+            1,
+            0
+          )
 
-          if (subparts_actual[1, 1] == "digit") {
-            subparts_actual <- cbind(cbind(c("add", "+")), subparts_actual)
-          }
+          add_multiply <- ifelse(
+            subparts_actual[1, pos_before_p] == "below" |
+              subparts_actual[1, pos_before_p] ==
+                "above" |
+              subparts_actual[1, pos_before_p] ==
+                "equal",
+            2,
+            add_multiply
+          )
 
-          ####
-
-          loc_after_relation <- which(
-            subparts_actual[1, ] == "below" |
-              subparts_actual[1, ] == "above" |
-              subparts_actual[1, ] == "equal"
-          ) + 1
-
-          if (subparts_actual[1, loc_after_relation] == "digit" |
-            subparts_actual[1, loc_after_relation] == "point") {
-            subparts_actual <- cbind(
-              subparts_actual[, 1:(loc_after_relation - 1)],
-              c("add", "+"),
-              subparts_actual[, loc_after_relation:ncol(subparts_actual)]
-            )
-          }
-
-
-          add_multiply_function <- function() {
-            pos_p <- which(subparts_actual[1, ] == "p")
-            pos_before_p <- pos_p - 1
-
-            add_multiply <- ifelse(
-              subparts_actual[1, pos_before_p] == "add" |
-                subparts_actual[1, pos_before_p] ==
-                  "below" |
-                subparts_actual[1, pos_before_p] ==
-                  "above" |
-                subparts_actual[1, pos_before_p] ==
-                  "equal",
-              1,
-              0
-            )
-
-            add_multiply <- ifelse(
-              subparts_actual[1, pos_before_p] == "below" |
-                subparts_actual[1, pos_before_p] ==
-                  "above" |
-                subparts_actual[1, pos_before_p] ==
-                  "equal",
-              2,
-              add_multiply
-            )
-
-            add_multiply <- ifelse(subparts_actual[1, pos_before_p] == "subtract", -1,
-              add_multiply
-            )
+          add_multiply <- ifelse(subparts_actual[1, pos_before_p] == "subtract", -1,
+            add_multiply
+          )
 
 
-            fix_factors <- pos_before_p[add_multiply != 0]
-            add_multiply <- add_multiply[add_multiply != 0]
+          fix_factors <- pos_before_p[add_multiply != 0]
+          add_multiply <- add_multiply[add_multiply != 0]
 
-            return(list(fix_factors, add_multiply))
-          }
+          return(list(fix_factors, add_multiply))
+        }
 
-          res_cadd_multiply_function <- add_multiply_function()
+        res_cadd_multiply_function <- add_multiply_function()
 
-          fix_factors <- unlist(res_cadd_multiply_function[1])
-          add_multiply <- unlist(res_cadd_multiply_function[2])
+        fix_factors <- unlist(res_cadd_multiply_function[1])
+        add_multiply <- unlist(res_cadd_multiply_function[2])
 
-          if (length(add_multiply) > 0) {
-            for (loop_add_multiply in 1:length(add_multiply)) {
-              if (add_multiply[1] == -1) {
-                subparts_actual <-
-                  cbind(
-                    subparts_actual[, 1:fix_factors[1]],
-                    cbind(c("digit", "1"), c("multiply", "*")),
-                    subparts_actual[, (fix_factors[1] + 1):ncol(subparts_actual)]
-                  )
-              }
-
-              if (add_multiply[1] == 1) {
-                subparts_actual <-
-                  cbind(
-                    subparts_actual[, 1:fix_factors[1]],
-                    cbind(c("digit", "1"), c("multiply", "*")),
-                    subparts_actual[, (fix_factors[1] + 1):ncol(subparts_actual)]
-                  )
-              }
-
-              if (add_multiply[1] == 2) {
-                subparts_actual <-
-                  cbind(
-                    subparts_actual[, 1:fix_factors[1]],
-                    cbind(
-                      c("add", "+"),
-                      c("digit", "1"),
-                      c("multiply", "*")
-                    ),
-                    subparts_actual[, (fix_factors[1] + 1):ncol(subparts_actual)]
-                  )
-              }
-
-              res_cadd_multiply_function <- add_multiply_function()
-              fix_factors <- unlist(res_cadd_multiply_function[1])
-              add_multiply <- unlist(res_cadd_multiply_function[2])
+        if (length(add_multiply) > 0) {
+          for (loop_add_multiply in 1:length(add_multiply)) {
+            if (add_multiply[1] == -1) {
+              subparts_actual <-
+                cbind(
+                  subparts_actual[, 1:fix_factors[1]],
+                  cbind(c("digit", "1"), c("multiply", "*")),
+                  subparts_actual[, (fix_factors[1] + 1):ncol(subparts_actual)]
+                )
             }
+
+            if (add_multiply[1] == 1) {
+              subparts_actual <-
+                cbind(
+                  subparts_actual[, 1:fix_factors[1]],
+                  cbind(c("digit", "1"), c("multiply", "*")),
+                  subparts_actual[, (fix_factors[1] + 1):ncol(subparts_actual)]
+                )
+            }
+
+            if (add_multiply[1] == 2) {
+              subparts_actual <-
+                cbind(
+                  subparts_actual[, 1:fix_factors[1]],
+                  cbind(
+                    c("add", "+"),
+                    c("digit", "1"),
+                    c("multiply", "*")
+                  ),
+                  subparts_actual[, (fix_factors[1] + 1):ncol(subparts_actual)]
+                )
+            }
+
+            res_cadd_multiply_function <- add_multiply_function()
+            fix_factors <- unlist(res_cadd_multiply_function[1])
+            add_multiply <- unlist(res_cadd_multiply_function[2])
+          }
+        }
+
+        #####* extract p ####
+
+        keep <- numeric()
+
+        for (loop_extract in 1:ncol(subparts_actual)) {
+          if (subparts_actual[1, loop_extract] == "p") {
+            keep <- c(keep, 1)
           }
 
-          #####* extract p ####
-
-          keep <- numeric()
-
-          for (loop_extract in 1:ncol(subparts_actual)) {
-            if (subparts_actual[1, loop_extract] == "p") {
+          if (loop_extract > 1 &
+            subparts_actual[1, loop_extract] != "p") {
+            if (subparts_actual[1, loop_extract] != "p" &
+              subparts_actual[1, loop_extract] == "digit" &
+              keep[loop_extract - 1] == 1) {
               keep <- c(keep, 1)
-            }
-
-            if (loop_extract > 1 &
-              subparts_actual[1, loop_extract] != "p") {
-              if (subparts_actual[1, loop_extract] != "p" &
-                subparts_actual[1, loop_extract] == "digit" &
-                keep[loop_extract - 1] == 1) {
-                keep <- c(keep, 1)
-              } else {
-                keep <- c(keep, 0)
-              }
-            }
-
-            if (loop_extract == 1 &
-              subparts_actual[1, loop_extract] != "p") {
+            } else {
               keep <- c(keep, 0)
             }
           }
 
-          extract_p <- subparts_actual[2, keep == 1]
-          extract_p <- paste0(extract_p, collapse = "")
-          extract_p <- unlist(str_split(extract_p, "p"))
-          extract_p <- extract_p[2:length(extract_p)]
-          extract_p <- as.numeric(extract_p)
-
-          ####* extract relation ####
-
-          location_relation <- which(
-            subparts_actual[1, ] == "below" |
-              subparts_actual[1, ] == "above" |
-              subparts_actual[1, ] == "equal"
-          )
-
-          relation_subpart <- subparts_actual[1, location_relation]
-          relation_subpart <- unlist(relation_subpart)
-
-          ####* extract factors ####
-
-          left_side <- data.frame(subparts_actual[, 1:(location_relation -
-            1)])
-          right_side <- data.frame(subparts_actual[, (location_relation +
-            1):ncol(subparts_actual)])
-
-
-          location_add_subtract_left <- which(left_side[1, ] == "subtract" |
-            left_side[1, ] == "add")
-
-          location_p_left <- which(left_side[1, ] == "p")
-
-
-          location_add_subtract_right <- which(right_side[1, ] == "subtract" |
-            right_side[1, ] == "add")
-
-          location_p_right <- which(right_side[1, ] == "p")
-
-
-          ####** left side
-
-          factor_left <- numeric()
-
-          if (length(location_p_left) == 0) {
-            factor_left <- paste0(left_side[2, ], collapse = "")
-            extract_p <- c("numb", extract_p)
-          } else {
-            for (loop_loc in 1:length(location_add_subtract_left)) {
-              factor_left <- c(
-                factor_left,
-                paste0(left_side[2, location_add_subtract_left[loop_loc]:(location_p_left[loop_loc] -
-                  2)], collapse = "")
-              )
-            }
+          if (loop_extract == 1 &
+            subparts_actual[1, loop_extract] != "p") {
+            keep <- c(keep, 0)
           }
-
-          ####** right side
-
-          factor_right <- numeric()
-
-          if (length(location_p_right) == 0) {
-            factor_right <- paste0(right_side[2, ], collapse = "")
-
-            extract_p <- c(extract_p, "numb")
-          } else {
-            for (loop_loc in 1:length(location_add_subtract_right)) {
-              factor_right <- c(
-                factor_right,
-                paste0(right_side[2, location_add_subtract_right[loop_loc]:(location_p_right[loop_loc] -
-                  2)], collapse = "")
-              )
-            }
-          }
-
-          ####** combine extract
-
-          extracted <- rbind(
-            extract_p,
-            c(
-              rep("left", length(
-                factor_left
-              )),
-              rep("right", length(
-                factor_right
-              ))
-            ),
-            c(factor_left, factor_right),
-            relation_subpart
-          )
-
-          row.names(extracted) <- c("p", "left/right", "factor", "relation")
-          colnames(extracted) <- paste("sub_", 1:ncol(extracted), sep = "")
-          extracted <- data.frame(extracted)
-
-
-          all_extracted[[paste0("line", loop_all)]] <- extracted
-
-          loop_all <- loop_all + 1
         }
+
+        extract_p <- subparts_actual[2, keep == 1]
+        extract_p <- paste0(extract_p, collapse = "")
+        extract_p <- unlist(str_split(extract_p, "p"))
+        extract_p <- extract_p[2:length(extract_p)]
+        extract_p <- as.numeric(extract_p)
+
+        ####* extract relation ####
+
+        location_relation <- which(
+          subparts_actual[1, ] == "below" |
+            subparts_actual[1, ] == "above" |
+            subparts_actual[1, ] == "equal"
+        )
+
+        relation_subpart <- subparts_actual[1, location_relation]
+        relation_subpart <- unlist(relation_subpart)
+
+        ####* extract factors ####
+
+        left_side <- data.frame(subparts_actual[, 1:(location_relation -
+          1)])
+        right_side <- data.frame(subparts_actual[, (location_relation +
+          1):ncol(subparts_actual)])
+
+
+        location_add_subtract_left <- which(left_side[1, ] == "subtract" |
+          left_side[1, ] == "add")
+
+        location_p_left <- which(left_side[1, ] == "p")
+
+
+        location_add_subtract_right <- which(right_side[1, ] == "subtract" |
+          right_side[1, ] == "add")
+
+        location_p_right <- which(right_side[1, ] == "p")
+
+
+        ####** left side
+
+        factor_left <- numeric()
+
+        if (length(location_p_left) == 0) {
+          factor_left <- paste0(left_side[2, ], collapse = "")
+          extract_p <- c("numb", extract_p)
+        } else {
+          for (loop_loc in 1:length(location_add_subtract_left)) {
+            factor_left <- c(
+              factor_left,
+              paste0(left_side[2, location_add_subtract_left[loop_loc]:(location_p_left[loop_loc] -
+                2)], collapse = "")
+            )
+          }
+        }
+
+        ####** right side
+
+        factor_right <- numeric()
+
+        if (length(location_p_right) == 0) {
+          factor_right <- paste0(right_side[2, ], collapse = "")
+
+          extract_p <- c(extract_p, "numb")
+        } else {
+          for (loop_loc in 1:length(location_add_subtract_right)) {
+            factor_right <- c(
+              factor_right,
+              paste0(right_side[2, location_add_subtract_right[loop_loc]:(location_p_right[loop_loc] -
+                2)], collapse = "")
+            )
+          }
+        }
+
+        ####** combine extract
+
+        extracted <- rbind(
+          extract_p,
+          c(
+            rep("left", length(
+              factor_left
+            )),
+            rep("right", length(
+              factor_right
+            ))
+          ),
+          c(factor_left, factor_right),
+          relation_subpart
+        )
+
+        row.names(extracted) <- c("p", "left/right", "factor", "relation")
+        colnames(extracted) <- paste("sub_", 1:ncol(extracted), sep = "")
+        extracted <- data.frame(extracted)
+
+
+        all_extracted[[paste0("line", loop_all)]] <- extracted
+
+        loop_all <- loop_all + 1
       }
     }
-
-
-    if (input$check_relations == FALSE) {
-      all_extracted <- list()
-      numb_p <- 0
-    }
-
 
     if (length(all_extracted) > 0) {
       numb_p <- numeric()
@@ -1736,67 +1933,6 @@ server <- shinyServer(function(input, output, session) {
     } else {
       all_extracted <- list()
       numb_p <- 0
-    }
-
-
-    ###
-
-    if (input$check_min == TRUE) {
-      numb_p_min <- length(min_values)
-      numb_p <- ifelse(numb_p > numb_p_min, numb_p, numb_p_min)
-
-      extend_all_extracted_numb <- length(all_extracted) + 1
-
-      for (loop_min_max in 1:numb_p_min) {
-        actual_min <- min_values[loop_min_max]
-
-        extend <- (rbind(
-          "p" = c(loop_min_max, "numb"),
-          "left/right" = c("left", "right"),
-          "factor" = c(+1, actual_min),
-          "relation" = c("above", "above")
-        ))
-
-        colnames(extend) <- c("sub_1", "sub_2")
-
-
-        all_extracted[[paste0("line", extend_all_extracted_numb)]] <-
-          extend
-
-
-        extend_all_extracted_numb <- extend_all_extracted_numb + 1
-      }
-    }
-
-    ###
-
-    if (input$check_max == TRUE) {
-      numb_p_max <- length(max_values)
-      numb_p <- ifelse(numb_p > numb_p_max, numb_p, numb_p_max)
-
-      if (exists("extend_all_extracted_numb") == FALSE) {
-        extend_all_extracted_numb <- length(all_extracted) + 1
-      }
-
-
-      for (loop_min_max in 1:numb_p_max) {
-        actual_max <- max_values[loop_min_max]
-
-        extend <- (rbind(
-          "p" = c(loop_min_max, "numb"),
-          "left/right" = c("left", "right"),
-          "factor" = c(+1, actual_max),
-          "relation" = c("below", "below")
-        ))
-
-        colnames(extend) <- c("sub_1", "sub_2")
-
-
-        all_extracted[[paste0("line", extend_all_extracted_numb)]] <-
-          extend
-
-        extend_all_extracted_numb <- extend_all_extracted_numb + 1
-      }
     }
 
     ###
@@ -1894,10 +2030,12 @@ server <- shinyServer(function(input, output, session) {
 
     input_approx <- numeric()
 
-    tune_knob <-
-      eval(parse(
-        text = paste("unlist(AllInputs()$textin_approx_", loop_numb_models, ")", sep = "")
-      ))
+    if (length(mytable_approx_reactive$value) == 0) {
+      tune_knob <- 0
+    } else {
+      tune_knob <- unlist(mytable_approx_reactive$value[loop_numb_models, 2])
+    }
+
 
     ####
 
@@ -1929,720 +2067,624 @@ server <- shinyServer(function(input, output, session) {
     }
 
 
+
     all_operators_reactive$value <- all_operators
     ineq_eq_left_reactive$value <- ineq_eq_left
     ineq_eq_right_reactive$value <- ineq_eq_right
     numb_p_reactive$value <- numb_p
-    outs_reactive$value <- outs
+    probs_reactive$value <- probs
   }
 
   #### Function for Representations ####
 
-  ####* H-representation ####
-
-  # observeEvent(input$approx_equal, {
-  #   for (loop_approx in 1:length(input_user_reactive$value)) {
-  #     if (grepl("=", input_user_reactive$value[loop_approx]) == T) {
-  #       h_representation_reactive$value[loop_approx] <- NULL
-  #       v_representation_reactive$value[loop_approx] <- NULL
-  #     }
-  #   }
-  # })
+  ####* H-representation input models and intersection models ####
 
   observeEvent(input$go_v_h, {
-    outs <- isolate(outs_reactive$value)
+    mytable_v <- mytable_v_reactive$value
+    mytable_inter <- mytable_inter_reactive$value
+    mytable_mix <- mytable_mix_reactive$value
+    mytable_mutliple <- mytable_multiple_reactive$value
 
-    ####** check what to convert ####
 
-    input_options <- list()
+    n_input_models <- counter_input$n
+    n_inter_models <- ifelse(is.null(mytable_inter) == T, 0, sum(rowSums(mytable_inter[, 2:ncol(mytable_inter)]) > 0))
+    n_mix_models <- ifelse(is.null(mytable_mix) == T, 0, sum(rowSums(mytable_mix[, 2:ncol(mytable_mix)]) > 0))
 
-    ####*** add h when v is selected ####
-
-    for (loop in 1:counter_ie$n) {
-      opt <-
-        eval(parse(
-          text = paste("unlist(AllInputs()$textin_check_", loop, ")", sep = "")
-        ))
-
-      if (opt == TRUE) {
-        opt <- unique(c("V", "H"))
-      }
-
-      if (is.null(opt) == F) {
-        input_options[[paste0("opt", loop)]] <- opt
-      } else {
-        input_options[[paste0("opt", loop)]] <- ""
-      }
+    if (n_inter_models == 0) {
+      mytable_inter <- NULL
+    }
+    if (n_mix_models == 0) {
+      mytable_mix <- NULL
     }
 
 
-    ####*** check if input is the same ####
+    ####** input
 
-    input_user <- numeric()
+    mytable_input <- data.frame()
 
-    for (loop in 1:counter_ie$n) {
-      input_user <- c(
-        input_user,
-        eval(parse(
-          text = paste("unlist(AllInputs()$textin_relations_", loop, ")", sep = "")
-        ))
-      )
-    }
-
-    was_input_before <- numeric()
-    h_available <- numeric()
-    v_available <- numeric()
-
-    for (loop_check_input in 1:length(input_user)) {
-      was_input_before <- c(
-        was_input_before,
-        ifelse(input_user[loop_check_input] ==
-          input_user_reactive$value[loop_check_input], 1, 0)
-      )
-
-      h_available <- c(h_available, ifelse(is.null(
-        unlist(h_representation_reactive$value[loop_check_input])
-      ) == FALSE, 1, 0))
-
-      v_available <- c(v_available, ifelse(is.null(
-        unlist(v_representation_reactive$value[loop_check_input])
-      ) == FALSE, 1, 0))
-    }
-
-    was_input_before <- ifelse(is.na(was_input_before) == T,
-      0, was_input_before
-    )
-
-    input_user_reactive$value <- input_user
-
-
-    ####*** check whether v is selected ####
-
-
-    index_convert_to_v <- numeric()
-
-    for (loop_check in 1:length(input_options)) {
-      index_convert_to_v <- c(
-        index_convert_to_v,
-        ifelse(sum(unlist(
-          input_options[loop_check]
-        ) %in% "V" == T) == 1, 1, 0)
-      )
-    }
-
-    ####** check whether intersections or mixtures are included ####
-
-    inter_ind <- numeric()
-    mix_ind <- numeric()
-
-    n_models <- length(input_user_reactive$value)
-    inter_input <- list()
-    inter_input[1:n_models] <- (NA)
-    mix_input <- list()
-    mix_input[1:n_models] <- (NA)
-
-    for (loop_inter_mix in 1:length(input_user_reactive$value)) {
-      inter_ind <- c(
-        inter_ind,
-        ifelse(grepl("inter", unlist(input_user_reactive$value[loop_inter_mix])),
-          1, 0
-        )
-      )
-
-      mix_ind <- c(
-        mix_ind,
-        ifelse(grepl("mix", unlist(input_user_reactive$value[loop_inter_mix])),
-          1, 0
-        )
-      )
-
-      ####*** intersection ####
-
-      if (inter_ind[loop_inter_mix] == 1) {
-        inp <- unlist(input_user_reactive$value[loop_inter_mix])
-        inp <- gsub(" ", "", inp)
-
-        inp <- substr(
-          inp, 7,
-          str_length(inp) - 1
-        )
-
-        inp <- unlist(str_split(inp, ","))
-
-
-        inter_input[loop_inter_mix] <- list(inp)
-
-        if (sum(was_input_before[which(inp %in% names_models_reactive$value)]) <
-          length(was_input_before[which(inp %in% names_models_reactive$value)])) {
-          was_input_before[loop_inter_mix] <- 0
-        }
-      }
-
-      ####*** mixture ####
-
-      if (mix_ind[loop_inter_mix] == 1) {
-        inp <- unlist(input_user_reactive$value[loop_inter_mix])
-
-        inp <- str_replace_all(inp, " ", "")
-
-        inp <- substr(
-          inp, 5,
-          str_length(inp) - 1
-        )
-
-        inp <- str_split(inp, ",")
-
-        mix_input[loop_inter_mix] <- list(inp)
-
-        if (sum(was_input_before[which(inp %in% names_models_reactive$value)]) <
-          length(was_input_before[which(inp %in% names_models_reactive$value)])) {
-          was_input_before[loop_inter_mix] <- 0
-        }
-      }
-    }
-
-    ####
-
-    all_input_models_names <- numeric()
-
-    for (loop_numb_models in 1:length(was_input_before)) {
-      all_input_models_names <- c(
-        all_input_models_names,
-        str_replace_all(eval(parse(
-          text = paste(
-            "unlist(AllInputs()$textin_relations_name",
-            loop_numb_models,
-            ")",
-            sep = ""
-          )
-        )), fixed(" "), "_")
-      )
-    }
-
-    names_models_reactive$value <- all_input_models_names
-
-    models_for_mixture <- unlist(mix_input)
-    models_for_mixture <- models_for_mixture[is.na(models_for_mixture) == FALSE]
-
-    alert_mix_v <- 0
-
-    if (sum(index_convert_to_v[all_input_models_names %in% models_for_mixture]) !=
-      length(index_convert_to_v[all_input_models_names %in% models_for_mixture])) {
-      alert_mix_v <- 1
-
-      index_convert_to_v[all_input_models_names %in% models_for_mixture] <- 1
-
-      ind_add <- which(all_input_models_names %in% models_for_mixture)
-      ind_add <- c(ind_add, which(mix_ind == 1))
-
-      for (loopAdd in ind_add) {
-        updateMaterialSwitch(session, paste0("textin_check_", loopAdd),
-          value = 1
-        )
-      }
-    }
-
-    numb_models <- isolate(counter_ie$n)
-
-    ####** start conversion ####
-
-    if (sum(input_user_reactive$value == "") == 0 & (
-      sum(index_convert_to_v) != 0 |
-        sum(h_available) < length(h_available) |
-        sum(was_input_before) < length(was_input_before))) {
-      showTab(inputId = "tabs", target = "Parsimony")
-      showTab(inputId = "tabs", target = "Plot")
-      showTab(inputId = "tabs", target = "V-representation")
-      showTab(inputId = "tabs", target = "H-representation")
-
-      ####** function variables ####
-
-
-      all_h_rep_in_list <- isolate(h_representation_reactive$value)
-      all_h_rep_in_matrix <- isolate(all_h_rep_in_matrix_reactive$value)
-
-
-      all_input_models <- numeric()
-
-
-      ####
-
-      input_relations <- list()
-
-
-      for (loop in 1:counter_ie$n) {
-        input_relations[[paste0("rel", loop)]] <-
+    for (loop in 1:counter_input$n) {
+      mytable_input <- rbind(
+        mytable_input,
+        c(
           eval(parse(
             text = paste(
-              "unlist(AllInputs()$textin_relations_",
+              "unlist(AllInputs()$textin_relations_name",
+              loop,
+              ")",
+              sep = ""
+            )
+          )),
+          eval(parse(
+            text = paste(
+              "unlist(AllInputs()$textin_relations_complete_",
               loop,
               ")",
               sep = ""
             )
           ))
-      }
+        )
+      )
+    }
 
+    colnames(mytable_input) <- c("model name", "input_models")
 
-      ##
+    ####** intersection
 
+    if (is.null(mytable_inter) == F & n_inter_models > 0) {
+      colsums_inter <- colSums(mytable_inter[, 2:ncol(mytable_inter)])
 
-      for (loop_numb_models in 1:numb_models) {
-        all_input_models <- c(all_input_models, (eval(parse(
-          text = paste("input_relations$rel",
-            loop_numb_models,
-            sep =
-              ""
+      if (sum(colsums_inter > 0) > 0) {
+        inters_models <- numeric()
+
+        for (loop_inter in 1:nrow(mytable_inter)) {
+          pick_single_models <- colnames(mytable_inter)[which(mytable_inter[loop_inter, ] == T)]
+
+          inters_models <- c(
+            inters_models,
+            paste(pick_single_models,
+              sep = "",
+              collapse = ";"
+            )
           )
-        ))))
+        }
+
+        mytable_inter <- cbind(mytable_inter, inters_models)
       }
+    }
+
+    ####** start conversion ####
+
+    if (sum(mytable_input[, 2] == "") == 0) {
+      showTab(inputId = "tabs", target = "H-representation")
+      showTab(inputId = "tabs", target = "Parsimony & Model Overlap")
 
       ####** loop models ####
 
-      formula_h_all <- isolate(formula_h_all_reactive$value)
+      numb_models_to_convert <- n_input_models + n_inter_models
 
-      for (loop_numb_models in order(inter_ind)) {
-        if ((h_available[loop_numb_models] == 0 & was_input_before[loop_numb_models] == 0 |
-          h_available[loop_numb_models] == 0 & was_input_before[loop_numb_models] == 1 |
-          h_available[loop_numb_models] == 1 & was_input_before[loop_numb_models] == 0)
-        ) {
-          if (mix_ind[loop_numb_models] == 0) {
-            if (inter_ind[loop_numb_models] == 1) {
-              pick_for_inter <- unlist(inter_input[loop_numb_models])
+      waiter <- waiter::Waiter$new(
+        fadeout = 1000
+      )
 
-              pick_for_inter <- names_models_reactive$value %in% pick_for_inter
-              inter_complete <- do.call(rbind, h_representation_reactive$value[pick_for_inter])
+      waiter$show()
 
-              inter_equal <- ifelse(inter_complete[, 1] == "1", 1, 0)
-              inter_right <- inter_complete[, 2]
-              inter_left <- inter_complete[, 3:ncol(inter_complete)]
-              inter_left_without_sign <- gsub("-", "", inter_left)
-              inter_left_sign <- -sign(q2d(inter_left))
-              inter_left_sign <- ifelse(inter_left_sign == -1, "-", inter_left_sign)
-              inter_left_sign <- ifelse(inter_left_sign == +1, "+", inter_left_sign)
+      for (loop_numb_models in 1:numb_models_to_convert) {
+        if (loop_numb_models < (nrow(mytable_input) + 1)) {
+          extract_info(mytable_input[loop_numb_models, 2], loop_numb_models)
+
+          name_m <- mytable_input[loop_numb_models, 1]
+
+          waiter$update((h1(paste("#", loop_numb_models, " of ", numb_models_to_convert, ": Creating H-representation of ", name_m, sep = ""))))
 
 
-              p_blank <- t(matrix(paste("p", 1:ncol(inter_left), sep = ""),
-                nrow = ncol(inter_left),
-                ncol = nrow(inter_left)
-              ))
+          probs <- isolate(probs_reactive$value)
 
+          ineq_eq_left <- isolate(ineq_eq_left_reactive$value)
+          ineq_eq_right <- isolate(ineq_eq_right_reactive$value)
+          all_operators <- isolate(all_operators_reactive$value)
 
-
-              final_inter <- matrix(paste(inter_left_sign, inter_left_without_sign, sep = ""),
-                ncol = ncol(inter_left_sign), nrow = nrow(inter_left_sign)
-              )
-
-
-              final_inter <- matrix(paste(final_inter, p_blank, sep = "*"),
-                ncol = ncol(final_inter), nrow = nrow(final_inter)
-              )
-
-              final_inter <- ifelse(inter_left_sign == "0", "", final_inter)
-
-              final_inter <- cbind(
-                final_inter,
-                ifelse(inter_equal == 0, " < ", " = "),
-                inter_right, ";"
-              )
-
-
-
-              input_relations[loop_numb_models] <- paste(c(t(final_inter)), collapse = "")
-            }
-
-            extract_info(eval(parse(
-              text = paste("input_relations$rel",
-                loop_numb_models,
-                sep = ""
-              )
-            )), loop_numb_models)
-
-
-            outs <- isolate(outs_reactive$value)
-
-            ineq_eq_left <- isolate(ineq_eq_left_reactive$value)
-            ineq_eq_right <- isolate(ineq_eq_right_reactive$value)
-
-            all_operators <- isolate(all_operators_reactive$value)
-
-            if (sum(all_operators != "equal") > 0 &
-              sum(all_operators == "equal") > 0) {
-              h_representation <- makeH(
-                ineq_eq_left[all_operators != "equal", ],
-                ineq_eq_right[all_operators != "equal"],
-                ineq_eq_left[all_operators == "equal", ],
-                ineq_eq_right[all_operators == "equal"]
-              )
-            }
-
-
-            if (sum(all_operators != "equal") == 0 &
-              sum(all_operators == "equal") > 0) {
-              h_representation <- makeH(
-                a2 = ineq_eq_left,
-                b2 = ineq_eq_right
-              )
-            }
-
-            if (sum(all_operators != "equal") > 0 &
-              sum(all_operators == "equal") == 0) {
-              h_representation <- makeH(
-                ineq_eq_left,
-                ineq_eq_right
-              )
-            }
-
-            if (nrow(h_representation) > 1) {
-              h_representation <- redundant(h_representation)$output
-            } else {
-              h_representation <- redundant(h_representation)$output
-            }
-
-            all_h_rep_in_list[[loop_numb_models]] <- h_representation
-
-            ###
-
-            current_name <- all_input_models_names[loop_numb_models]
-
-
-            h_representation_pl <- q2d(h_representation)
-            h_representation_pl <- fractions(h_representation_pl)
-
-
-            if (input$check_name == T) {
-              colnames(h_representation_pl) <- c(
-                "ineq/eq",
-                "right",
-                paste(" \\text{ ", outs$name, " }", sep = "")
-              )
-            } else {
-              colnames(h_representation_pl) <- c(
-                "ineq/eq",
-                "right",
-                paste("p_{", 1:numb_p_reactive$value, "}", sep = "")
-              )
-            }
-
-            begin_eq <- paste(current_name, " $$\\begin{eqnarray} ", sep = "")
-            end_eq <- " \\end{eqnarray}$$"
-            equation_all <- paste(begin_eq, latex(h_representation_pl), end_eq,
-              sep =
-                ""
+          if (sum(all_operators != "equal") > 0 &
+            sum(all_operators == "equal") > 0) {
+            h_representation <- makeH(
+              ineq_eq_left[all_operators != "equal", ],
+              ineq_eq_right[all_operators != "equal"],
+              ineq_eq_left[all_operators == "equal", ],
+              ineq_eq_right[all_operators == "equal"]
             )
+          }
 
-            formula_h_all[loop_numb_models] <- unlist(equation_all)
-          } else {
-            if (is.null(isolate(formula_h_all_reactive$value[loop_numb_models])) == FALSE) {
-              if (length(isolate(formula_h_all_reactive$value)) == loop_numb_models) {
-                formula_h_all[loop_numb_models] <- isolate(formula_h_all_reactive$value[loop_numb_models])
+          if (sum(all_operators != "equal") == 0 &
+            sum(all_operators == "equal") > 0) {
+            h_representation <- makeH(
+              a2 = ineq_eq_left,
+              b2 = ineq_eq_right
+            )
+          }
+
+          if (sum(all_operators != "equal") > 0 &
+            sum(all_operators == "equal") == 0) {
+            h_representation <- makeH(
+              ineq_eq_left,
+              ineq_eq_right
+            )
+          }
+
+          names_p_multi <- c("", "", probs[, 2])
+        } else {
+          name_m <- mytable_inter[loop_numb_models - nrow(mytable_input), 1]
+
+          waiter$update((h1(paste("#", loop_numb_models, " of ", numb_models_to_convert, ": Creating H-representation of ", name_m, sep = ""))))
+
+
+          pick_for_inter <- mytable_inter[(loop_numb_models - nrow(mytable_input)), ncol(mytable_inter)]
+
+          pick_for_inter <- str_split_1(pick_for_inter, ";")
+
+          h_representation <- numeric()
+
+          for (loop_inter_h in 1:length(pick_for_inter)) {
+            h_representation <- rbind(h_representation, h_reactive[[pick_for_inter[loop_inter_h]]])
+          }
+        }
+
+
+        if (nrow(h_representation) > 1) {
+          h_representation <- redundant(h_representation)$output
+        }
+
+        colnames(h_representation) <- names_p_multi
+
+
+        if (loop_numb_models < (nrow(mytable_input) + 1)) {
+          ####* Multiple Items ####
+
+          if (model_sel_multiple_reactive$value != "None") {
+            h_representation <- q2d(h_representation)
+            h_representation[, 3:ncol(h_representation)] <- -1 * h_representation[, 3:ncol(h_representation)]
+            h_representation <- d2q(h_representation)
+
+            model_name <- mytable_input[loop_numb_models, 1]
+
+            act_rep <- unlist(data.frame(mytable_multiple_reactive$value)[, 2])
+
+            counter_multi_row <- nrow(h_representation) + 1
+            counter_multi_col <- ncol(h_representation) + 1
+
+            if (model_sel_multiple_reactive$value == "Identical parameter values") {
+              if (input_multi_knob_reactive$value == 0) {
+                ####** Module 1: Identical parameters ####
+
+                multi_h <- data.frame(matrix("0",
+                  ncol = ncol(h_representation) + sum(act_rep),
+                  nrow = nrow(h_representation) + sum(act_rep)
+                ))
+                multi_h[1:nrow(h_representation), 1:ncol(h_representation)] <- h_representation
+
+
+                for (loop_items in 1:length(act_rep)) {
+                  for (loop_rep in 1:act_rep[loop_items]) {
+                    if (act_rep[loop_items] > 0) {
+                      multi_h[counter_multi_row, 1] <- 1
+                      multi_h[counter_multi_row, loop_items + 2] <- 1
+                      multi_h[counter_multi_row, counter_multi_col] <- -1
+
+                      counter_multi_row <- counter_multi_row + 1
+                      counter_multi_col <- counter_multi_col + 1
+                    }
+                  }
+                }
+              } else {
+                #### Module 2: Approximately identical parameters ####
+
+                multi_h <- data.frame(matrix("0",
+                  ncol = ncol(h_representation) + sum(act_rep),
+                  nrow = nrow(h_representation) + 4 * sum(act_rep)
+                ))
+                multi_h[1:nrow(h_representation), 1:ncol(h_representation)] <- h_representation
+
+
+                for (loop_items in 1:length(act_rep)) {
+                  for (loop_rep in 1:act_rep[loop_items]) {
+                    ####** Identical parameter values #####
+
+                    if (act_rep[loop_items] > 0) {
+                      multi_h[counter_multi_row, 1] <- 0
+                      multi_h[counter_multi_row, 2] <- 0
+
+                      multi_h[counter_multi_row, counter_multi_col] <- -1
+
+                      counter_multi_row <- counter_multi_row + 1
+
+
+                      multi_h[counter_multi_row, 1] <- 0
+                      multi_h[counter_multi_row, 2] <- 1
+
+                      multi_h[counter_multi_row, counter_multi_col] <- 1
+
+                      counter_multi_row <- counter_multi_row + 1
+
+                      multi_h[counter_multi_row, 1] <- 0
+                      multi_h[counter_multi_row, 2] <- d2q(input_multi_knob_reactive$value)
+                      multi_h[counter_multi_row, loop_items + 2] <- -1
+                      multi_h[counter_multi_row, counter_multi_col] <- 1
+
+                      counter_multi_row <- counter_multi_row + 1
+
+                      multi_h[counter_multi_row, 1] <- 0
+                      multi_h[counter_multi_row, 2] <- d2q(input_multi_knob_reactive$value)
+                      multi_h[counter_multi_row, loop_items + 2] <- 1
+                      multi_h[counter_multi_row, counter_multi_col] <- -1
+
+                      counter_multi_row <- counter_multi_row + 1
+                      counter_multi_col <- counter_multi_col + 1
+                    }
+                  }
+                }
+              }
+            } else {
+              #### Module 3: Substitutable parameters
+
+              multi_h <- h_representation
+
+              numb_p <- ncol(multi_h) - 2
+
+
+              for (loop_p in 1:numb_p) { #### loop over probabilities
+
+                sel <- ifelse(multi_h[, 2 + loop_p] != "0", 1, 0)
+                sel <- which(sel == 1)
+
+                if (sum(sel) > 0) {
+                  if (act_rep[loop_p] > 0) {
+                    for (loop_rep in 1:act_rep[loop_p]) { ##### loop over repetitions of the item
+
+                      multi_h <- cbind(multi_h, 0)
+                      colnames(multi_h)[ncol(multi_h)] <- paste(colnames(multi_h)[2 + loop_p], "^{Item ", loop_rep + 1, "}", sep = "")
+
+                      for (loop_h in 1:length(sel)) {
+                        multi_h <- rbind(multi_h, 0)
+
+
+                        multi_h[nrow(multi_h), ] <- multi_h[sel[loop_h], ]
+                        multi_h[nrow(multi_h), ncol(multi_h)] <- multi_h[sel[loop_h], loop_p + 2]
+
+                        multi_h[nrow(multi_h), loop_p + 2] <- "0"
+                      }
+                    }
+                  }
+                }
+              }
+
+              colnames(multi_h)[3:(2 + numb_p)] <- paste(colnames(multi_h)[3:(2 + numb_p)], "^{Item 1}", sep = "")
+            }
+
+            colnames_multi_h <- colnames(multi_h)
+
+            multi_h <- matrix(unlist(multi_h), ncol = ncol(multi_h))
+
+            if (sum(multi_h[, 1] == "1") > 0 & sum(multi_h[, 1] == "0") > 0) {
+              mod_multi <- makeH(
+                multi_h[multi_h[, 1] == 0, 3:ncol(multi_h)],
+                multi_h[multi_h[, 1] == 0, 2],
+                multi_h[multi_h[, 1] == 1, 3:ncol(multi_h)],
+                multi_h[multi_h[, 1] == 1, 2]
+              )
+            }
+
+            if (sum(multi_h[, 1] == "1") > 0 & sum(multi_h[, 1] == "0") == 0) {
+              mod_multi <- makeH(
+                a2 = multi_h[multi_h[, 1] == 1, 3:ncol(multi_h)],
+                b2 = multi_h[multi_h[, 1] == 1, 2]
+              )
+            }
+
+            if (sum(multi_h[, 1] == "1") == 0 & sum(multi_h[, 1] == "0") > 0) {
+              mod_multi <- makeH(
+                a1 = multi_h[multi_h[, 1] == 0, 3:ncol(multi_h)],
+                b1 = multi_h[multi_h[, 1] == 0, 2]
+              )
+            }
+
+            if (nrow(mod_multi) > 1) {
+              mod_multi <- redundant(mod_multi)$output
+            }
+
+            names_p_multi <- numeric()
+
+            for (loop_name in 1:length(act_rep)) {
+              if (act_rep[loop_name] > 0) {
+                names_p_multi <- c(names_p_multi, paste(probs_reactive$value[loop_name, 2],
+                  "^{Item ", (1:(max(act_rep) + 1))[2:(act_rep[loop_name] + 1)], "}",
+                  sep = ""
+                ))
               }
             }
+
+
+            names_p_multi <- c("", "", paste(probs_reactive$value[, 2], "{Item 1}", sep = "^"), names_p_multi)
+
+
+            colnames(mod_multi) <- names_p_multi
+
+            h_representation <- mod_multi
           }
-        }
 
-        formula_h_all_reactive$value[loop_numb_models] <- formula_h_all[loop_numb_models]
+          #### Replication ####
 
+          if (model_sel_replication_reactive$value != "None") {
+            names_p <- colnames(h_representation)
 
-        h_representation_reactive$value <- all_h_rep_in_list
+            if (model_sel_replication_reactive$value == "Joint") {
+              h_representation <- repl_of_constraints(h_representation)
+            }
 
-        ####* V-representation ####
+            if (model_sel_replication_reactive$value == "Identical parameter values") {
+              h_representation <- repl_of_probs(h_representation)
+            }
 
-        all_v_rep_in_list <- isolate(v_representation_reactive$value)
-        error_null_inter <- 0
-      }
-
-      if (sum(index_convert_to_v) > 0) {
-        for (loop_numb_models in 1:length(names_models_reactive$value)) {
-          if (((index_convert_to_v[loop_numb_models] == 1 & v_available[loop_numb_models] == 0 & was_input_before[loop_numb_models] == 0) | (index_convert_to_v[loop_numb_models] == 1 & v_available[loop_numb_models] == 1 & was_input_before[loop_numb_models] == 0) | (index_convert_to_v[loop_numb_models] == 1 & v_available[loop_numb_models] == 0 & was_input_before[loop_numb_models] == 1)) & mix_ind[loop_numb_models] == 0) {
-            waiter <- waiter::Waiter$new(
-              html = spin_solar(),
-              fadeout = 1000
-            )
-            waiter$show()
-            on.exit(waiter$hide())
-
-
-
-            current_name <- all_input_models_names[loop_numb_models]
-
-            h_representation <- all_h_rep_in_list[[loop_numb_models]]
-
-            v_representation <- scdd(h_representation)
-
-            v_representation <- matrix(
-              sapply(v_representation$output, function(x) {
-                eval(parse(text = x))
-              }),
-              ncol = ncol(v_representation$output)
-            )
-
-            v_representation_plot <- data.frame(v_representation)
-            v_representation_plot <- v_representation_plot[, 3:ncol(v_representation_plot)]
-
-            if (input$check_name == T) {
-              colnames(v_representation_plot) <- outs$name
-            } else {
-              colnames(v_representation_plot) <- paste("p_", 1:ncol(v_representation_plot),
-                sep =
-                  ""
-              )
+            if (model_sel_replication_reactive$value == "Substitutable parameters") {
+              h_representation <- repl_substitutable_probs(h_representation)
             }
 
 
-            if (nrow(v_representation_plot) > 0) {
-              row.names(v_representation_plot) <- paste("V_",
-                1:nrow(v_representation_plot),
-                "_",
-                current_name,
-                sep = ""
-              )
+            numb_rep <- input_replication_reactive$value[4]
 
-              v_representation_plot <- cbind("model_name" = current_name, v_representation_plot)
-            } else {
-              error_null_inter <- 1
-              shinyalert("Error", paste("Intersection as defined in ", current_name, " has volume = 0. Please change or remove the model.", collapse = ""),
-                type = "error", closeOnClickOutside = T
+            names_p_repl <- names_p[3:length(names_p)]
+
+            names_p_repl_all <- numeric()
+
+            for (loop_rep_name in 1:numb_rep) {
+              names_p_repl_all <- c(
+                names_p_repl_all,
+                paste(substr(names_p_repl, 1, (nchar(names_p_repl) - 1)), ",Replic ", loop_rep_name, "}",
+                  sep = ""
+                )
               )
             }
 
+            colnames(h_representation) <- c("", "", names_p_repl, names_p_repl_all)
 
-
-            all_v_rep_in_list[loop_numb_models] <-
-              list(v_representation_plot)
+            names_p_multi <- colnames(h_representation)
           }
         }
 
-        if (error_null_inter == 0) {
-          v_representation_reactive$value <- all_v_rep_in_list
+        ####* Save h-represenation ####
 
-          ####** create table ####
-
-          if (sum(index_convert_to_v) > 0) {
-            showTab(inputId = "tabs", target = "V-representation")
-            showTab(inputId = "tabs", target = "Plot")
-
-            v_table <- bind_rows(all_v_rep_in_list)
-
-            v_table[, 2:ncol(v_table)] <-
-              as.character(fractions(matrix(
-                ((unlist(v_table[, 2:ncol(v_table)]))
-                ),
-                ncol =
-                  ncol(v_table) - 1
-              )))
-          }
+        if (loop_numb_models < (nrow(mytable_input) + 1)) {
+          h_reactive[[mytable_input[loop_numb_models, 1]]] <- h_representation
+        } else {
+          h_reactive[[mytable_inter[loop_numb_models - nrow(mytable_input), 1]]] <- h_representation
         }
-      } else {
-        hideTab(inputId = "tabs", target = "V-representation")
-        hideTab(inputId = "tabs", target = "Plot")
       }
-    } else {
-      if (sum(input_user_reactive$value == "") > 0) {
-        shinyalert("Error", "Please type in all model specifications.", type = "error", closeOnClickOutside = T)
+
+      waiter$hide()
+
+      ####* create v-matrix if missing
+
+      if (is.null(mytable_v) == T) {
+        matrix_v <- hot_to_r(input$mytable_v)
+
+        if (is.null(matrix_v) == T) {
+          matrix_v <- data.frame(
+            c(mytable_input[, 1], mytable_inter[, 1]),
+            rep(F, n_input_models + n_inter_models)
+          )
+        }
+
+
+        colnames(matrix_v) <- c("Model name", "Include V-representation")
+
+        mytable_v <- matrix_v
       }
-    }
 
-    ####* Mixture ####
+      ####* V-representation of input models and intersection models ####
 
-    for (loop_mix in which(mix_ind == 1)) {
-      if (was_input_before[loop_mix] != 1) {
+      if (is.null(mytable_mix) == FALSE) {
+        v_because_part_of_mixture <-
+          ifelse(colSums(mytable_mix[, 2:ncol(mytable_mix)]) > 0, T, F)
+
+        mytable_v[(1:nrow(mytable_input))[v_because_part_of_mixture == T], 2] <- TRUE
+      }
+
+      #### start v-conversion
+
+      if (sum(mytable_v[, 2]) > 0) {
+        models_picked_for_v_representation <- mytable_v[which(mytable_v[, 2]), 1]
+
         waiter <- waiter::Waiter$new(
-          html = spin_solar(),
           fadeout = 1000
         )
+
         waiter$show()
-        on.exit(waiter$hide())
 
-        updateMaterialSwitch(session, paste0("textin_check_", loop_mix),
-          value = 1
-        )
+        invalid_model <- numeric()
 
-        act_mix <- unlist(mix_input[loop_mix])
+        for (loop_numb_models in 1:length(models_picked_for_v_representation)) {
+          waiter$update((h1(paste("#", loop_numb_models, " of ", length(models_picked_for_v_representation), ": Creating V-representation of ", models_picked_for_v_representation[loop_numb_models], sep = ""))))
 
-        v_as_data_frame <- (do.call(rbind, all_v_rep_in_list[names_models_reactive$value %in% act_mix]))
+          v_rep_actual <- scdd(eval(parse(text = paste("h_reactive$", models_picked_for_v_representation[loop_numb_models], sep = ""))))
+          colnames(v_rep_actual$output) <- names_p_multi
 
-        v_all <- v_as_data_frame[v_as_data_frame[, 1] %in% act_mix, ]
-        v_all <- v_all[, 2:ncol(v_all)]
-        v_all <- v_all[!duplicated(v_all), ]
-        v_all <- matrix(as.numeric(unlist(v_all)), ncol = ncol(v_all))
-
-
-        v_all <- d2q(v_all)
-        mixture_v <- makeV(v_all)
-        dim_mixture <- dim(mixture_v)[1]
-
-        if (dim_mixture > 1) {
-          mixture_v <- redundant(mixture_v)
-        }
-
-        all_v_rep_in_list[loop_mix] <- list(fractions(q2d(mixture_v$output)))
-
-        if (dim_mixture > 1) {
-          mixture_h <- scdd(mixture_v$output)
-          mixture_h <- redundant(mixture_h$output)
-        } else {
-          mixture_h <- scdd(mixture_v)
-        }
-
-        mixture_h <- (mixture_h$output)
-
-        h_representation_pl <- fractions(q2d(mixture_h))
-
-        all_h_rep_in_list[loop_mix] <- list(h_representation_pl)
-
-        h_representation_reactive$value[loop_mix] <- list(mixture_h)
-
-        ####
-
-        if (input$check_name == T) {
-          colnames(h_representation_pl) <- c(
-            "ineq/eq",
-            "right",
-            paste(" \\text{ ", outs$name, " }", sep = "")
-          )
-        } else {
-          colnames(h_representation_pl) <- c(
-            "ineq/eq",
-            "right",
-            paste("p_{", 1:numb_p_reactive$value, "}", sep = "")
-          )
-        }
-
-        begin_eq <- paste(unlist(names_models_reactive$value[loop_mix]), " $$\\begin{eqnarray} ", sep = "")
-        end_eq <- " \\end{eqnarray}$$"
-        equation_all <- paste(begin_eq, latex(h_representation_pl), end_eq,
-          sep = ""
-        )
-
-        formula_h_all[loop_mix] <- unlist(equation_all)
-
-        formula_h_all_reactive$value[loop_mix] <- formula_h_all[loop_mix]
-
-        ####
-
-        all_h_rep_in_list[loop_mix] <- list(mixture_h)
-
-        ####
-
-        if (dim_mixture > 1) {
-          mixture_v <- matrix(
-            sapply(mixture_v$output, function(x) eval(parse(text = x))),
-            ncol = ncol(mixture_v$output)
-          )
-        } else {
-          mixture_v <- matrix(
-            sapply(mixture_v, function(x) eval(parse(text = x))),
-            ncol = ncol(mixture_v)
-          )
-        }
-
-        mixture_v_plot <- data.frame(mixture_v)
-        mixture_v_plot <- mixture_v_plot[, 3:ncol(mixture_v_plot)]
-
-        mixture_v_plot <- (fractions(matrix(unlist(mixture_v_plot), ncol = ncol(mixture_v_plot))))
-
-        mixture_v_plot <- data.frame(unlist(names_models_reactive$value[loop_mix]), mixture_v_plot)
-
-        colnames(mixture_v_plot) <- c("model_name", paste("p_", 1:(ncol(mixture_v_plot) - 1), sep = ""))
-
-
-        all_v_rep_in_list[loop_mix] <- list(mixture_v_plot)
-
-        v_representation_reactive$value[loop_mix] <- list(mixture_v_plot)
-      }
-    }
-
-    ####* Formula H-Representation ####
-
-    if (sum(input_user_reactive$value == "") == 0) {
-      names_p <- numeric()
-
-      for (loop in 1:counter$n) {
-        names_p <- rbind(
-          names_p,
-          c(
-            paste("p_{", loop, "}", sep = ""),
-            eval(parse(
-              text = paste("unlist(AllInputs()$textin_name_", loop, ")", sep = "")
-            ))
-          )
-        )
-      }
-
-      name_model <- numeric()
-
-      for (loop in 1:numb_models) {
-        name_model <- c(
-          name_model,
-          str_replace_all(eval(parse(text = paste("unlist(AllInputs()$textin_relations_name", loop, ")", sep = ""))), fixed(" "), "_")
-        )
-      }
-
-      names_models_reactive$value <- name_model
-
-      formula_h_all <- isolate(formula_h_all_reactive$value)
-      formula_h_all <- paste(formula_h_all, collapse = "")
-
-      if (input$check_name == T) {
-        for (loop_rewrite_formula in 1:nrow(names_p)) {
-          if (names_p[loop_rewrite_formula, 2] != paste("p", loop_rewrite_formula, sep = "")) {
-            formula_h_all <- str_replace_all(
-              formula_h_all,
-              fixed(names_p[loop_rewrite_formula, 1]),
-              names_p[loop_rewrite_formula, 2]
-            )
+          if (nrow(data.frame(v_rep_actual)) == 0) {
+            invalid_model <- c(invalid_model, models_picked_for_v_representation[loop_numb_models])
+          } else {
+            v_reactive[[models_picked_for_v_representation[loop_numb_models]]] <- v_rep_actual
           }
         }
+
+        if (length(invalid_model) > 0) {
+          shinyalert("Warning", paste("The H-description of model(s) ",
+            paste(invalid_model, paste = "", sep = "", collapse = ", "), " is/are invalid. Consequently, the V-representation is/are not generated.",
+            collapse = ""
+          ),
+          type = "error", closeOnClickOutside = T
+          )
+        }
+
+
+        waiter$hide()
+      } else {
+        hideTab(inputId = "tabs", target = "V-representation")
+        hideTab(inputId = "tabs", target = "Plot Polytope(s)")
+        hideTab(inputId = "tabs", target = "Plot extreme cases")
       }
 
-      for (loop_rewrite_formula in 1:length(name_model)) {
-        formula_h_all <- str_replace_all(
-          formula_h_all,
-          fixed(paste("m", loop_rewrite_formula, sep = "")),
-          name_model[loop_rewrite_formula]
+      ####* Mixture ####
+
+      if (is.null(mytable_mix) == F & n_mix_models > 0) {
+        waiter <- waiter::Waiter$new(
+          fadeout = 1000
         )
+
+        waiter$show()
+
+        for (loop_mix in 1:nrow(mytable_mix)) {
+          waiter$update((h1(paste("#", loop_mix, " of ",
+            nrow(mytable_mix),
+            ": Creating V- and H-representation of ",
+            mytable_mix[loop_mix, 1],
+            sep = ""
+          ))))
+
+
+          mix_these_models <- names(mytable_mix)[which(mytable_mix[loop_mix, ] == T)]
+          mixture_v <- numeric()
+
+          for (loop_combine_v in 1:length(mix_these_models)) {
+            mixture_v <- rbind(mixture_v, data.frame(eval(parse(text = paste("v_reactive$", mix_these_models[loop_combine_v], sep = "")))))
+          }
+
+          if (sum(dim(mixture_v)) == 0) {
+            shinyalert("Warning", paste("The H-description of model ",
+              mytable_mix[loop_mix, 1], " is invalid. Consequently, the V-representation is not generated.",
+              collapse = ""
+            ),
+            type = "error", closeOnClickOutside = T
+            )
+          } else {
+            mixture_v <- mixture_v[, 3:ncol(mixture_v)]
+
+            mixture_v <- matrix(q2d(unlist(mixture_v)), ncol = ncol(mixture_v))
+
+            mixture_v <- mixture_v[!duplicated(mixture_v), ]
+
+
+            ####** V mixture ####
+
+            mixture_v <- d2q(mixture_v)
+            mixture_v <- makeV(mixture_v)
+
+            dim_mixture <- dim(mixture_v)[1]
+
+            names_p <- colnames((v_reactive[[names(v_reactive)[1]]])$output)
+
+            colnames(mixture_v) <- names_p
+
+            v_reactive[[mytable_mix[loop_mix, 1]]] <- mixture_v
+
+            ####** H mixture ####
+
+            mixture_h <- scdd(mixture_v)
+
+            if (nrow(mixture_h$output) > 1) {
+              mixture_h <- redundant(mixture_h$output)
+            }
+
+            mixture_h <- (mixture_h$output)
+
+            colnames(mixture_h) <- names_p_multi
+
+            h_reactive[[mytable_mix[loop_mix, 1]]] <- mixture_h
+          }
+        }
+
+        waiter$hide()
       }
 
+      ####* Display Formula H-Representation ####
+
+      equation_all_total <- numeric()
+
+      for (loop_latex in 1:length(names(h_reactive))) {
+        current_name <- names(h_reactive)[loop_latex]
+
+        h_representation_latex <- q2d(h_reactive[[current_name]])
+        h_representation_latex <- fractions(h_representation_latex)
+
+        begin_eq <- paste(current_name, " $$\\begin{eqnarray} ", sep = "")
+        end_eq <- " \\end{eqnarray}$$"
+
+        if (nrow(h_representation_latex) < 91) {
+          equation_all <- paste(begin_eq, latex(h_representation_latex), end_eq,
+            sep = ""
+          )
+        } else {
+          n_equal <- sum(data.frame(h_representation_latex)[, 1] == 1)
+          n_inequal <- sum(data.frame(h_representation_latex)[, 1] == 0)
+
+          equation_all <- paste(begin_eq, "\\text{H-representation consists of ", n_equal, " equalities and ",
+            n_inequal, " inequalities. Models with more than 90 in/equalities are not displayed.}", end_eq,
+            sep = ""
+          )
+        }
+
+        equation_all_total <- c(equation_all_total, equation_all)
+      }
 
       output$h <- renderUI({
         withMathJax(helpText({
-          formula_h_all
+          paste(equation_all_total, collapse = "")
         }))
       })
 
+      equation_all_total_reactive$value <- equation_all_total
+
       ####* Tables V-representation ####
 
-      show_table <- which(index_convert_to_v != 0)
+      show_table <- names(v_reactive)
 
-      if (sum(index_convert_to_v) > 0) {
-        for (loop in show_table) {
-          all_v_rep_in_list[[loop]][, 1] <- name_model[loop]
+      updatePickerInput(session,
+        inputId = "go_example",
+        choices = show_table
+      )
 
-          rownames(all_v_rep_in_list[[loop]]) <-
-            paste("V_", 1:nrow(all_v_rep_in_list[[loop]]), sep = "")
+      if (length(show_table) > 0) {
+        showTab(inputId = "tabs", target = "V-representation")
 
-          if (input$check_name == T) {
-            colnames(all_v_rep_in_list[[loop]]) <-
-              c("model_name", names_p[, 2])
+        counter_table <- 1
+        v_table_list <- list()
+
+        for (loop_table in show_table) {
+          v_table <- data.frame(v_reactive[[loop_table]])
+
+          if (length(v_table) > 0) {
+            v_table <- v_table[, 3:ncol(v_table)]
+            v_table <- cbind(loop_table, v_table)
+
+            rownames(v_table) <-
+              paste("V_", 1:nrow(v_table), sep = "")
+
+            colnames(v_table) <- c("model_name", names_p_multi[3:length(names_p_multi)])
+
+            v_table_list[[counter_table]] <- v_table
           }
+          counter_table <- counter_table + 1
         }
 
-
         output$v_representation_table <- renderUI({
-          lapply(as.list(seq_len(length(all_v_rep_in_list))), function(i) {
+          lapply(as.list(seq_len(length(v_table_list))), function(i) {
             id <- paste0("v_representation_table", i)
             DT::dataTableOutput(id)
           })
         })
 
-
-        for (loop_table in seq_len(length(all_v_rep_in_list))) {
-          if (is.null(all_v_rep_in_list[[loop_table]]) == F) {
+        for (loop_table in seq_len(length(v_table_list))) {
+          if (is.null(v_table_list[[loop_table]]) == F) {
             local({
               id <- paste0("v_representation_table", loop_table)
-              pl_t <- all_v_rep_in_list[[loop_table]]
+              pl_t <- v_table_list[[loop_table]]
               colnames_pl_t <- colnames(pl_t)
-              pl_t <- cbind(pl_t[, 1], (matrix(as.character(fractions(unlist(pl_t[, 2:ncol(pl_t)]))), ncol = ncol(pl_t) - 1)))
+              pl_t <- cbind(pl_t[, 1], matrix(as.character(fractions(q2d(unlist(pl_t[, 2:ncol(pl_t)])))), ncol = ncol(pl_t) - 1))
               colnames(pl_t) <- colnames_pl_t
               colnames(pl_t)[1] <- "Model Name"
               output[[id]] <- DT::renderDataTable(pl_t)
@@ -2650,38 +2692,16 @@ server <- shinyServer(function(input, output, session) {
           }
         }
 
-        ####* Plot ####
-
-        plot_v <- all_v_rep_in_list
-
-        remove_pl <- numeric()
-
-        for (loop_pl in 1:length(plot_v)) {
-          remove_pl <- c(remove_pl, ifelse(is.null(unlist(plot_v[loop_pl])) == T, 1, 0))
-        }
-
-        plot_v <- plot_v[remove_pl == 0]
-        name_model <- name_model[remove_pl == 0]
-
-        for (loop in 1:length(plot_v)) {
-          plot_v[[loop]][, 1] <- name_model[loop]
-        }
-
-        function_plot(plot_v, length(plot_v))
+        function_plot(v_table_list, length(v_table_list))
       }
-
-      ####* Warning ####
-
-      if (alert_mix_v == 1) {
-        shinyalert("Info", "V-representations of models for the mixtures were added.",
-          type = "info", closeOnClickOutside = T
-        )
-      }
+    } else {
+      shinyalert("Error", "Please type in all model specifications.",
+        type = "error", closeOnClickOutside = T
+      )
     }
   })
 
   #### Parsimony ####
-
 
   observeEvent(input$go, {
     input_volume <- isolate(input_volume_reactive)
@@ -2695,9 +2715,7 @@ server <- shinyServer(function(input, output, session) {
         )
       )
 
-
-      all_h_rep_in_list <- isolate(h_representation_reactive$value)
-      model_name <- isolate(names_models_reactive$value)
+      names_h_rep <- names(isolate(h_reactive))
 
       n_rep <- isolate(input$repetitions)
       parsim_rep <- numeric()
@@ -2712,8 +2730,8 @@ server <- shinyServer(function(input, output, session) {
           parsim <- numeric()
           act_dim <- numeric()
 
-          for (loop_parsimony in 1:length(all_h_rep_in_list)) {
-            act_pars <- (all_h_rep_in_list[[loop_parsimony]])
+          for (loop_parsimony in 1:length(names_h_rep)) {
+            act_pars <- (isolate(h_reactive[[names_h_rep[loop_parsimony]]]))
             act_pars <- matrix(as.character(act_pars), ncol = ncol(act_pars))
 
 
@@ -2727,7 +2745,7 @@ server <- shinyServer(function(input, output, session) {
               right_pars <- q2d((act_pars[, 2]))
 
               model_s4 <- new("model_s4",
-                A = left_pars,
+                A = -left_pars,
                 b = right_pars,
                 type = "Hpolytope"
               )
@@ -2943,9 +2961,9 @@ server <- shinyServer(function(input, output, session) {
 
 
           parsim <- data.frame(
-            "Model" = rep(as.factor(model_name), each = 3),
+            "Model" = rep(as.factor(unlist(names_h_rep)), each = 3),
             "Algorithm" = as.factor(rep(
-              c("Cooling Bodies", "Sequence of Balls", "Cooling Gaussian"), length(model_name)
+              c("Cooling Bodies", "Sequence of Balls", "Cooling Gaussian"), length(names_h_rep)
             )),
             "Volume" = parsim,
             "Dimensionality" = rep(act_dim, each = 3)
@@ -2976,9 +2994,14 @@ server <- shinyServer(function(input, output, session) {
         )
 
       parsim_wide_table <- (parsim_wide %>% select(-contains("SD")))
-      parsim_wide_table[3:ncol(parsim_wide_table)] <- round(parsim_wide_table[3:ncol(parsim_wide_table)], 3)
+      parsim_wide_table[3:ncol(parsim_wide_table)] <- (parsim_wide_table[3:ncol(parsim_wide_table)])
 
-      output$parsim_table <- DT::renderDataTable(parsim_wide_table)
+      parsim_wide_table_reactive$value <- parsim_wide_table
+
+      parsim_wide_table_pl <- parsim_wide_table
+      parsim_wide_table_pl[, 3:ncol(parsim_wide_table_pl)] <- round(parsim_wide_table_pl[, 3:ncol(parsim_wide_table_pl)], 2)
+
+      output$parsim_table <- DT::renderDataTable(parsim_wide_table_pl)
 
       output$download_volume <- downloadHandler(
         filename = function() {
@@ -3001,6 +3024,7 @@ server <- shinyServer(function(input, output, session) {
           color = ~Algorithm,
           y = ~Volume,
           type = "bar",
+          colors = c("#009E73", "#E69F00", "#CC79A7"),
           error_y = ~ list(
             array = SD,
             color = "#000000"
@@ -3017,6 +3041,108 @@ server <- shinyServer(function(input, output, session) {
         )
     })
 
+    #### Plot overlap ####
+
+    observeEvent(c(
+      input$height, input$width, parsim_wide_table_reactive$value,
+      input$target_model, input$pick_algorithm
+    ), {
+      if (is.null(parsim_wide_table_reactive$value) == FALSE) {
+        output$plot_inter <- renderPlot(
+          {
+            all_inters <- data.frame(hot_to_r(input$mytable_inter))
+
+            if (nrow(all_inters) > 0) {
+              parsim_wide_table <- data.frame(parsim_wide_table_reactive$value)
+
+              target_model <- input$target_model
+
+
+              model_names_inter <- all_inters$model.name
+              model_names <- colnames(all_inters)[2:ncol(all_inters)]
+
+              updatePickerInput(
+                session,
+                inputId = "target_model",
+                choices = model_names,
+                selected = input$target_model
+              )
+              parsim_wide_table <- as_tibble(parsim_wide_table)
+
+              available_algorithms <- colnames(parsim_wide_table %>% select(contains("Volume")))
+
+              updatePickerInput(
+                session,
+                inputId = "pick_algorithm",
+                choices = available_algorithms,
+                selected = input$pick_algorithm
+              )
+
+
+              profile_inter <- all_inters[all_inters[, colnames(all_inters) == target_model], ]
+
+              select_inter <- model_names_inter[all_inters[, colnames(all_inters) == target_model]]
+
+
+              pick <- which(unlist(parsim_wide_table[, 1]) %in% select_inter)
+              parsim_wide_table_sel <- parsim_wide_table[pick, ]
+
+              pick <- match(select_inter, unlist(parsim_wide_table[, 1]))
+              select_inter <- parsim_wide_table[pick, ]
+
+              target_volume <- parsim_wide_table[parsim_wide_table[, 1] == target_model, which(colnames(parsim_wide_table) == input$pick_algorithm)]
+
+              select_inter <- select_inter[, 3]
+
+              select_inter <- cbind(select_inter, profile_inter[, 2:ncol(profile_inter)])
+              order_res <- order(select_inter[, 1], decreasing = T)
+
+              select_inter <- select_inter[order_res, ]
+
+              select_inter <- select_inter[select_inter[, 1] != 0, ]
+
+              select_inter[, 1] <- select_inter[, 1] / unlist(target_volume)
+              select_inter[, 1] <- ifelse(select_inter[, 1] > 1, 1, select_inter[, 1])
+              select_inter[, 1] <- select_inter[, 1] * 100
+
+              y_coord <- seq(-10, -45, length.out = ncol(select_inter) - 1)
+
+              if (nrow(select_inter) > 0) {
+                plot(select_inter[, 1],
+                  ylim = c(-50, 110), xlim = c(-1, nrow(select_inter) + 1),
+                  ylab = "Percentage of overlap", xlab = "Profile", pch = 16, cex = 2.5, axes = F,
+                  main = paste("Overlap with target model ", target_model, sep = ""),
+                  col = "blue"
+                )
+
+                for (loop_pl in 1:(nrow(select_inter))) {
+                  pch_16 <- ifelse(select_inter[loop_pl, 2:ncol(select_inter)], 16, 1)
+
+                  points(rep(loop_pl, ncol(select_inter) - 1), y_coord, pch = pch_16, cex = 3)
+
+                  text(loop_pl, (select_inter[loop_pl, 1]) + 8, paste(round(select_inter[loop_pl, 1]), "%", sep = ""))
+                }
+
+                abline(h = 0)
+                axis(2, seq(0, 100, 20), paste(seq(0, 100, 20), "%", sep = ""))
+
+                text(rep(0, ncol(select_inter) - 1), y_coord, colnames(select_inter)[2:ncol(select_inter)])
+              } else {
+                plot(1, 1, axes = F, type = "n", xlab = "", ylab = "")
+                text(1, 1.05, "All intersections", cex = 2)
+                text(1, 1, paste("with model", target_model), cex = 2)
+                text(1, .95, "have a volume of zero.", cex = 2)
+              }
+            }
+          },
+          height = (input$height),
+          width = (input$width)
+        )
+      }
+    })
+
+
+    #### Parsimony output ####
 
 
     output$parsimony_spinner_table <- renderUI({
@@ -3050,13 +3176,21 @@ server <- shinyServer(function(input, output, session) {
       on.exit(setwd(owd))
       files <- NULL
 
-
       all_h_rep_in_matrix <- numeric()
 
-      for (loop_qtest_h in 1:length(h_representation_reactive$value)) {
+      numb_models <- length(names(h_reactive))
+
+      for (loop_qtest_h in 1:numb_models) {
+        add_repl_mod <- data.frame(
+          isolate(names(h_reactive)[loop_qtest_h]),
+          isolate(h_reactive[[names(h_reactive)[loop_qtest_h]]])
+        )
+
+        colnames(add_repl_mod) <- rep("", ncol(add_repl_mod))
+
         all_h_rep_in_matrix <- rbind(
           all_h_rep_in_matrix,
-          data.frame(isolate(names_models_reactive$value[loop_qtest_h]), isolate(h_representation_reactive$value[[loop_qtest_h]]))
+          add_repl_mod
         )
       }
 
@@ -3166,11 +3300,11 @@ server <- shinyServer(function(input, output, session) {
       on.exit(setwd(owd))
       files <- NULL
 
-      names_models <- names_models_reactive$value
-      v_representation_reactive$value
+      names_models <- names(v_reactive)
+      all_v <- v_reactive
 
-      for (loop_v_qtest in 1:length(v_representation_reactive$value)) {
-        csv_file <- v_representation_reactive$value[[loop_v_qtest]]
+      for (loop_v_qtest in 1:length(names_models)) {
+        csv_file <- data.frame(all_v[[names(v_reactive)[loop_v_qtest]]])
 
         if (is.null(csv_file) == F) {
           csv_file <- csv_file[, 2:ncol(csv_file)]
@@ -3231,10 +3365,10 @@ server <- shinyServer(function(input, output, session) {
       footer_latex <- ("
 \\end{document}")
 
-      formula_h_all <- unlist(formula_h_all_reactive$value)
-      formula_h_all <- paste(formula_h_all, collapse = "")
+      equation_all_total <- unlist(equation_all_total_reactive$value)
+      equation_all_total <- paste(equation_all_total, collapse = "")
 
-      formula_h_all_download <- str_replace_all(formula_h_all, "eqnarray", "align*")
+      formula_h_all_download <- str_replace_all(equation_all_total, "eqnarray", "align*")
       formula_h_all_download <- str_replace_all(formula_h_all_download, "\\$", "")
 
       formula_h_all_download <- paste(header_latex,
@@ -3253,16 +3387,620 @@ server <- shinyServer(function(input, output, session) {
     }
   )
 
-  ##### Options Volume #####
+  ##### Settings for Approximate Equalities ####
+
+  observeEvent(input$show_approx_erros, {
+    matrix_approx <- mytable_approx_reactive$value
+
+    name_models <- numeric()
+
+    for (loop_save in 1:counter_input$n) {
+      name_models <- c(name_models, eval(parse(text = paste("AllInputs()$textin_relations_name", loop_save, sep = ""))))
+    }
+
+    if (is.null(matrix_approx) == T | length(mytable_approx_reactive$value) == 0) {
+      matrix_approx <- data.frame(name_models, rep(0, counter_input$n))
+    }
+
+    if (nrow(matrix_approx) < counter_input$n) {
+      matrix_approx <- data.frame(
+        name_models,
+        c(matrix_approx[, 2], rep(0, counter_input$n - nrow(matrix_approx)))
+      )
+    }
+
+    if (nrow(matrix_approx) > counter_input$n) {
+      matrix_approx <- matrix_approx[1:counter_input$n, ]
+    }
+
+    colnames(matrix_approx) <- c("Models", "Approximate parameter value")
+
+    dont_freeze <- numeric()
+
+    for (loop_approx in 1:counter_input$n) {
+      dont_freeze <- c(
+        dont_freeze,
+        ifelse(grepl("=", AllInputs()[[paste0("textin_relations_complete_", loop_approx)]]), 1, 0)
+      )
+    }
+
+    output$mytable_approx <- renderRHandsontable({
+      rhandsontable(matrix_approx, rowHeaders = F, height = 200, stretchH = "all") %>%
+        hot_row(which(dont_freeze != 1), readOnly = TRUE) %>%
+        hot_col("Models", readOnly = TRUE) %>%
+        hot_col("Approximate parameter value", type = "numeric", halign = "htCenter", format = "0") %>%
+        hot_validate_numeric(col = "Approximate parameter value", min = 0, max = 1, allowInvalid = TRUE) %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+
+
+    showModal(modalDialog(
+      h3("Settings for approximate equalities"),
+      helpText(HTML("<i>Parameter values can be made approximately identical by changing the value from zero. For example, .05 means... <br> ... p1 = .5 will be set to p1 ≤  .55 and p1 ≥ .45, <br> ...  p1 = 1 will be set to p1 ≤ 1 and p1 ≥ .95,  <br> ... p1 = p2 will be set to p1 - p2 ≤ .05 and  - p1 + p2 ≤  .05, <br> ... p1 = p2 = .5 will be set to p1 - p2 ≤ .05,  - p1 + p2 ≤  .05, p2 ≤ .55, and p2 ≥  .45.</i>")),
+      hr(),
+      rHandsontableOutput("mytable_approx"),
+      footer = tagList(
+        actionBttn("submit_approx_equal", "Submit", style = "material-flat", color = "primary", size = "xs")
+      ),
+      easyClose = FALSE,
+      fade = T
+    ))
+  })
+
+  observeEvent(input$submit_approx_equal, {
+    removeModal()
+    n <- counter_input$n
+
+    mytable_approx_reactive$value <- hot_to_r(input$mytable_approx)
+  })
+
+  ##### Settings for Replication ####
+
+  observeEvent(input$show_replication, {
+    input_replication <- isolate(input_replication_reactive)
+    n_input_models <- (counter_input$n)
+
+
+    showModal(modalDialog(
+      h3("Settings for replication"),
+      hr(),
+      radioGroupButtons(
+        inputId = "rep_sel",
+        label = "Indicate the type of replication model",
+        choices = c("None", "Joint", "Identical parameter values", "Substitutable parameters"),
+        selected = model_sel_replication_reactive$value,
+        status = "primary",
+        checkIcon = list(
+          yes = icon("ok",
+            lib = "glyphicon"
+          ),
+          no = icon("remove",
+            lib = "glyphicon"
+          )
+        )
+      ),
+      conditionalPanel(
+        condition = "input.rep_sel=='Identical parameter values'",
+        numericInput("knob_replication",
+          "Approximately identical parameter values",
+          value = input_replication_knob_reactive$value[1],
+          min = 0,
+          max = 1,
+          step = .01
+        ),
+        (withMathJax(helpText(("Parameter values can be made approximately identical by changing the value from zero. For example, .05 means \\(p_{1,1} = p_{1,2}\\)  will be set to \\(p_{1,1} - p_{1,2}   ≤  .05\\) and \\(p_{1,1}  - p_{1,2} ≥ -.05\\), with \\(0 ≤ p_{1,1}  ≤ 1\\) and \\(0 ≤ p_{1,2} ≤ 1\\)."))))
+      ),
+      conditionalPanel(
+        condition = "input.rep_sel=='Identical parameter values' | input.rep_sel=='Joint'| input.rep_sel=='Substitutable parameters'",
+        hr(),
+        numericInput("number_labs",
+          "Number of replications",
+          value = input_replication$value[4],
+          min = 1,
+          step = 1
+        )
+      ),
+      footer = tagList(
+        actionBttn("submit_replication", "Submit", style = "material-flat", color = "primary", size = "xs")
+      ),
+      easyClose = FALSE,
+      fade = T
+    ))
+  })
+
+
+  observeEvent(input$submit_replication, {
+    removeModal()
+
+    input_replication_reactive$value[4] <- input$number_labs
+
+
+    model_sel_replication_reactive$value <- input$rep_sel
+    input_replication_knob_reactive$value[1] <- (input$knob_replication) # isolate?
+
+    if (input$rep_sel == "Joint") {
+      updateActionButton(session, "show_replication", label = paste("Replication: Joint, n = ", input$number_labs, sep = ""))
+    }
+
+    if (input$rep_sel == "Identical parameter values") {
+      if (input_replication_knob_reactive$value[1] > 0) {
+        updateActionButton(session, "show_replication", label = paste("Replication: AIPV, n = ", input$number_labs, sep = ""))
+      } else {
+        updateActionButton(session, "show_replication", label = paste("Replication: IPV, n = ", input$number_labs, sep = ""))
+      }
+    }
+
+    if (input$rep_sel == "Substitutable parameters") {
+      updateActionButton(session, "show_replication", label = paste("Replication: SP, n = ", input$number_labs, sep = ""))
+    }
+
+    if (input$rep_sel == "None") {
+      updateActionButton(session, "show_replication", label = "Replication")
+    }
+  })
+
+  ##### Settings for Intersections ####
+
+  observeEvent(input$show_inter, {
+    matrix_inter <- mytable_inter_reactive$value
+
+
+
+    if (is.null(matrix_inter) == T) {
+      matrix_inter <- data.frame("inters1", t(rep(F, counter_input$n)))
+    }
+
+    if (ncol(matrix_inter) < (counter_input$n + 1)) {
+      diff_col <- 1 + counter_input$n - ncol(matrix_inter)
+
+
+      for (loop in 1:diff_col) {
+        matrix_inter <- cbind(matrix_inter, F)
+      }
+    }
+
+    if (ncol(matrix_inter) > (counter_input$n + 1)) {
+      matrix_inter <- matrix_inter[, 1:(1 + counter_input$n)]
+    }
+
+    colnames(matrix_inter) <- c("model name", eval(parse(text = paste("c(", paste("AllInputs()[", "'textin_relations_name", 1:counter_input$n, "']", sep = "", collapse = ","), ")"))))
+
+    count_all_inter_total <- 0
+
+    for (loop_c in 2:counter_input$n) {
+      count_all_inter_total <- count_all_inter_total +
+        factorial(counter_input$n) /
+          (factorial(counter_input$n - loop_c) * factorial(loop_c))
+    }
+
+    output$mytable_inter <- renderRHandsontable({
+      rhandsontable(matrix_inter, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+
+    showModal(modalDialog(
+      h3("Settings for intersection model(s)"),
+      hr(),
+      helpText("Each row represents an intersection model, each column represents a single model. Indicate the models you wish to intersect by checking the corresponding boxes (i.e., at least two models per row). You can directly edit the names of the intersection models in the table."),
+      hr(),
+      rHandsontableOutput("mytable_inter"),
+      footer = tagList(
+        actionBttn("delete_row_inter", "Delete last inters. model", style = "material-flat", color = "default", size = "xs"),
+        actionBttn("add_row_inter", "Add inters. model", style = "material-flat", color = "primary", size = "xs"),
+        actionBttn("remove_inter", "Remove inters. models", style = "material-flat", color = "default", size = "xs"),
+        actionBttn("add_all_inter", paste("Include all", count_all_inter_total, "inters. models", sep = " "), style = "material-flat", color = "primary", size = "xs"),
+        actionBttn("submit_inter", "Submit", style = "material-flat", color = "primary", size = "xs"),
+      ),
+      easyClose = FALSE,
+      fade = T,
+      size = "l"
+    ))
+  })
+
+  observeEvent(input$add_row_inter, {
+    matrix_inter <- hot_to_r(input$mytable_inter)
+
+    add_matrix_inter <- data.frame(paste("inters", nrow(matrix_inter) + 1, sep = ""), t(rep(F, counter_input$n)))
+    add_matrix_inter <- data.frame(add_matrix_inter)
+    colnames(add_matrix_inter) <- colnames(matrix_inter)
+    rownames(add_matrix_inter) <- nrow(matrix_inter) + 1
+
+
+    matrix_inter <- rbind(matrix_inter, add_matrix_inter)
+
+    output$mytable_inter <- renderRHandsontable({
+      rhandsontable(matrix_inter, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$delete_row_inter, {
+    matrix_inter <- hot_to_r(input$mytable_inter)
+
+    if (nrow(matrix_inter) > 1) {
+      matrix_inter <- matrix_inter[1:(nrow(matrix_inter) - 1), ]
+    } else {
+      matrix_inter[1, 2:ncol(matrix_inter)] <- FALSE
+      matrix_inter[1, 1] <- "inters1"
+    }
+
+
+    output$mytable_inter <- renderRHandsontable({
+      rhandsontable(matrix_inter, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$remove_inter, {
+    matrix_inter <- hot_to_r(input$mytable_inter)
+
+    matrix_inter <- matrix_inter[1, ]
+    matrix_inter[, 2:ncol(matrix_inter)] <- F
+    matrix_inter[1, 1] <- "inters1"
+
+    output$mytable_inter <- renderRHandsontable({
+      rhandsontable(matrix_inter, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$add_all_inter, {
+    combn_index <- list()
+    n_inter <- 0
+
+    for (loop_combn in 2:counter_input$n) {
+      combn_index[[loop_combn - 1]] <- eval(parse(text = paste("combn(1:counter_input$n,", loop_combn, ")")))
+      n_inter <- n_inter + ncol(combn_index[[loop_combn - 1]])
+    }
+
+    value_actual <- matrix(0, nrow = counter_input$n, ncol = n_inter)
+    counter <- 1
+
+    for (loop_list_element in 1:length(combn_index)) {
+      subset <- combn_index[[loop_list_element]]
+
+      for (loop_subset in 1:ncol(subset)) {
+        value_actual[subset[, loop_subset], counter] <- 1
+        counter <- counter + 1
+      }
+    }
+
+    value_actual <- t(value_actual)
+    matrix_inter <- hot_to_r(input$mytable_inter)
+    names_inter <- apply(value_actual, 1, paste, collapse = "")
+
+    value_actual <- ifelse(value_actual == 1, T, F)
+
+    value_actual <- cbind(data.frame(paste("inters", names_inter, sep = "")), value_actual)
+
+    colnames(value_actual) <- colnames(matrix_inter)
+
+    matrix_inter <- value_actual
+
+    output$mytable_inter <- renderRHandsontable({
+      rhandsontable(
+
+        matrix_inter,
+        rowHeaders = F, height = 400, stretchH = "all"
+      ) %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$submit_inter, {
+    removeModal()
+
+    matrix_inter <- hot_to_r(input$mytable_inter)
+
+
+    n_total_inter <- sum(rowSums(matrix_inter[, 2:ncol(matrix_inter)]) > 0)
+
+    if (n_total_inter > 0) {
+      updateActionButton(session, "show_inter",
+        label = paste("Intersection(s), n = ", n_total_inter, sep = "")
+      )
+    } else {
+      updateActionButton(session, "show_inter",
+        label = "Intersection model(s)"
+      )
+    }
+
+    mytable_inter_reactive$value <- hot_to_r(input$mytable_inter)
+  })
+
+  ##### Settings for Mixtures ####
+
+  observeEvent(input$show_mix, {
+    count_all_inter$n
+
+    matrix_mix <- mytable_mix_reactive$value
+
+    if (is.null(matrix_mix) == T) {
+      matrix_mix <- data.frame("mixture1", t(rep(F, counter_input$n)))
+    }
+
+    if (ncol(matrix_mix) < (counter_input$n + 1)) {
+      diff_col <- 1 + counter_input$n - ncol(matrix_mix)
+
+
+      for (loop in 1:diff_col) {
+        matrix_mix <- cbind(matrix_mix, F)
+      }
+    }
+
+    if (ncol(matrix_mix) > (counter_input$n + 1)) {
+      matrix_mix <- matrix_mix[, 1:(1 + counter_input$n)]
+    }
+
+    colnames(matrix_mix) <- c("model name", eval(parse(text = paste("c(", paste("AllInputs()[", "'textin_relations_name", 1:counter_input$n, "']", sep = "", collapse = ","), ")"))))
+
+
+    output$mytable_mix <- renderRHandsontable({
+      rhandsontable(matrix_mix, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+
+    showModal(modalDialog(
+      h3("Settings for mixture model(s)"),
+      hr(),
+      helpText("Each row represents an mixture model, each column represents a single model. Indicate the models you wish to mix by checking the corresponding boxes (i.e., at least two models per row). You can directly edit the names of the mixture models in the table. Mixture models require V-representations of the single models which can be computationally expensive for higher dimensions (i.e., more probabilities)."),
+      hr(),
+      rHandsontableOutput("mytable_mix"),
+      footer = tagList(
+        actionBttn("delete_row_mix", "Delete last mixture model", style = "material-flat", color = "default", size = "xs"),
+        actionBttn("add_row_mix", "Add mixture model", style = "material-flat", color = "primary", size = "xs"),
+        actionBttn("remove_mix", "Remove mixture models", style = "material-flat", color = "default", size = "xs"),
+        actionBttn("submit_mix", "Submit", style = "material-flat", color = "primary", size = "xs"),
+      ),
+      easyClose = FALSE,
+      fade = T,
+      size = "l"
+    ))
+  })
+
+  observeEvent(input$add_row_mix, {
+    matrix_mixture <- hot_to_r(input$mytable_mix)
+
+    add_matrix_mixture <- data.frame(paste("mixture", nrow(matrix_mixture) + 1, sep = ""), t(rep(F, counter_input$n)))
+    add_matrix_mixture <- data.frame(add_matrix_mixture)
+    colnames(add_matrix_mixture) <- colnames(matrix_mixture)
+    rownames(add_matrix_mixture) <- nrow(matrix_mixture) + 1
+
+
+    matrix_mixture <- rbind(matrix_mixture, add_matrix_mixture)
+
+    output$mytable_mix <- renderRHandsontable({
+      rhandsontable(matrix_mixture, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$delete_row_mix, {
+    matrix_mixture <- hot_to_r(input$mytable_mix)
+
+    if (nrow(matrix_mixture) > 1) {
+      matrix_mixture <- matrix_mixture[1:(nrow(matrix_mixture) - 1), ]
+    } else {
+      matrix_mixture[1, 2:ncol(matrix_mixture)] <- FALSE
+      matrix_mixture[1, 1] <- "mixture1"
+    }
+
+
+    output$mytable_mix <- renderRHandsontable({
+      rhandsontable(
+
+        matrix_mixture,
+        rowHeaders = F, height = 400, stretchH = "all"
+      ) %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$remove_mix, {
+    matrix_mixture <- hot_to_r(input$mytable_mix)
+
+    matrix_mixture <- matrix_mixture[1, ]
+    matrix_mixture[, 2:ncol(matrix_mixture)] <- F
+    matrix_mixture[1, 1] <- "mixture1"
+
+    output$mytable_mix <- renderRHandsontable({
+      rhandsontable(matrix_mixture, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_cols(halign = "htCenter") %>%
+        hot_col("model name", halign = "htLeft") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+
+  observeEvent(input$submit_mix, {
+    removeModal()
+
+    matrix_mix <- hot_to_r(input$mytable_mix)
+    n_total_mix <- sum(rowSums(matrix_mix[, 2:ncol(matrix_mix)]) > 0)
+
+    if (n_total_mix > 0) {
+      updateActionButton(session, "show_mix",
+        label = paste("Mixture(s), n = ", n_total_mix, sep = "")
+      )
+    } else {
+      updateActionButton(session, "show_mix",
+        label = "Mixture model(s)"
+      )
+    }
+
+    mytable_mix_reactive$value <- hot_to_r(input$mytable_mix)
+  })
+
+
+  ##### Settings for V-representation ####
+
+  observeEvent(input$show_v_rep, {
+    n_input_models <- (counter_input$n)
+    inter_models <- mytable_inter_reactive$value
+    n_inter_models <- nrow(mytable_inter_reactive$value)
+    n_inter_models <- ifelse(is.null(n_inter_models) == T, 0, n_inter_models)
+
+    matrix_v <- mytable_v_reactive$value
+
+    if (is.null(matrix_v) == T) {
+      matrix_v <- data.frame(
+        c(unlist(eval(parse(text = paste("c(", paste("AllInputs()[", "'textin_relations_name", 1:counter_input$n, "']", sep = "", collapse = ","), ")")))), inter_models[, 1]),
+        rep(F, n_input_models + n_inter_models)
+      )
+    }
+
+    if ((nrow(matrix_v) != n_input_models + n_inter_models)) {
+      matrix_v <- data.frame(
+        c(unlist(eval(parse(text = paste("c(", paste("AllInputs()[", "'textin_relations_name", 1:counter_input$n, "']", sep = "", collapse = ","), ")")))), inter_models[, 1]),
+        rep(F, n_input_models + n_inter_models)
+      )
+    }
+
+
+    colnames(matrix_v) <- c("Model name", "Include V-representation")
+
+    if (is.null(v_reactive) == F) {
+      matrix_v[matrix_v[, 1] %in% names(v_reactive), 2] <- TRUE
+    }
+
+    output$mytable_v <- renderRHandsontable({
+      rhandsontable(matrix_v, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_col("Model name", readOnly = TRUE) %>%
+        hot_col("Include V-representation", halign = "htCenter") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+
+    showModal(modalDialog(
+      h3("Settings for V-representation(s)"),
+      hr(),
+      helpText("Specify the models for which you want to build a V-representation by selecting the appropriate checkbox."),
+      hr(),
+      rHandsontableOutput("mytable_v"),
+      footer = tagList(
+        actionBttn("remove_all_V", "Remove all V-representations", style = "material-flat", color = "default", size = "xs"),
+        actionBttn("check_all_V", paste("Include all", n_input_models + n_inter_models, "V-representations"), style = "material-flat", color = "primary", size = "xs"),
+        actionBttn("submit_v_repr", "Submit", style = "material-flat", color = "primary", size = "xs")
+      ),
+      easyClose = FALSE,
+      fade = T
+    ))
+  })
+
+  observeEvent(input$check_all_V, {
+    matrix_v <- hot_to_r(input$mytable_v)
+
+    matrix_v[, 2] <- T
+
+    output$mytable_v <- renderRHandsontable({
+      rhandsontable(matrix_v, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_col("Model name", readOnly = TRUE) %>%
+        hot_col("Include V-representation", halign = "htCenter") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$remove_all_V, {
+    matrix_v <- hot_to_r(input$mytable_v)
+
+    matrix_v[, 2] <- F
+
+    output$mytable_v <- renderRHandsontable({
+      rhandsontable(matrix_v, rowHeaders = F, height = 400, stretchH = "all") %>%
+        hot_col("Model name", readOnly = TRUE) %>%
+        hot_col("Include V-representation", halign = "htCenter") %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+  })
+
+  observeEvent(input$submit_v_repr, {
+    matrix_v <- hot_to_r(input$mytable_v)
+    n_total_v <- sum(matrix_v[, 2])
+
+
+    if (n_total_v > 0) {
+      updateActionButton(session, "show_v_rep",
+        label = paste("V-representation(s), n = ", n_total_v, sep = "")
+      )
+    } else {
+      updateActionButton(session, "show_v_rep",
+        label = "V-representation(s)"
+      )
+    }
+
+
+
+    mytable_v_reactive$value <- hot_to_r(input$mytable_v)
+  })
+
+  ##### Settings for Volume #####
 
   observeEvent(input$show, {
     input_volume <- isolate(input_volume_reactive)
 
     showModal(modalDialog(
-      helpText("Consult the description of the settings of the function 'volume' in the", tags$a(href = "https://cran.r-project.org/web/packages/volesti/volesti.pdf", "manual", target = "_blank"), "of the package 'volesti' for details."),
+      helpText(
+        "Consult the description of the settings of the function 'volume' in the",
+        tags$a(href = "https://cran.r-project.org/web/packages/volesti/volesti.pdf", "manual", target = "_blank"),
+        "of the package 'volesti' for details."
+      ),
       tags$h3("Settings for 'Cooling Bodies'"),
       textInput("error_cb", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[1]),
-      selectInput("random_walk_cb", "Random walk method",
+      pickerInput("random_walk_cb", "Random walk method",
         choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk", "Billiard Walk"),
         selected = input_volume$value[2]
       ),
@@ -3274,7 +4012,7 @@ server <- shinyServer(function(input, output, session) {
         "The length of the sliding window",
         value = input_volume$value[4]
       ),
-      selectInput("hpoly_cb", "A boolean parameter to use H-polytopes in MMC when the input polytope is a zonotope",
+      pickerInput("hpoly_cb", "A boolean parameter to use H-polytopes in MMC when the input polytope is a zonotope",
         choices = c("default", "TRUE", "FALSE"),
         selected = input_volume$value[5]
       ),
@@ -3284,7 +4022,7 @@ server <- shinyServer(function(input, output, session) {
       ),
       tags$h3("Settings for 'Sequence of Balls'"),
       textInput("error_sob", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[7]),
-      selectInput("random_walk_sob", "Random walk method",
+      pickerInput("random_walk_sob", "Random walk method",
         choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk", "Billiard Walk"),
         selected = input_volume$value[8]
       ),
@@ -3298,7 +4036,7 @@ server <- shinyServer(function(input, output, session) {
       ),
       tags$h3("Settings for 'Cooling Gaussian'"),
       textInput("error_cg", "A numeric value to set the upper bound for the approximation error", value = input_volume$value[11]),
-      selectInput("random_walk_cg", "Random walk method",
+      pickerInput("random_walk_cg", "Random walk method",
         choices = c("default", "Coordinate Directions Hit-and-Run", "Random Directions Hit-and-Run", "Ball Walk"),
         selected = input_volume$value[12]
       ),
@@ -3315,10 +4053,10 @@ server <- shinyServer(function(input, output, session) {
         value = input_volume$value[15]
       ),
       footer = tagList(
-        actionButton("submit", "Submit"),
-        modalButton("Dismiss")
+        actionBttn("submit", "Submit", style = "material-flat", color = "primary", size = "xs")
       ),
-      easyClose = TRUE
+      easyClose = TRUE,
+      fade = T
     ))
   })
 
@@ -3344,16 +4082,431 @@ server <- shinyServer(function(input, output, session) {
     input_volume_reactive$value[15] <- isolate(input$seed_cg)
   })
 
+  ##### Settings for Multiple Items #####
+
+  observeEvent(input$show_mult_items, {
+    names_input <- names(AllInputs())
+
+    names_p <- names_input %>%
+      str_subset(pattern = "textin_name_")
+
+    name_p_all <- NULL
+
+    for (loop_p in 1:counter$n) {
+      name_p_all <- c(name_p_all, unlist(AllInputs()[names_p[loop_p]]))
+    }
+
+    matrix_multiple <- mytable_multiple_reactive$value
+
+    if (is.null(matrix_multiple) == T) {
+      matrix_multiple <- data.frame(name_p_all, rep(1, counter$n))
+    } else {
+      matrix_multiple_update <- data.frame(matrix(NA, ncol = 2, nrow = counter$n))
+
+      matrix_multiple_update[, 1] <- name_p_all
+
+      if (nrow(matrix_multiple) > counter$n) {
+        matrix_multiple_update[, 2] <- matrix_multiple[1:counter$n, 2]
+      } else {
+        matrix_multiple_update[, 2] <- c(matrix_multiple[, 2], rep(1, counter$n - nrow(matrix_multiple)))
+      }
+
+      matrix_multiple <- matrix_multiple_update
+    }
+
+    matrix_multiple[, 2] <- round(matrix_multiple[, 2])
+
+    colnames(matrix_multiple) <- c("Parameter name", "Repetitions")
+
+    output$mytable_multiple <- renderRHandsontable({
+      rhandsontable(matrix_multiple, rowHeaders = F, height = 200, stretchH = "all") %>%
+        hot_col("Parameter name", readOnly = TRUE) %>%
+        hot_col("Repetitions", type = "numeric", halign = "htCenter", format = "0") %>%
+        hot_validate_numeric(col = "Repetitions", min = 0, allowInvalid = TRUE) %>%
+        hot_context_menu(
+          allowRowEdit = F,
+          allowColEdit = F
+        )
+    })
+
+    showModal(modalDialog(
+      useShinyjs(),
+      h3("Settings for multiple items"),
+      radioGroupButtons(
+        inputId = "multisel",
+        label = "Indicate the type of model",
+        choices = c("None", "Identical parameter values", "Substitutable parameters"),
+        selected = model_sel_multiple_reactive$value,
+        status = "primary",
+        checkIcon = list(
+          yes = icon("ok",
+            lib = "glyphicon"
+          ),
+          no = icon("remove",
+            lib = "glyphicon"
+          )
+        )
+      ),
+      conditionalPanel(
+        condition = "input.multisel=='Identical parameter values'",
+        numericInput("knob_multi",
+          "Approximately identical parameter values",
+          value = input_multi_knob_reactive$value,
+          min = 0,
+          max = 1,
+          step = .01
+        ),
+        withMathJax(helpText(("Parameter values can be made approximately identical by changing the value from zero. For example, .05 means \\(p_{1,1} = p_{1,2}\\)  will be set to \\(p_{1,1} - p_{1,2}   ≤  .05\\) and \\(p_{1,1}  - p_{1,2} ≥ -.05\\), with \\(0 ≤ p_{1,1}  ≤ 1\\) and \\(0 ≤ p_{1,2} ≤ 1\\).")))
+      ),
+      conditionalPanel(
+        condition = "input.multisel=='Identical parameter values' | input.multisel=='Substitutable parameters'",
+        hr(),
+        helpText("Indicate the number of repetitions per item (i.e., a positive integer or zero)."),
+        rHandsontableOutput("mytable_multiple"),
+      ),
+      footer = tagList(
+        actionBttn("submit_multi", "Submit", style = "material-flat", color = "primary", size = "xs")
+      ),
+      easyClose = FALSE,
+      fade = TRUE
+    ))
+  })
+
+  observeEvent(input$submit_multi, {
+    removeModal()
+
+    model_sel_multiple_reactive$value <- input$multisel
+
+    input_multi_knob_reactive$value <- input$knob_multi
+
+
+    matrix_multiple <- hot_to_r(input$mytable_multiple)
+    n_tot_rep <- sum(matrix_multiple[, 2])
+
+    if (input$multisel == "Identical parameter values") {
+      if (input$knob_multi > 0) {
+        updateActionButton(session, "show_mult_items",
+          label = paste("Multiple Items: AIPV, n = ", n_tot_rep, sep = "")
+        )
+      } else {
+        updateActionButton(session, "show_mult_items",
+          label = paste("Multiple Items: IPV, n = ", n_tot_rep, sep = "")
+        )
+      }
+    }
+
+    if (input$multisel == "Substitutable parameters") {
+      updateActionButton(session, "show_mult_items",
+        label = paste("Multiple Items: SP, n = ", n_tot_rep, sep = "")
+      )
+    }
+
+    if (input$multisel == "None") {
+      updateActionButton(session, "show_mult_items", label = "Multiple Items")
+    }
+
+    mytable_multiple_reactive$value <- hot_to_r(input$mytable_multiple)
+  })
+
+
+  ##### Function Replication #####
+
+  ####* Replication substitutable probs ####
+
+  repl_substitutable_probs <- function(model) {
+    h_extr <- data.frame(model)
+
+    h_extr_left <- h_extr[, 3:ncol(h_extr)]
+    h_extr_left <- matrix(unlist(h_extr_left), ncol = ncol(h_extr_left))
+
+    h_extr_right <- h_extr[, 1:2]
+    h_extr_right <- matrix(unlist(h_extr_right), ncol = ncol(h_extr_right))
+
+    numb_repl <- input_replication_reactive$value[4] + 1
+
+    numb_p <- ncol(h_extr_left)
+
+    string_eval <- numeric()
+
+    for (loop_string_eval in 1:numb_p) {
+      string_eval <- c(string_eval, paste("seq(", loop_string_eval,
+        ",numb_p*numb_repl,numb_p)",
+        sep = ""
+      ))
+    }
+
+    string_eval <- paste("expand.grid(",
+      paste(string_eval, collapse = ","), ")",
+      sep = ""
+    )
+
+    string_eval <- eval(parse(text = string_eval))
+
+    mod_repl <- matrix("0",
+      ncol = numb_p * numb_repl + 2,
+      nrow = nrow(string_eval) * nrow(h_extr_right)
+    )
+
+    mod_repl[, 1] <- h_extr_right[, 1]
+    mod_repl[, 2] <- h_extr_right[, 2]
+
+    for (loop_string in 1:nrow(string_eval)) {
+      mod_repl[
+        1:nrow(h_extr_right) + ((loop_string - 1) * nrow(h_extr_right)),
+        2 + unlist(string_eval[loop_string, ])
+      ] <-
+        h_extr_left
+    }
+
+    mod_repl <-
+      rbind(
+        mod_repl,
+        cbind(0, c(rep(0, numb_p * numb_repl), rep(1, numb_p * numb_repl)), rbind(diag(1, ncol(mod_repl) - 2), diag(-1, ncol(mod_repl) - 2)))
+      )
+
+    model_repl <- mod_repl[duplicated(mod_repl) == FALSE, ]
+    model_repl[, 3:ncol(model_repl)] <- d2q(q2d(model_repl[, 3:ncol(model_repl)]) * -1)
+
+    if (sum(model_repl[, 1] == "1") > 0 & sum(model_repl[, 1] == "0") > 0) {
+      mod_rep <- makeH(
+        model_repl[model_repl[, 1] == 0, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 0, 2],
+        model_repl[model_repl[, 1] == 1, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 1, 2]
+      )
+    }
+
+    if (sum(model_repl[, 1] == "1") > 0 & sum(model_repl[, 1] == "0") == 0) {
+      mod_rep <- makeH(
+        a2 = model_repl[model_repl[, 1] == 1, 3:ncol(model_repl)],
+        b2 = model_repl[model_repl[, 1] == 1, 2]
+      )
+    }
+
+    if (sum(model_repl[, 1] == "1") == 0 & sum(model_repl[, 1] == "0") > 0) {
+      mod_rep <- makeH(
+        a1 = model_repl[model_repl[, 1] == 0, 3:ncol(model_repl)],
+        b1 = model_repl[model_repl[, 1] == 0, 2]
+      )
+    }
+
+    if (nrow(mod_rep) > 1) {
+      mod_rep <- redundant(mod_rep)$output
+    }
+
+    return(mod_rep)
+  }
+
+  ####* replication of identical probabilities ####
+
+  repl_of_probs <- function(model) {
+    h_extr <- data.frame(model)
+
+    h_extr_left <- h_extr[, 3:ncol(h_extr)]
+    h_extr_left <- matrix(unlist(h_extr_left), ncol = ncol(h_extr_left))
+
+    h_extr_right <- h_extr[, 1:2]
+    h_extr_right <- matrix(unlist(h_extr_right), ncol = ncol(h_extr_right))
+
+    numb_repl <- input_replication_reactive$value[4] + 1
+
+    model_repl <- matrix("0", ncol = numb_repl * ncol(h_extr_left) + 2, nrow = nrow(h_extr_left) + (numb_repl - 1) * ncol(h_extr_left))
+
+    model_repl[1:nrow(h_extr_right), 1:2] <- h_extr_right
+
+    model_repl[1:nrow(h_extr_left), 3:(ncol(h_extr_left) + 2)] <- h_extr_left
+
+    model_repl[(nrow(h_extr_left) + 1):nrow(model_repl), 1] <- 1
+
+    model_repl[(nrow(h_extr_left) + 1):nrow(model_repl), 3:ncol(model_repl)] <-
+      cbind(
+        do.call(rbind, replicate(numb_repl - 1, diag(1, ncol(h_extr_left)), simplify = FALSE)),
+        -diag(1, (numb_repl - 1) * ncol(h_extr_left))
+      )
+
+    #### new knob
+
+    subset_change_approximate <- model_repl[(nrow(h_extr_left) + 1):nrow(model_repl), ]
+
+    new_subset <- numeric()
+
+    knob_replication <- input_replication_knob_reactive$value
+
+    if (knob_replication > 0) {
+      for (loop_change in 1:nrow(subset_change_approximate)) {
+        actual <- rbind(
+          subset_change_approximate[loop_change, ],
+          subset_change_approximate[loop_change, ]
+        )
+
+        actual[1, 2] <- d2q(-knob_replication)
+        actual[2, 2] <- d2q(knob_replication)
+
+        actual[1, ] <- d2q(q2d(actual[1, ]) * -1)
+
+        actual[, 1] <- "0"
+
+        new_subset <- rbind(new_subset, actual)
+      }
+
+
+      model_repl <- rbind(model_repl[1:nrow(h_extr_left), ], new_subset)
+    }
+
+
+    ####
+
+
+    model_repl[, 3:ncol(model_repl)] <- d2q(q2d(model_repl[, 3:ncol(model_repl)]) * -1)
+
+    model_repl <- rbind(
+      model_repl,
+      rbind(
+        rbind(cbind(0, 0, diag(-1, ncol(model_repl) - 2))),
+        rbind(cbind(0, 1, diag(1, ncol(model_repl) - 2)))
+      )
+    )
+
+    ####
+
+    if (sum(model_repl[, 1] == "1") > 0 & sum(model_repl[, 1] == "0") > 0) {
+      mod_rep <- makeH(
+        model_repl[model_repl[, 1] == 0, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 0, 2],
+        model_repl[model_repl[, 1] == 1, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 1, 2]
+      )
+    }
+
+    if (sum(model_repl[, 1] == "1") > 0 & sum(model_repl[, 1] == "0") == 0) {
+      mod_rep <- makeH(
+        a2 = model_repl[model_repl[, 1] == 1, 3:ncol(model_repl)],
+        b2 = model_repl[model_repl[, 1] == 1, 2]
+      )
+    }
+
+    if (sum(model_repl[, 1] == "1") == 0 & sum(model_repl[, 1] == "0") > 0) {
+      mod_rep <- makeH(
+        model_repl[model_repl[, 1] == 0, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 0, 2]
+      )
+    }
+
+    if (nrow(mod_rep) > 1) {
+      mod_rep <- redundant(mod_rep)$output
+    }
+
+    return(mod_rep)
+  }
+
+  ####* Replication of constraints ####
+
+  repl_of_constraints <- function(model) {
+    h_extr <- data.frame(model)
+
+    h_extr_left <- h_extr[, 3:ncol(h_extr)]
+    h_extr_left <- matrix(unlist(h_extr_left), ncol = ncol(h_extr_left))
+
+    h_extr_right <- h_extr[, 1:2]
+    h_extr_right <- matrix(unlist(h_extr_right), ncol = ncol(h_extr_right))
+
+    numb_repl <- input_replication_reactive$value[4] + 1
+
+    model_repl <- matrix("0", ncol = numb_repl * ncol(h_extr_left) + 2, nrow = numb_repl * nrow(h_extr_right))
+
+    model_repl[, 1] <- h_extr_right[, 1]
+    model_repl[, 2] <- h_extr_right[, 2]
+
+
+    for (loop_repl in 1:numb_repl) {
+      model_repl[
+        (1:nrow(h_extr_right)) + ((loop_repl - 1) * nrow(h_extr_left)),
+        (3:(2 + ncol(h_extr_left))) + ((loop_repl - 1) * ncol(h_extr_left))
+      ] <- h_extr_left
+    }
+
+    model_repl[, 3:ncol(model_repl)] <- d2q(q2d(model_repl[, 3:ncol(model_repl)]) * -1)
+
+
+    if (sum(model_repl[, 1] == "1") > 0 & sum(model_repl[, 1] == "0") > 0) {
+      mod_rep <- makeH(
+        model_repl[model_repl[, 1] == 0, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 0, 2],
+        model_repl[model_repl[, 1] == 1, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 1, 2]
+      )
+    }
+
+    if (sum(model_repl[, 1] == "1") > 0 & sum(model_repl[, 1] == "0") == 0) {
+      mod_rep <- makeH(
+        a2 = model_repl[model_repl[, 1] == 1, 3:ncol(model_repl)],
+        b2 = model_repl[model_repl[, 1] == 1, 2]
+      )
+    }
+
+    if (sum(model_repl[, 1] == "1") == 0 & sum(model_repl[, 1] == "0") > 0) {
+      mod_rep <- makeH(
+        model_repl[model_repl[, 1] == 0, 3:ncol(model_repl)],
+        model_repl[model_repl[, 1] == 0, 2]
+      )
+    }
+
+    if (nrow(mod_rep) > 1) {
+      mod_rep <- redundant(mod_rep)$output
+    }
+
+    return(mod_rep)
+  }
+
   #### Future Study ###
 
   observeEvent(input$show_future, {
     input_volume <- isolate(input_volume_reactive)
-
+    test <- 1
     showModal(modalDialog(
 
-      helpText("We might add additional options here in the future. For now, you can click 'Dismiss'."),
-      easyClose = TRUE
+      helpText("We might add additional options here in the future."),
+      footer = tagList(),
+      easyClose = TRUE,
+      fade = T
     ))
+  })
+
+  #### Plot examples ####
+
+  observeEvent(input$go_example, {
+    output$plot_example <- renderPlotly({
+      select_v <- input$go_example
+
+      select_v <- ifelse(select_v == "NA", names(v_reactive)[1], select_v)
+
+      v_rep_pl <- (v_reactive[[select_v]]$output)
+
+      parameter_names <- colnames(v_rep_pl)[3:ncol(v_rep_pl)]
+
+      v_rep_pl <- data.frame(
+        rep(parameter_names, nrow(v_rep_pl)),
+        as.numeric(v_rep_pl[, 3:ncol(v_rep_pl)]),
+        rep(1:nrow(v_rep_pl),
+          each =
+            length(parameter_names)
+        )
+      )
+
+      colnames(v_rep_pl) <- c("parameter_names", "parameters", "vert_no")
+
+      p <- ggplot(v_rep_pl, aes(parameter_names, parameters)) +
+        geom_point(aes(frame = vert_no), size = 4) +
+        xlab("Parameters") +
+        ylab("Parameter Values") +
+        scale_y_continuous(breaks = (seq(0, 1, by = 0.1)))
+
+      p <- ggplotly(p, height = 600) %>% animation_opts(transition = 0)
+      p <- p %>%
+        animation_slider(
+          currentvalue = list(prefix = "Vertex ")
+        )
+    })
   })
 })
 

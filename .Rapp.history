@@ -26,6 +26,29 @@ matrix(fractions((unlist(all_v_plot[,2:4]))),ncol=3)
 data.frame(fractions((unlist(all_v_plot[,2:4]))),ncol=3)
 fractions((unlist(all_v_plot[,2:4])))
 matrix(fractions((unlist(all_v_plot[,2:4]))),3)
-matrix(fractions((unlist(all_v_plot[,2:4]))),3)
 matrix(fractions((unlist(all_v_plot[,2:4]))),ncol=3)
 fractions(matrix(((unlist(all_v_plot[,2:4]))),ncol=3))
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/mix_2_4_inter_chan.RData")
+objects()
+v_r
+dim(v_r)
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/repl_m2_identical_probs.RData")
+objecs()
+objects()
+v_r
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/m_2_r.RData")
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/mix_repl_v.RData")
+objects()
+tt
+tt*2
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/mix_repl_v.RData")
+objects()
+mix_repl_v
+q2d(mix_repl_v)
+d2q(mix_repl_v)
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/v_rep.RData")
+objects()
+m4
+m9
+load("/Users/mjekel/Dropbox/working memory/mpi/projects/qtest shiny app + tutorial/shiny_gui/gui_qtest/gui_qtest/h_m1.RData")
+m1
