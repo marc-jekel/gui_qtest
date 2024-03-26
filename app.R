@@ -2169,10 +2169,22 @@ server <- shinyServer(function(input, output, session) {
       waiter$show()
 
       for (loop_numb_models in 1:numb_models_to_convert) {
+        
+        
+        if (loop_numb_models < (nrow(mytable_input) + 1)) {
+          
+          name_m <- mytable_input[loop_numb_models, 1]
+          
+        }else{
+          
+          name_m <- mytable_inter[loop_numb_models - nrow(mytable_input), 1]
+          
+        }
+
         if (loop_numb_models < (nrow(mytable_input) + 1)) {
           extract_info(mytable_input[loop_numb_models, 2], loop_numb_models)
 
-          name_m <- mytable_input[loop_numb_models, 1]
+          
 
           waiter$update((h1(paste("#", loop_numb_models, " of ", numb_models_to_convert, ": Creating H-representation of ", name_m, sep = ""))))
 
@@ -2211,7 +2223,7 @@ server <- shinyServer(function(input, output, session) {
 
           names_p_multi <- c("", "", probs[, 2])
         } else {
-          name_m <- mytable_inter[loop_numb_models - nrow(mytable_input), 1]
+          
 
           waiter$update((h1(paste("#", loop_numb_models, " of ", numb_models_to_convert, ": Creating H-representation of ", name_m, sep = ""))))
 
