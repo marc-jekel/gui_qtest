@@ -3265,7 +3265,7 @@ server <- shinyServer(function(input, output, session) {
     filename = function() {
       paste("input_models_",
             str_replace_all(Sys.Date(), "-", "_"),
-            ".zip",
+            ".tar",
             sep = ""
       )
     },
@@ -3325,7 +3325,8 @@ server <- shinyServer(function(input, output, session) {
         files <- c(fileName, files)
       }
       
-      zip::zip(file, files)
+      #zip::zip(file, files)
+      tar(file, files)
     }
     
     
@@ -3338,7 +3339,7 @@ server <- shinyServer(function(input, output, session) {
     filename = function() {
       paste("h_representation_",
             str_replace_all(Sys.Date(), "-", "_"),
-            ".zip",
+            ".tar",
             sep = ""
       )
     },
@@ -3451,7 +3452,8 @@ server <- shinyServer(function(input, output, session) {
         files <- c(fileName, files)
       }
       
-      zip::zip(file, files)
+      #zip::zip(file, files)
+      tar(file, files)
     }
   )
   
@@ -3462,7 +3464,7 @@ server <- shinyServer(function(input, output, session) {
     filename = function() {
       paste("v_representation_",
             str_replace_all(Sys.Date(), "-", "_"),
-            ".zip",
+            ".tar",
             sep = ""
       )
     },
@@ -3510,7 +3512,8 @@ server <- shinyServer(function(input, output, session) {
         }
       }
       
-      zip::zip(file, files)
+      #zip::zip(file, files)
+      tar(file, files)
     }
   )
   
